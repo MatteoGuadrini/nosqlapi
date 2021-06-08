@@ -20,7 +20,21 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# region Classes
+# region imports
+from abc import ABC, abstractmethod
 
+
+# endregion
+
+# region Classes
+class Connection(ABC):
+
+    @abstractmethod
+    def close(self):
+        pass
+
+    @abstractmethod
+    def connect(self):
+        pass
 
 # endregion
