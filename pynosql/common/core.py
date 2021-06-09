@@ -31,10 +31,26 @@ class Connection(ABC):
 
     @abstractmethod
     def close(self):
+        """Delete this object
+
+        :return: None
+        """
         pass
 
     @abstractmethod
     def connect(self):
+        """Connect database server
+
+        :return: Database object
+        """
+        pass
+
+    @abstractmethod
+    def create_database(self):
+        """Create new database on server
+
+        :return: None
+        """
         pass
 
 # endregion
