@@ -55,6 +55,14 @@ class Connection(ABC):
         pass
 
     @abstractmethod
+    def has_database(self):
+        """Check if database exists on server
+
+        :return: bool
+        """
+        pass
+
+    @abstractmethod
     def databases(self):
         """Get all databases
 
