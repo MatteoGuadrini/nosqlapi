@@ -63,6 +63,14 @@ class Connection(ABC):
         pass
 
     @abstractmethod
+    def delete_database(self):
+        """Delete database on server
+
+        :return: None
+        """
+        pass
+
+    @abstractmethod
     def databases(self):
         """Get all databases
 
