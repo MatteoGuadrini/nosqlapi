@@ -90,4 +90,12 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def insert(self):
+        """Insert one value
+
+        :return: None
+        """
+        pass
+
 # endregion
