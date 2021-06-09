@@ -28,6 +28,7 @@ from abc import ABC, abstractmethod
 
 # region Classes
 class Connection(ABC):
+    """Connection abstract class"""
 
     @abstractmethod
     def close(self):
@@ -41,7 +42,7 @@ class Connection(ABC):
     def connect(self):
         """Connect database server
 
-        :return: Database object
+        :return: Session object
         """
         pass
 
@@ -50,6 +51,14 @@ class Connection(ABC):
         """Create new database on server
 
         :return: None
+        """
+        pass
+
+    @abstractmethod
+    def databases(self):
+        """Get all databases
+
+        :return: list
         """
         pass
 
