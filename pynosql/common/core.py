@@ -122,4 +122,12 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def delete(self):
+        """Delete one value
+
+        :return: None
+        """
+        pass
+
 # endregion
