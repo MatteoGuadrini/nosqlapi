@@ -21,3 +21,5 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Python NOSQL Database library."""
+
+apilevel = '1.0'
