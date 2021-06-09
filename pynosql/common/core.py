@@ -98,4 +98,12 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def insert_many(self):
+        """Insert one or more value
+
+        :return: None
+        """
+        pass
+
 # endregion
