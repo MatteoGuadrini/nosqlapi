@@ -28,7 +28,7 @@ from abc import ABC, abstractmethod
 
 # region Classes
 class Connection(ABC):
-    """Connection abstract class"""
+    """Server connection abstract class"""
 
     @abstractmethod
     def close(self):
@@ -75,6 +75,18 @@ class Connection(ABC):
         """Get all databases
 
         :return: list
+        """
+        pass
+
+
+class Session(ABC):
+    """Server session abstract class"""
+
+    @abstractmethod
+    def get(self):
+        """Get one or more value
+
+        :return: dict
         """
         pass
 
