@@ -114,4 +114,12 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def update_many(self):
+        """Update one or more value
+
+        :return: None
+        """
+        pass
+
 # endregion
