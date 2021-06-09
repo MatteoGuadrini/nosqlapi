@@ -106,4 +106,12 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def update(self):
+        """Update one value
+
+        :return: None
+        """
+        pass
+
 # endregion
