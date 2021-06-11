@@ -82,6 +82,10 @@ class Connection(ABC):
 class Session(ABC):
     """Server session abstract class"""
 
+    def __init__(self):
+        self._item_count = 0
+        self._description = ()
+
     @abstractmethod
     def get(self):
         """Get one or more value
