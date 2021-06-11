@@ -90,6 +90,10 @@ class Session(ABC):
     def item_count(self):
         return self._item_count
 
+    @property
+    def description(self):
+        return self._description
+
     @abstractmethod
     def get(self):
         """Get one or more value
