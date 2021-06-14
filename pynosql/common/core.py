@@ -185,4 +185,12 @@ class Selector(ABC):
     def partition(self, value):
         self._partition = value
 
+    @property
+    def condition(self):
+        return self._condition
+
+    @condition.setter
+    def condition(self, value):
+        self._condition = value
+
 # endregion
