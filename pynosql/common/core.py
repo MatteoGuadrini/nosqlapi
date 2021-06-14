@@ -150,4 +150,16 @@ class Session(ABC):
         """
         pass
 
+
+class Selector(ABC):
+    """Selector class"""
+
+    def __init__(self):
+        self._selector = dict()
+        self._fields = list()
+        self._partition = None
+        self._condition = None
+        self._order = None
+        self._limit = None
+
 # endregion
