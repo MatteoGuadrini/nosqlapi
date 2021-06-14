@@ -177,4 +177,12 @@ class Selector(ABC):
         else:
             raise ValueError('fields must be a list object')
 
+    @property
+    def partition(self):
+        return self._partition
+
+    @partition.setter
+    def partition(self, value):
+        self._partition = value
+
 # endregion
