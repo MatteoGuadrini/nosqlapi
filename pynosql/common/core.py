@@ -201,4 +201,12 @@ class Selector(ABC):
     def order(self, value):
         self._order = value
 
+    @property
+    def limit(self):
+        return self._limit
+
+    @limit.setter
+    def limit(self, value):
+        self._limit = value
+
 # endregion
