@@ -156,10 +156,25 @@ class Selector(ABC):
 
     def __init__(self):
         self._selector = dict()
-        self._fields = list()
+        self._fields = None
         self._partition = None
         self._condition = None
         self._order = None
         self._limit = None
+
+    @property
+    def selector(self):
+        return self._selector
+
+    @property
+    def fields(self):
+        return self._fields
+
+    @fields.setter
+    def fields(self, value: list):
+        if isinstance(value, list):
+            self._fields = value
+        else:
+            raise ValueError('fields must be a list object')
 
 # endregion
