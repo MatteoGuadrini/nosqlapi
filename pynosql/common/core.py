@@ -193,4 +193,12 @@ class Selector(ABC):
     def condition(self, value):
         self._condition = value
 
+    @property
+    def order(self):
+        return self._order
+
+    @order.setter
+    def order(self, value):
+        self._order = value
+
 # endregion
