@@ -79,6 +79,73 @@ class Connection(ABC):
         pass
 
 
+class Selector(ABC):
+    """Selector class"""
+
+    def __init__(self):
+        self._selector = dict()
+        self._fields = None
+        self._partition = None
+        self._condition = None
+        self._order = None
+        self._limit = None
+
+    @property
+    def selector(self):
+        return self._selector
+
+    @property
+    def fields(self):
+        return self._fields
+
+    @fields.setter
+    def fields(self, value: list):
+        if isinstance(value, list):
+            self._fields = value
+        else:
+            raise ValueError('fields must be a list object')
+
+    @property
+    def partition(self):
+        return self._partition
+
+    @partition.setter
+    def partition(self, value):
+        self._partition = value
+
+    @property
+    def condition(self):
+        return self._condition
+
+    @condition.setter
+    def condition(self, value):
+        self._condition = value
+
+    @property
+    def order(self):
+        return self._order
+
+    @order.setter
+    def order(self, value):
+        self._order = value
+
+    @property
+    def limit(self):
+        return self._limit
+
+    @limit.setter
+    def limit(self, value):
+        self._limit = value
+
+    @abstractmethod
+    def build(self):
+        """Build string query selector
+
+        :return: string
+        """
+        pass
+
+
 class Session(ABC):
     """Server session abstract class"""
 
@@ -150,71 +217,13 @@ class Session(ABC):
         """
         pass
 
-
-class Selector(ABC):
-    """Selector class"""
-
-    def __init__(self):
-        self._selector = dict()
-        self._fields = None
-        self._partition = None
-        self._condition = None
-        self._order = None
-        self._limit = None
-
-    @property
-    def selector(self):
-        return self._selector
-
-    @property
-    def fields(self):
-        return self._fields
-
-    @fields.setter
-    def fields(self, value: list):
-        if isinstance(value, list):
-            self._fields = value
-        else:
-            raise ValueError('fields must be a list object')
-
-    @property
-    def partition(self):
-        return self._partition
-
-    @partition.setter
-    def partition(self, value):
-        self._partition = value
-
-    @property
-    def condition(self):
-        return self._condition
-
-    @condition.setter
-    def condition(self, value):
-        self._condition = value
-
-    @property
-    def order(self):
-        return self._order
-
-    @order.setter
-    def order(self, value):
-        self._order = value
-
-    @property
-    def limit(self):
-        return self._limit
-
-    @limit.setter
-    def limit(self, value):
-        self._limit = value
-
     @abstractmethod
-    def build(self):
-        """Build string query selector
+    def find(self, selector: Selector):
+        """Find data
 
-        :return: string
+        :return: Any
         """
         pass
+
 
 # endregion
