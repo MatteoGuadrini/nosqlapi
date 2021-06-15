@@ -209,4 +209,12 @@ class Selector(ABC):
     def limit(self, value):
         self._limit = value
 
+    @abstractmethod
+    def build(self):
+        """Build string query selector
+
+        :return: string
+        """
+        pass
+
 # endregion
