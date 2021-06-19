@@ -249,5 +249,13 @@ class Response(ABC):
     def code(self, value):
         self._code = value
 
+    @property
+    def header(self):
+        return self._header
+
+    @header.setter
+    def header(self, value):
+        self._header = value
+
 
 # endregion
