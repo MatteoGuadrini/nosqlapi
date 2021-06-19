@@ -226,4 +226,20 @@ class Session(ABC):
         pass
 
 
+class Response(ABC):
+
+    def __init__(self):
+        self._data = None
+        self._code = 0
+        self._header = None
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value
+
+
 # endregion
