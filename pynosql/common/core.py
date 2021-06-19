@@ -241,5 +241,13 @@ class Response(ABC):
     def data(self, value):
         self._data = value
 
+    @property
+    def code(self):
+        return self._code
+
+    @code.setter
+    def code(self, value):
+        self._code = value
+
 
 # endregion
