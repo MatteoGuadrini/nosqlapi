@@ -39,3 +39,16 @@ class ConnectError(Error):
 
 class CloseError(ConnectError):
     pass
+
+
+# Database error
+class DatabaseError(Error):
+    pass
+
+
+class DatabaseCreationError(DatabaseError):
+    pass
+
+
+class DatabaseDeletionError(DatabaseError):
+    pass
