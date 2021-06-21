@@ -27,5 +27,5 @@ class Error(Exception):
     pass
 
 
-class Warning(Exception):
+class UnknownError(Error):
     pass
