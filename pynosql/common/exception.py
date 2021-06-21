@@ -77,3 +77,8 @@ class SessionClosingError(SessionError):
 
 class SessionFindingError(SessionError):
     pass
+
+
+# Other error
+class SelectorAttributeError(Error):
+    pass
