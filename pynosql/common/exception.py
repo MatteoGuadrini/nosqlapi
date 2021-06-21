@@ -52,3 +52,28 @@ class DatabaseCreationError(DatabaseError):
 
 class DatabaseDeletionError(DatabaseError):
     pass
+
+
+# Session error
+class SessionError(Error):
+    pass
+
+
+class SessionInsertingError(SessionError):
+    pass
+
+
+class SessionUpdatingError(SessionError):
+    pass
+
+
+class SessionDeletingError(SessionError):
+    pass
+
+
+class SessionClosingError(SessionError):
+    pass
+
+
+class SessionFindingError(SessionError):
+    pass
