@@ -23,9 +23,19 @@
 """Exception module for NOSQL databases."""
 
 
+# Generic error
 class Error(Exception):
     pass
 
 
 class UnknownError(Error):
+    pass
+
+
+# Connection error
+class ConnectError(Error):
+    pass
+
+
+class CloseError(ConnectError):
     pass
