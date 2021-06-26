@@ -22,6 +22,7 @@
 
 # region imports
 from abc import ABC, abstractmethod
+from .exception import *
 
 
 # endregion
@@ -103,7 +104,7 @@ class Selector(ABC):
         if isinstance(value, list):
             self._fields = value
         else:
-            raise ValueError('fields must be a list object')
+            raise SelectorAttributeError('fields must be a list object')
 
     @property
     def partition(self):
