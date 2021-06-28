@@ -229,34 +229,22 @@ class Session(ABC):
 
 class Response(ABC):
 
-    def __init__(self):
-        self._data = None
-        self._code = 0
-        self._header = None
+    def __init__(self, data, code, header):
+        self._data = data
+        self._code = code
+        self._header = header
 
     @property
     def data(self):
         return self._data
 
-    @data.setter
-    def data(self, value):
-        self._data = value
-
     @property
     def code(self):
         return self._code
 
-    @code.setter
-    def code(self, value):
-        self._code = value
-
     @property
     def header(self):
         return self._header
-
-    @header.setter
-    def header(self, value):
-        self._header = value
 
 
 # endregion
