@@ -21,11 +21,34 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Client module for key-value NOSQL database."""
-from abc import ABC
-from ..common.core import Connection
+from abc import ABC, abstractmethod
+from ..common.core import Connection, Selector
 
 
 class KVConnection(Connection, ABC):
     """Key-value NOSQL database Connection class"""
 
     pass
+
+
+class KVSelector(Selector, ABC):
+    """Key-value NOSQL database Selector class"""
+
+    @abstractmethod
+    def first_greater_or_equal(self, key):
+        pass
+
+    @abstractmethod
+    def first_greater_than(self, key):
+        pass
+
+    @abstractmethod
+    def last_less_or_equal(self, key):
+        pass
+
+    @abstractmethod
+    def last_less_than(self, key):
+        pass
+
+    def __str__(self):
+        return f"selector: {self.selector}, fields: {self.fields}"
