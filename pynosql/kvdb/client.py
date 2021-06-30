@@ -22,7 +22,7 @@
 
 """Client module for key-value NOSQL database."""
 from abc import ABC, abstractmethod
-from ..common.core import Connection, Selector
+from ..common.core import Connection, Selector, Session
 
 
 class KVConnection(Connection, ABC):
@@ -52,3 +52,9 @@ class KVSelector(Selector, ABC):
 
     def __str__(self):
         return f"selector: {self.selector}, fields: {self.fields}"
+
+
+class KVSession(Session, ABC):
+    """Key-value NOSQL database Session class"""
+
+    pass
