@@ -21,3 +21,5 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Package key-value NOSQL database."""
+
+from client import KVConnection, KVSelector, KVSession, KVResponse

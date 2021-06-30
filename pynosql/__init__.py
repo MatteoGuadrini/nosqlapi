@@ -22,4 +22,6 @@
 
 """Python NOSQL Database library."""
 
+from kvdb import KVConnection, KVSelector, KVSession, KVResponse
+
 apilevel = '1.0'

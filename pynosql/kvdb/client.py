@@ -24,6 +24,8 @@
 from abc import ABC, abstractmethod
 from ..common.core import Connection, Selector, Session, Response
 
+__all__ = ['KVConnection', 'KVSelector', 'KVSession', 'KVResponse']
+
 
 class KVConnection(Connection, ABC):
     """Key-value NOSQL database Connection class"""
