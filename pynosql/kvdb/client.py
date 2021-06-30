@@ -22,7 +22,7 @@
 
 """Client module for key-value NOSQL database."""
 from abc import ABC, abstractmethod
-from ..common.core import Connection, Selector, Session
+from ..common.core import Connection, Selector, Session, Response
 
 
 class KVConnection(Connection, ABC):
@@ -56,5 +56,11 @@ class KVSelector(Selector, ABC):
 
 class KVSession(Session, ABC):
     """Key-value NOSQL database Session class"""
+
+    pass
+
+
+class KVResponse(Response, ABC):
+    """Key-value NOSQL database Response class"""
 
     pass
