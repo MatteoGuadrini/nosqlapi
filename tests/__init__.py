@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# __init__.py -- pynosql
+# __init__.py -- pynosql/tests
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #

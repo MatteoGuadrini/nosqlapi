@@ -22,4 +22,4 @@
 
 """Package key-value NOSQL database."""
 
-from client import KVConnection, KVSelector, KVSession, KVResponse
+from pynosql.kvdb.client import KVConnection, KVSelector, KVSession, KVResponse

@@ -48,7 +48,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def create_database(self):
+    def create_database(self, *args, **kwargs):
         """Create new database on server
 
         :return: None
@@ -56,7 +56,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def has_database(self):
+    def has_database(self, *args, **kwargs):
         """Check if database exists on server
 
         :return: bool
@@ -64,7 +64,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def delete_database(self):
+    def delete_database(self, *args, **kwargs):
         """Delete database on server
 
         :return: None
