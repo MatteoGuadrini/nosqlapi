@@ -38,7 +38,7 @@ class KVConnectionTest(unittest.TestCase):
                 self.t.recv = mock.MagicMock(return_value='DB_CREATED')
                 self._return_data = self.t.recv(2048)
                 if self.return_data != 'DB_CREATED':
-                    raise DatabaseCreationError(f'Database creation error: {self.return_data.decode()}')
+                    raise DatabaseCreationError(f'Database creation error: {self.return_data}')
             else:
                 raise ConnectError(f"Server isn't connected")
 
@@ -56,11 +56,15 @@ class KVConnectionTest(unittest.TestCase):
                 raise ConnectError(f"Server isn't connected")
 
         def delete_database(self, name):
-            self.connection.send(f"DELETE_DB='{name}'".encode())
-            while len(self.connection.recv(2048)) > 0:
-                self._return_data.append(self.connection.recv(2048))
-            if self.return_data.decode() != 'DB_DELETED':
-                raise DatabaseDeletionError(f'Database deletion error: {self.return_data.decode()}')
+            if self.connection:
+                self.connection.send(f"DELETE_DB='{name}'".encode())
+                # while len(self.t.recv(2048)) > 0:
+                self.t.recv = mock.MagicMock(return_value='DB_DELETED')
+                self._return_data = self.t.recv(2048)
+                if self.return_data != 'DB_DELETED':
+                    raise DatabaseDeletionError(f'Database deletion error: {self.return_data}')
+            else:
+                raise ConnectError(f"Server isn't connected")
 
         def databases(self):
             self.connection.send(f"GET_ALL_DBS".encode())
@@ -100,6 +104,16 @@ class KVConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
+
+    def test_kvdb_delete_database(self):
+        myconn = self.MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.delete_database('test_db')
+        self.assertEqual(myconn.return_data, 'DB_DELETED')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
 
 if __name__ == '__main__':
