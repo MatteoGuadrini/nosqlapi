@@ -12,6 +12,10 @@ class KVConnectionTest(unittest.TestCase):
         t.send = mock.MagicMock()
         t.close = mock.MagicMock()
 
+        def __bool__(self):
+            if self.return_data:
+                return True
+
         def close(self):
             self.connection.close()
             self.connection = None
@@ -67,11 +71,16 @@ class KVConnectionTest(unittest.TestCase):
                 raise ConnectError(f"Server isn't connected")
 
         def databases(self):
-            self.connection.send(f"GET_ALL_DBS".encode())
-            while len(self.connection.recv(2048)) > 0:
-                self._return_data.append(self.connection.recv(2048))
-            if self.return_data.decode() != 'OK_PACKET':
-                raise DatabaseError(f'Request error: {self.return_data.decode()}')
+            if self.connection:
+                self.connection.send(f"GET_ALL_DBS")
+                # while len(self.t.recv(2048)) > 0:
+                self.t.recv = mock.MagicMock(return_value='test_db db1 db2')
+                self._return_data = self.t.recv(2048)
+                if not self:
+                    raise DatabaseError(f'Request error: {self.return_data}')
+                return self.return_data.split()
+            else:
+                raise ConnectError(f"Server isn't connected")
 
     def test_kvdb_connect(self):
         myconn = self.MyDBConnection('mykvdb.local', 12345)
@@ -114,6 +123,15 @@ class KVConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
+
+    def test_kvdb_get_all_database(self):
+        myconn = self.MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertEqual(myconn.databases(), ['test_db', 'db1', 'db2'])
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.databases)
 
 
 if __name__ == '__main__':
