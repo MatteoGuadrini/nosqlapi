@@ -4,27 +4,32 @@ from pynosql import ConnectError, DatabaseError, DatabaseCreationError, Database
 from unittest import mock
 
 
-class KVConnection(unittest.TestCase):
+class KVConnectionTest(unittest.TestCase):
     class MyDBConnection(pynosql.kvdb.KVConnection):
+        # Simulate socket.socket
+        t = mock.Mock('AF_INET', 'SOCK_STREAM')
+        t.connect = mock.MagicMock()
+        t.send = mock.MagicMock()
+        t.close = mock.MagicMock()
 
         def close(self):
             self.connection.close()
             self.connection = None
+            self.t.recv = mock.MagicMock(return_value='CLOSED')
+            self._return_data = self.t.recv(2048)
+            if self.return_data != 'CLOSED':
+                raise ConnectError(f'Close connection error: {self.return_data}')
 
         def connect(self):
-            # Simulate socket.socket
-            t = mock.Mock('AF_INET', 'SOCK_STREAM')
-            t.connect = mock.MagicMock()
-            t.send = mock.MagicMock()
-            t.recv = mock.MagicMock(return_value='OK_PACKET')
             # Connection
-            t.connect(self.host, self.port)
-            t.send("CLIENT_CONNECT_WITH_DB".encode())
-            # while len(t.recv(2048)) > 0:
-            self._return_data = t.recv(2048)
+            self.t.connect(self.host, self.port)
+            self.t.send("CLIENT_CONNECT_WITH_DB".encode())
+            # while len(self.t.recv(2048)) > 0:
+            self.t.recv = mock.MagicMock(return_value='OK_PACKET')
+            self._return_data = self.t.recv(2048)
             if self.return_data != 'OK_PACKET':
                 raise ConnectError(f'Server connection error: {self.return_data}')
-            self.connection = t
+            self.connection = self.t
 
         def create_database(self, name):
             self.connection.send(f"CREATE_DB='{name}'".encode())
@@ -56,9 +61,17 @@ class KVConnection(unittest.TestCase):
             if self.return_data.decode() != 'OK_PACKET':
                 raise DatabaseError(f'Request error: {self.return_data.decode()}')
 
-    def test_built_connect_class(self):
+    def test_kvdb_connect(self):
         myconn = self.MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+
+    def test_kvdb_close(self):
+        myconn = self.MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
 
 
 if __name__ == '__main__':
