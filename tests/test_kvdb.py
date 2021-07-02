@@ -36,10 +36,11 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
         if self.return_data != 'OK_PACKET':
             raise ConnectError(f'Server connection error: {self.return_data}')
         self.connection = self.t
+        return MyDBSession(self.connection)
 
     def create_database(self, name):
         if self.connection:
-            self.connection.send(f"CREATE_DB='{name}'".encode())
+            self.connection.send(f"CREATE_DB='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
             self._return_data = self.t.recv(2048)
@@ -50,7 +51,7 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
 
     def has_database(self, name):
         if self.connection:
-            self.connection.send(f"DB_EXISTS='{name}'".encode())
+            self.connection.send(f"DB_EXISTS='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_EXISTS')
             self._return_data = self.t.recv(2048)
@@ -63,7 +64,7 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
 
     def delete_database(self, name):
         if self.connection:
-            self.connection.send(f"DELETE_DB='{name}'".encode())
+            self.connection.send(f"DELETE_DB='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
             self._return_data = self.t.recv(2048)
@@ -83,6 +84,52 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
             return self.return_data.split()
         else:
             raise ConnectError(f"Server isn't connected")
+
+
+class MyDBSession(pynosql.kvdb.KVSession):
+
+    def __init__(self, connection):
+        super().__init__()
+        self.session = connection
+        self.session.send("SHOW_DESC")
+        self.session.recv = mock.MagicMock(return_value="server=mykvdb.local\nport=12345")
+        self._description = self.session.recv(2048)
+
+    @property
+    def item_count(self):
+        return self._item_count
+
+    @property
+    def description(self):
+        return self._description
+
+    def get(self, key):
+        self.session.recv = mock.MagicMock(return_value="key=value")
+        key, value = self.session.recv(2048).split('=')
+        out = dict()
+        out[key] = value
+        return out
+
+    def insert(self, key, value):
+        pass
+
+    def insert_many(self, dict_):
+        pass
+
+    def update(self, key, value):
+        pass
+
+    def update_many(self, dict_):
+        pass
+
+    def delete(self, key):
+        pass
+
+    def close(self):
+        pass
+
+    def find(self, selector):
+        pass
 
 
 class KVConnectionTest(unittest.TestCase):
