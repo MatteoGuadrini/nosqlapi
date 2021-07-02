@@ -1,6 +1,8 @@
 import unittest
 import pynosql.kvdb
-from pynosql import ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError
+from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
+                     SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
+                     SessionFindingError)
 from unittest import mock
 
 
@@ -104,32 +106,64 @@ class MyDBSession(pynosql.kvdb.KVSession):
         return self._description
 
     def get(self, key):
-        self.session.recv = mock.MagicMock(return_value="key=value")
-        key, value = self.session.recv(2048).split('=')
-        out = dict()
-        out[key] = value
-        return out
+        self.session.send(f"GET={key}")
+        self.session.recv = mock.MagicMock(return_value=f"{key}=value")
+        if self.session.recv != 'KEY_NOT_FOUND':
+            key, value = self.session.recv(2048).split('=')
+            out = dict()
+            out[key] = value
+            self._item_count = 1
+            return out
+        else:
+            raise SessionError(f'key {key} not exists')
 
     def insert(self, key, value):
-        pass
+        self.session.send(f"INSERT={key},{value}")
+        self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
+        if self.session.recv != "NEW_KEY_OK":
+            raise SessionInsertingError(f'insert key {key} with value {value} failure')
+        self._item_count = 1
 
-    def insert_many(self, dict_):
-        pass
+    def insert_many(self, dict_: dict):
+        self.session.send(f"INSERT_MANY={';'.join(','.join((k,v)) for k,v in dict_.items())}")
+        self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
+        if self.session.recv != "NEW_KEY_OK":
+            raise SessionInsertingError(f'insert many values failure: {self.session.recv}')
+        self._item_count = len(dict_)
 
     def update(self, key, value):
-        pass
+        if self.get(key):
+            self.session.send(f"UPDATE={key},{value}")
+            self.session.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
+            if self.session.recv != "UPDATE_KEY_OK":
+                raise SessionUpdatingError(f'update key {key} with value {value} failure')
+        self._item_count = 1
 
     def update_many(self, dict_):
+        # For this type of database, not implement many updates
         pass
 
     def delete(self, key):
-        pass
+        self.session.send(f"DELETE={key}")
+        self.session.recv = mock.MagicMock(return_value="DELETE_OK")
+        if self.session.recv != 'DELETE_OK':
+            raise SessionDeletingError(f'key {key} not deleted')
 
     def close(self):
-        pass
+        self.session.close()
+        if not self.session:
+            SessionClosingError('session was not closed')
+        self.session = None
 
     def find(self, selector):
-        pass
+        if isinstance(selector, str):
+            self.session.send(f"FIND={selector}")
+            self.session.recv = mock.MagicMock(return_value="key=value")
+        elif isinstance(selector, pynosql.kvdb.KVSelector):
+            self.session.send(f"FIND={selector.build()}")
+            self.session.recv = mock.MagicMock(return_value="key=value")
+        else:
+            raise SessionFindingError(f'selector is incompatible')
 
 
 class KVConnectionTest(unittest.TestCase):
