@@ -27,7 +27,10 @@ class KVConnectionTest(unittest.TestCase):
         def connect(self):
             # Connection
             self.t.connect(self.host, self.port)
-            self.t.send("CLIENT_CONNECT_WITH_DB".encode())
+            if self.database:
+                self.t.send(f"CLIENT_CONNECT_WITH_DB={self.database}")
+            else:
+                self.t.send("CLIENT_CONNECT")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='OK_PACKET')
             self._return_data = self.t.recv(2048)
