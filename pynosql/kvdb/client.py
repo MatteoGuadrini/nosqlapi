@@ -33,25 +33,25 @@ class KVConnection(Connection, ABC):
     def __init__(self,
                  host=None,
                  port=None,
+                 database=None,
                  username=None,
                  password=None,
                  ssl=None,
                  tls=None,
                  cert=None,
                  ca_cert=None,
-                 ca_bundle=None,
-                 database=None
+                 ca_bundle=None
                  ):
         self.host = host
-        self.port = port,
-        self.username = username,
-        self.password = password,
-        self.ssl = ssl,
-        self.tls = tls,
-        self.cert = cert,
-        self.ca_cert = ca_cert,
-        self.ca_bundle = ca_bundle,
+        self.port = port
         self.database = database
+        self.username = username
+        self.password = password
+        self.ssl = ssl
+        self.tls = tls
+        self.cert = cert
+        self.ca_cert = ca_cert
+        self.ca_bundle = ca_bundle
         self.connection = None
         self._return_data = None
 
