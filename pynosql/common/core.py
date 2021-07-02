@@ -176,7 +176,7 @@ class Session(ABC):
         return self._description
 
     @abstractmethod
-    def get(self):
+    def get(self, *args, **kwargs):
         """Get one or more value
 
         :return: dict
@@ -184,7 +184,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def insert(self):
+    def insert(self, *args, **kwargs):
         """Insert one value
 
         :return: None
@@ -192,7 +192,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def insert_many(self):
+    def insert_many(self, *args, **kwargs):
         """Insert one or more value
 
         :return: None
@@ -200,7 +200,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, *args, **kwargs):
         """Update one value
 
         :return: None
@@ -208,7 +208,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def update_many(self):
+    def update_many(self, *args, **kwargs):
         """Update one or more value
 
         :return: None
@@ -216,7 +216,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def delete(self):
+    def delete(self, *args, **kwargs):
         """Delete one value
 
         :return: None
@@ -232,7 +232,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def find(self, selector: Selector):
+    def find(self, *args, **kwargs):
         """Find data
 
         :return: Any
