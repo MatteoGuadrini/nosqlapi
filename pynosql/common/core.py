@@ -48,7 +48,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def create_database(self):
+    def create_database(self, *args, **kwargs):
         """Create new database on server
 
         :return: None
@@ -56,7 +56,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def has_database(self):
+    def has_database(self, *args, **kwargs):
         """Check if database exists on server
 
         :return: bool
@@ -64,7 +64,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def delete_database(self):
+    def delete_database(self, *args, **kwargs):
         """Delete database on server
 
         :return: None
@@ -92,14 +92,17 @@ class Selector(ABC):
         self._limit = None
 
     @property
+    @abstractmethod
     def selector(self):
         return self._selector
 
     @property
+    @abstractmethod
     def fields(self):
         return self._fields
 
     @fields.setter
+    @abstractmethod
     def fields(self, value: list):
         if isinstance(value, list):
             self._fields = value
@@ -107,34 +110,42 @@ class Selector(ABC):
             raise SelectorAttributeError('fields must be a list object')
 
     @property
+    @abstractmethod
     def partition(self):
         return self._partition
 
     @partition.setter
+    @abstractmethod
     def partition(self, value):
         self._partition = value
 
     @property
+    @abstractmethod
     def condition(self):
         return self._condition
 
     @condition.setter
+    @abstractmethod
     def condition(self, value):
         self._condition = value
 
     @property
+    @abstractmethod
     def order(self):
         return self._order
 
     @order.setter
+    @abstractmethod
     def order(self, value):
         self._order = value
 
     @property
+    @abstractmethod
     def limit(self):
         return self._limit
 
     @limit.setter
+    @abstractmethod
     def limit(self, value):
         self._limit = value
 
@@ -155,15 +166,17 @@ class Session(ABC):
         self._description = ()
 
     @property
+    @abstractmethod
     def item_count(self):
         return self._item_count
 
     @property
+    @abstractmethod
     def description(self):
         return self._description
 
     @abstractmethod
-    def get(self):
+    def get(self, *args, **kwargs):
         """Get one or more value
 
         :return: dict
@@ -171,7 +184,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def insert(self):
+    def insert(self, *args, **kwargs):
         """Insert one value
 
         :return: None
@@ -179,7 +192,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def insert_many(self):
+    def insert_many(self, *args, **kwargs):
         """Insert one or more value
 
         :return: None
@@ -187,7 +200,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, *args, **kwargs):
         """Update one value
 
         :return: None
@@ -195,7 +208,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def update_many(self):
+    def update_many(self, *args, **kwargs):
         """Update one or more value
 
         :return: None
@@ -203,7 +216,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def delete(self):
+    def delete(self, *args, **kwargs):
         """Delete one value
 
         :return: None
@@ -219,7 +232,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def find(self, selector: Selector):
+    def find(self, *args, **kwargs):
         """Find data
 
         :return: Any
@@ -229,34 +242,25 @@ class Session(ABC):
 
 class Response(ABC):
 
-    def __init__(self):
-        self._data = None
-        self._code = 0
-        self._header = None
+    def __init__(self, data, code, header):
+        self._data = data
+        self._code = code
+        self._header = header
 
     @property
+    @abstractmethod
     def data(self):
         return self._data
 
-    @data.setter
-    def data(self, value):
-        self._data = value
-
     @property
+    @abstractmethod
     def code(self):
         return self._code
 
-    @code.setter
-    def code(self, value):
-        self._code = value
-
     @property
+    @abstractmethod
     def header(self):
         return self._header
-
-    @header.setter
-    def header(self, value):
-        self._header = value
 
 
 # endregion

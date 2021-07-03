@@ -22,4 +22,7 @@
 
 """Python NOSQL Database library."""
 
+from pynosql.common.exception import *
+from pynosql.kvdb import KVConnection, KVSelector, KVSession, KVResponse
+
 apilevel = '1.0'

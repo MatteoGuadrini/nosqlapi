@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# __info__ -- pynosql
+# __init__.py -- pynosql
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -20,9 +20,6 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Information variable used by modules on this package."""
+"""Package key-value NOSQL database."""
 
-__version__ = '0.0.2'
-__author__ = 'Matteo Guadrini'
-__email__ = 'matteo.guadrini@hotmail.it'
-__homepage__ = 'https://github.com/MatteoGuadrini/pynosql'
+from pynosql.kvdb.client import KVConnection, KVSelector, KVSession, KVResponse
