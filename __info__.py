@@ -22,7 +22,7 @@
 
 """Information variable used by modules on this package."""
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __author__ = 'Matteo Guadrini'
 __email__ = 'matteo.guadrini@hotmail.it'
 __homepage__ = 'https://github.com/MatteoGuadrini/pynosql'
