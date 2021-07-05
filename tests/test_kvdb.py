@@ -265,6 +265,11 @@ class KVSessionTest(unittest.TestCase):
         self.assertIsInstance(data, dict)
         self.assertEqual(self.mysess.item_count, 2)
 
+    def test_close_session(self):
+        self.mysess.close()
+        self.assertEqual(self.mysess.session, None)
+        KVSessionTest.mysess = KVSessionTest.myconn.connect()
+
 
 if __name__ == '__main__':
     unittest.main()
