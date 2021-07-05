@@ -248,6 +248,10 @@ class KVSessionTest(unittest.TestCase):
         self.mysess.insert_many({'key': 'value', 'key1': 'value1'})
         self.assertEqual(self.mysess.item_count, 2)
 
+    def test_update_key(self):
+        self.mysess.update('key', 'value')
+        self.assertEqual(self.mysess.item_count, 1)
+
 
 if __name__ == '__main__':
     unittest.main()
