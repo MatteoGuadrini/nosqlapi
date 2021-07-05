@@ -148,6 +148,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
         self.session.recv = mock.MagicMock(return_value="DELETE_OK")
         if self.session.recv(2048) != 'DELETE_OK':
             raise SessionDeletingError(f'key {key} not deleted')
+        self._item_count = 0
 
     def close(self):
         self.session.close()
@@ -254,6 +255,10 @@ class KVSessionTest(unittest.TestCase):
 
     def test_update_many_keys(self):
         self.assertRaises(NotImplementedError, self.mysess.update_many, {'key': 'value', 'key1': 'value1'})
+
+    def test_delete_key(self):
+        self.mysess.delete('key')
+        self.assertEqual(self.mysess.item_count, 0)
 
 
 if __name__ == '__main__':
