@@ -141,7 +141,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
 
     def update_many(self, dict_):
         # For this type of database, not implement many updates
-        pass
+        raise NotImplementedError('update_many not implemented for this module')
 
     def delete(self, key):
         self.session.send(f"DELETE={key}")
@@ -251,6 +251,9 @@ class KVSessionTest(unittest.TestCase):
     def test_update_key(self):
         self.mysess.update('key', 'value')
         self.assertEqual(self.mysess.item_count, 1)
+
+    def test_update_many_keys(self):
+        self.assertRaises(NotImplementedError, self.mysess.update_many, {'key': 'value', 'key1': 'value1'})
 
 
 if __name__ == '__main__':
