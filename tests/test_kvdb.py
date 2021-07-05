@@ -227,6 +227,9 @@ class KVSessionTest(unittest.TestCase):
     def test_session_instance(self):
         self.assertIsInstance(self.mysess, MyDBSession)
 
+    def test_description_session(self):
+        self.assertEqual(self.mysess.description, "server=mykvdb.local\nport=12345")
+
 
 if __name__ == '__main__':
     unittest.main()
