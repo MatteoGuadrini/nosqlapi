@@ -167,7 +167,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
             raise SessionFindingError(f'selector is incompatible')
         out = dict()
         for item in self.session.recv(2048).split(','):
-            key, value = self.session.recv(2048).split('=')
+            key, value = item.split('=')
             out[key] = value
         self._item_count = len(out)
         return out
@@ -259,6 +259,11 @@ class KVSessionTest(unittest.TestCase):
     def test_delete_key(self):
         self.mysess.delete('key')
         self.assertEqual(self.mysess.item_count, 0)
+
+    def test_find_string_keys(self):
+        data = self.mysess.find('{$like:key*}')
+        self.assertIsInstance(data, dict)
+        self.assertEqual(self.mysess.item_count, 2)
 
 
 if __name__ == '__main__':
