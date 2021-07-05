@@ -120,14 +120,14 @@ class MyDBSession(pynosql.kvdb.KVSession):
     def insert(self, key, value):
         self.session.send(f"INSERT={key},{value}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
-        if self.session.recv != "NEW_KEY_OK":
+        if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert key {key} with value {value} failure')
         self._item_count = 1
 
     def insert_many(self, dict_: dict):
         self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
-        if self.session.recv != "NEW_KEY_OK":
+        if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert many values failure: {self.session.recv}')
         self._item_count = len(dict_)
 
@@ -135,7 +135,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
         if self.get(key):
             self.session.send(f"UPDATE={key},{value}")
             self.session.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
-            if self.session.recv != "UPDATE_KEY_OK":
+            if self.session.recv(2048) != "UPDATE_KEY_OK":
                 raise SessionUpdatingError(f'update key {key} with value {value} failure')
         self._item_count = 1
 
@@ -146,7 +146,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
     def delete(self, key):
         self.session.send(f"DELETE={key}")
         self.session.recv = mock.MagicMock(return_value="DELETE_OK")
-        if self.session.recv != 'DELETE_OK':
+        if self.session.recv(2048) != 'DELETE_OK':
             raise SessionDeletingError(f'key {key} not deleted')
 
     def close(self):
@@ -158,12 +158,18 @@ class MyDBSession(pynosql.kvdb.KVSession):
     def find(self, selector):
         if isinstance(selector, str):
             self.session.send(f"FIND={selector}")
-            self.session.recv = mock.MagicMock(return_value="key=value")
+            self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
         elif isinstance(selector, pynosql.kvdb.KVSelector):
             self.session.send(f"FIND={selector.build()}")
-            self.session.recv = mock.MagicMock(return_value="key=value")
+            self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
         else:
             raise SessionFindingError(f'selector is incompatible')
+        out = dict()
+        for item in self.session.recv(2048).split(','):
+            key, value = self.session.recv(2048).split('=')
+            out[key] = value
+        self._item_count = len(out)
+        return out
 
 
 class KVConnectionTest(unittest.TestCase):
@@ -233,6 +239,10 @@ class KVSessionTest(unittest.TestCase):
     def test_get_key(self):
         d = self.mysess.get('key')
         self.assertIn('key', d)
+
+    def test_insert_key(self):
+        self.mysess.insert('key', 'value')
+        self.assertEqual(self.mysess.item_count, 1)
 
 
 if __name__ == '__main__':
