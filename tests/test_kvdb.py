@@ -125,7 +125,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
         self._item_count = 1
 
     def insert_many(self, dict_: dict):
-        self.session.send(f"INSERT_MANY={';'.join(','.join((k,v)) for k,v in dict_.items())}")
+        self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
         if self.session.recv != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert many values failure: {self.session.recv}')
@@ -218,6 +218,14 @@ class KVConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.databases)
+
+
+class KVSessionTest(unittest.TestCase):
+    myconn = MyDBConnection('mykvdb.local', 12345)
+    mysess = myconn.connect()
+
+    def test_session_instance(self):
+        self.assertIsInstance(self.mysess, MyDBSession)
 
 
 if __name__ == '__main__':
