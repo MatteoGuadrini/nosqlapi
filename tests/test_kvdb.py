@@ -230,6 +230,10 @@ class KVSessionTest(unittest.TestCase):
     def test_description_session(self):
         self.assertEqual(self.mysess.description, "server=mykvdb.local\nport=12345")
 
+    def test_get_key(self):
+        d = self.mysess.get('key')
+        self.assertIn('key', d)
+
 
 if __name__ == '__main__':
     unittest.main()
