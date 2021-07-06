@@ -268,5 +268,8 @@ class Response(ABC):
     def __repr__(self):
         return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}>'
 
+    def __contains__(self, item):
+        return True if item in self.data else False
+
 
 # endregion
