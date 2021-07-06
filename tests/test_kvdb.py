@@ -2,7 +2,7 @@ import unittest
 import pynosql.kvdb
 from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                      SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
-                     SessionFindingError)
+                     SessionFindingError, SelectorAttributeError)
 from unittest import mock
 
 
@@ -186,6 +186,75 @@ class MyDBResponse(pynosql.kvdb.KVResponse):
     @property
     def header(self):
         return self._header
+
+
+class MyDBSelector(pynosql.kvdb.KVSelector):
+
+    @property
+    def selector(self):
+        return self._selector
+
+    @property
+    def fields(self):
+        return self._fields
+
+    @fields.setter
+    def fields(self, value: list):
+        if isinstance(value, list):
+            self._fields = value
+        else:
+            raise SelectorAttributeError('fields must be a list object')
+
+    @property
+    def partition(self):
+        return self._partition
+
+    @partition.setter
+    def partition(self, value):
+        self._partition = value
+
+    @property
+    def condition(self):
+        return self._condition
+
+    @condition.setter
+    def condition(self, value):
+        self._condition = value
+
+    @property
+    def order(self):
+        return self._order
+
+    @order.setter
+    def order(self, value):
+        self._order = value
+
+    @property
+    def limit(self):
+        return self._limit
+
+    @limit.setter
+    def limit(self, value):
+        self._limit = value
+
+    def build(self):
+        """Build string query selector
+
+        :return: string
+        """
+        pass
+
+    def first_greater_or_equal(self, key):
+        pass
+
+    def first_greater_than(self, key):
+        pass
+
+    def last_less_or_equal(self, key):
+        pass
+
+    def last_less_than(self, key):
+        pass
 
 
 class KVConnectionTest(unittest.TestCase):
