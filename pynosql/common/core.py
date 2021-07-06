@@ -75,7 +75,7 @@ class Connection(ABC):
     def databases(self):
         """Get all databases
 
-        :return: list
+        :return: Response
         """
         pass
 
@@ -179,7 +179,7 @@ class Session(ABC):
     def get(self, *args, **kwargs):
         """Get one or more value
 
-        :return: dict
+        :return: Response
         """
         pass
 
@@ -235,7 +235,7 @@ class Session(ABC):
     def find(self, *args, **kwargs):
         """Find data
 
-        :return: Any
+        :return: Response
         """
         pass
 
@@ -266,7 +266,7 @@ class Response(ABC):
         return str(self.data)
 
     def __repr__(self):
-        return f'<class Response: data={type(self.data)}, code={self.code}>'
+        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}>'
 
 
 # endregion

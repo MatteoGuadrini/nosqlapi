@@ -83,7 +83,7 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
             self._return_data = self.t.recv(2048)
             if not self:
                 raise DatabaseError(f'Request error: {self.return_data}')
-            return self.return_data.split()
+            return MyDBResponse(self.return_data.split())
         else:
             raise ConnectError(f"Server isn't connected")
 
@@ -236,7 +236,9 @@ class KVConnectionTest(unittest.TestCase):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
-        self.assertEqual(myconn.databases(), ['test_db', 'db1', 'db2'])
+        dbs = myconn.databases()
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.databases)
