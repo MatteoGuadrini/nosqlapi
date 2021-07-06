@@ -242,7 +242,7 @@ class Session(ABC):
 
 class Response(ABC):
 
-    def __init__(self, data, code, header):
+    def __init__(self, data, code=None, header=None):
         self._data = data
         self._code = code
         self._header = header
