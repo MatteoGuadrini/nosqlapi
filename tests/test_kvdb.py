@@ -113,7 +113,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
             out = dict()
             out[key] = value
             self._item_count = 1
-            return out
+            return MyDBResponse(out)
         else:
             raise SessionError(f'key {key} not exists')
 
@@ -170,7 +170,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
             key, value = item.split('=')
             out[key] = value
         self._item_count = len(out)
-        return out
+        return MyDBResponse(out)
 
 
 class MyDBResponse(pynosql.kvdb.KVResponse):
@@ -256,6 +256,7 @@ class KVSessionTest(unittest.TestCase):
 
     def test_get_key(self):
         d = self.mysess.get('key')
+        self.assertIsInstance(d, MyDBResponse)
         self.assertIn('key', d)
 
     def test_insert_key(self):
@@ -279,7 +280,7 @@ class KVSessionTest(unittest.TestCase):
 
     def test_find_string_keys(self):
         data = self.mysess.find('{$like:key*}')
-        self.assertIsInstance(data, dict)
+        self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
 
     def test_close_session(self):
