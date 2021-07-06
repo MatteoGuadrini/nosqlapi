@@ -173,6 +173,21 @@ class MyDBSession(pynosql.kvdb.KVSession):
         return out
 
 
+class MyDBResponse(pynosql.kvdb.KVResponse):
+
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def code(self):
+        return self._code
+
+    @property
+    def header(self):
+        return self._header
+
+
 class KVConnectionTest(unittest.TestCase):
 
     def test_kvdb_connect(self):
