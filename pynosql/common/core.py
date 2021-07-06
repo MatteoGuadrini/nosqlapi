@@ -262,5 +262,11 @@ class Response(ABC):
     def header(self):
         return self._header
 
+    def __str__(self):
+        return str(self.data)
+
+    def __repr__(self):
+        return f'<class Response: data={type(self.data)}, code={self.code}>'
+
 
 # endregion
