@@ -190,53 +190,6 @@ class MyDBResponse(pynosql.kvdb.KVResponse):
 
 class MyDBSelector(pynosql.kvdb.KVSelector):
 
-    @property
-    def selector(self):
-        return self._selector
-
-    @property
-    def fields(self):
-        return self._fields
-
-    @fields.setter
-    def fields(self, value: list):
-        if isinstance(value, list):
-            self._fields = value
-        else:
-            raise SelectorAttributeError('fields must be a list object')
-
-    @property
-    def partition(self):
-        return self._partition
-
-    @partition.setter
-    def partition(self, value):
-        self._partition = value
-
-    @property
-    def condition(self):
-        return self._condition
-
-    @condition.setter
-    def condition(self, value):
-        self._condition = value
-
-    @property
-    def order(self):
-        return self._order
-
-    @order.setter
-    def order(self, value):
-        self._order = value
-
-    @property
-    def limit(self):
-        return self._limit
-
-    @limit.setter
-    def limit(self, value):
-        self._limit = value
-
     def build(self):
         """Build string query selector
 
