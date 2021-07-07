@@ -95,6 +95,10 @@ class Selector(ABC):
     def selector(self):
         return self._selector
 
+    @selector.setter
+    def selector(self, value):
+        self._selector = value
+
     @property
     def fields(self):
         return self._fields

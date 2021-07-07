@@ -4,6 +4,7 @@ from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, Databas
                      SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                      SessionFindingError, SelectorAttributeError)
 from unittest import mock
+from string import Template
 
 
 class MyDBConnection(pynosql.kvdb.KVConnection):
@@ -195,19 +196,33 @@ class MyDBSelector(pynosql.kvdb.KVSelector):
 
         :return: string
         """
-        pass
+        query = Template(
+            """{
+            selector={{$selector}}
+            }"""
+        )
+        # Check field
+        if self.fields:
+            query.template += 'fields={$fields}\n'
+        # Check limit
+        if self.limit:
+            query.template += 'limit=$limit'
 
     def first_greater_or_equal(self, key):
-        pass
+        self.selector = f'{{$ge:*{key}}}'
+        return self.build()
 
     def first_greater_than(self, key):
-        pass
+        self.selector = f'{{$gt:*{key}}}'
+        return self.build()
 
     def last_less_or_equal(self, key):
-        pass
+        self.selector = f'{{$le:*{key}}}'
+        return self.build()
 
     def last_less_than(self, key):
-        pass
+        self.selector = f'{{$lt:*{key}}}'
+        return self.build()
 
 
 class KVConnectionTest(unittest.TestCase):
@@ -301,7 +316,7 @@ class KVSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.item_count, 0)
 
     def test_find_string_keys(self):
-        data = self.mysess.find('{$like:key*}')
+        data = self.mysess.find('{selector=$like:key*}')
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
 
