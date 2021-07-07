@@ -196,17 +196,25 @@ class MyDBSelector(pynosql.kvdb.KVSelector):
 
         :return: string
         """
+        if not self.selector:
+            raise SelectorAttributeError('selector is mandatory for build query')
         query = Template(
-            """{
-            selector={{$selector}}
-            }"""
+            """
+{selector={$selector}"""
         )
         # Check field
         if self.fields:
-            query.template += 'fields={$fields}\n'
+            query.template += '\nfields={$fields}'
         # Check limit
         if self.limit:
-            query.template += 'limit=$limit'
+            query.template += '\nlimit=$limit'
+        # Finalize query
+        query.template += '}'
+        return query.safe_substitute(
+            selector=self.selector,
+            fields=self.fields,
+            limit=self.limit
+        )
 
     def first_greater_or_equal(self, key):
         self.selector = f'{{$ge:*{key}}}'
@@ -317,6 +325,15 @@ class KVSessionTest(unittest.TestCase):
 
     def test_find_string_keys(self):
         data = self.mysess.find('{selector=$like:key*}')
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_find_selector(self):
+        sel = MyDBSelector()
+        sel.selector = '$eq:key'
+        sel.limit = 2
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
 
