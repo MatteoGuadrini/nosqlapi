@@ -217,19 +217,19 @@ class MyDBSelector(pynosql.kvdb.KVSelector):
         )
 
     def first_greater_or_equal(self, key):
-        self.selector = f'{{$ge:*{key}}}'
+        self.selector = f'$ge:*{key}'
         return self.build()
 
     def first_greater_than(self, key):
-        self.selector = f'{{$gt:*{key}}}'
+        self.selector = f'$gt:*{key}'
         return self.build()
 
     def last_less_or_equal(self, key):
-        self.selector = f'{{$le:*{key}}}'
+        self.selector = f'$le:*{key}'
         return self.build()
 
     def last_less_than(self, key):
-        self.selector = f'{{$lt:*{key}}}'
+        self.selector = f'$lt:*{key}'
         return self.build()
 
 
@@ -334,6 +334,13 @@ class KVSessionTest(unittest.TestCase):
         sel.limit = 2
         self.assertIsInstance(sel, MyDBSelector)
         data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_find_selector_other_method(self):
+        sel = MyDBSelector()
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel.first_greater_or_equal('key'))
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
 
