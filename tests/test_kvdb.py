@@ -33,6 +33,9 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
             self.t.send(f"CLIENT_CONNECT_WITH_DB={self.database}")
         else:
             self.t.send("CLIENT_CONNECT")
+        # Check credential
+        if self.username and self.password:
+            self.t.send(f"\nCRED={self.username}:{self.password}")
         # while len(self.t.recv(2048)) > 0:
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
         self._return_data = self.t.recv(2048)
@@ -237,6 +240,11 @@ class KVConnectionTest(unittest.TestCase):
 
     def test_kvdb_connect(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+
+    def test_kvdb_connect_with_user_passw(self):
+        myconn = MyDBConnection('mykvdb.local', 12345, username='admin', password='admin000')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
 
