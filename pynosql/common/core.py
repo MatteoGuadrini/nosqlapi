@@ -255,6 +255,10 @@ class Response(ABC):
     def header(self):
         return self._header
 
+    def __bool__(self):
+        if self.data:
+            return True
+
     def __str__(self):
         return str(self.data)
 
