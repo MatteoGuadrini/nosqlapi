@@ -2,8 +2,9 @@ import unittest
 import pynosql.kvdb
 from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                      SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
-                     SessionFindingError)
+                     SessionFindingError, SelectorAttributeError)
 from unittest import mock
+from string import Template
 
 
 class MyDBConnection(pynosql.kvdb.KVConnection):
@@ -32,6 +33,9 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
             self.t.send(f"CLIENT_CONNECT_WITH_DB={self.database}")
         else:
             self.t.send("CLIENT_CONNECT")
+        # Check credential
+        if self.username and self.password:
+            self.t.send(f"\nCRED={self.username}:{self.password}")
         # while len(self.t.recv(2048)) > 0:
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
         self._return_data = self.t.recv(2048)
@@ -83,7 +87,7 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
             self._return_data = self.t.recv(2048)
             if not self:
                 raise DatabaseError(f'Request error: {self.return_data}')
-            return self.return_data.split()
+            return MyDBResponse(self.return_data.split())
         else:
             raise ConnectError(f"Server isn't connected")
 
@@ -113,21 +117,21 @@ class MyDBSession(pynosql.kvdb.KVSession):
             out = dict()
             out[key] = value
             self._item_count = 1
-            return out
+            return MyDBResponse(out)
         else:
             raise SessionError(f'key {key} not exists')
 
     def insert(self, key, value):
         self.session.send(f"INSERT={key},{value}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
-        if self.session.recv != "NEW_KEY_OK":
+        if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert key {key} with value {value} failure')
         self._item_count = 1
 
     def insert_many(self, dict_: dict):
-        self.session.send(f"INSERT_MANY={';'.join(','.join((k,v)) for k,v in dict_.items())}")
+        self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
-        if self.session.recv != "NEW_KEY_OK":
+        if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert many values failure: {self.session.recv}')
         self._item_count = len(dict_)
 
@@ -135,19 +139,20 @@ class MyDBSession(pynosql.kvdb.KVSession):
         if self.get(key):
             self.session.send(f"UPDATE={key},{value}")
             self.session.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
-            if self.session.recv != "UPDATE_KEY_OK":
+            if self.session.recv(2048) != "UPDATE_KEY_OK":
                 raise SessionUpdatingError(f'update key {key} with value {value} failure')
         self._item_count = 1
 
     def update_many(self, dict_):
         # For this type of database, not implement many updates
-        pass
+        raise NotImplementedError('update_many not implemented for this module')
 
     def delete(self, key):
         self.session.send(f"DELETE={key}")
         self.session.recv = mock.MagicMock(return_value="DELETE_OK")
-        if self.session.recv != 'DELETE_OK':
+        if self.session.recv(2048) != 'DELETE_OK':
             raise SessionDeletingError(f'key {key} not deleted')
+        self._item_count = 0
 
     def close(self):
         self.session.close()
@@ -158,18 +163,88 @@ class MyDBSession(pynosql.kvdb.KVSession):
     def find(self, selector):
         if isinstance(selector, str):
             self.session.send(f"FIND={selector}")
-            self.session.recv = mock.MagicMock(return_value="key=value")
+            self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
         elif isinstance(selector, pynosql.kvdb.KVSelector):
             self.session.send(f"FIND={selector.build()}")
-            self.session.recv = mock.MagicMock(return_value="key=value")
+            self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
         else:
             raise SessionFindingError(f'selector is incompatible')
+        out = dict()
+        for item in self.session.recv(2048).split(','):
+            key, value = item.split('=')
+            out[key] = value
+        self._item_count = len(out)
+        return MyDBResponse(out)
+
+
+class MyDBResponse(pynosql.kvdb.KVResponse):
+
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def code(self):
+        return self._code
+
+    @property
+    def header(self):
+        return self._header
+
+
+class MyDBSelector(pynosql.kvdb.KVSelector):
+
+    def build(self):
+        """Build string query selector
+
+        :return: string
+        """
+        if not self.selector:
+            raise SelectorAttributeError('selector is mandatory for build query')
+        query = Template(
+            """
+{selector={$selector}"""
+        )
+        # Check field
+        if self.fields:
+            query.template += '\nfields={$fields}'
+        # Check limit
+        if self.limit:
+            query.template += '\nlimit=$limit'
+        # Finalize query
+        query.template += '}'
+        return query.safe_substitute(
+            selector=self.selector,
+            fields=self.fields,
+            limit=self.limit
+        )
+
+    def first_greater_or_equal(self, key):
+        self.selector = f'$ge:*{key}'
+        return self.build()
+
+    def first_greater_than(self, key):
+        self.selector = f'$gt:*{key}'
+        return self.build()
+
+    def last_less_or_equal(self, key):
+        self.selector = f'$le:*{key}'
+        return self.build()
+
+    def last_less_than(self, key):
+        self.selector = f'$lt:*{key}'
+        return self.build()
 
 
 class KVConnectionTest(unittest.TestCase):
 
     def test_kvdb_connect(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+
+    def test_kvdb_connect_with_user_passw(self):
+        myconn = MyDBConnection('mykvdb.local', 12345, username='admin', password='admin000')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
 
@@ -214,10 +289,73 @@ class KVConnectionTest(unittest.TestCase):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
-        self.assertEqual(myconn.databases(), ['test_db', 'db1', 'db2'])
+        dbs = myconn.databases()
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.databases)
+
+
+class KVSessionTest(unittest.TestCase):
+    myconn = MyDBConnection('mykvdb.local', 12345)
+    mysess = myconn.connect()
+
+    def test_session_instance(self):
+        self.assertIsInstance(self.mysess, MyDBSession)
+
+    def test_description_session(self):
+        self.assertEqual(self.mysess.description, "server=mykvdb.local\nport=12345")
+
+    def test_get_key(self):
+        d = self.mysess.get('key')
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('key', d)
+
+    def test_insert_key(self):
+        self.mysess.insert('key', 'value')
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_insert_many_keys(self):
+        self.mysess.insert_many({'key': 'value', 'key1': 'value1'})
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_update_key(self):
+        self.mysess.update('key', 'value')
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_update_many_keys(self):
+        self.assertRaises(NotImplementedError, self.mysess.update_many, {'key': 'value', 'key1': 'value1'})
+
+    def test_delete_key(self):
+        self.mysess.delete('key')
+        self.assertEqual(self.mysess.item_count, 0)
+
+    def test_find_string_keys(self):
+        data = self.mysess.find('{selector=$like:key*}')
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_find_selector(self):
+        sel = MyDBSelector()
+        sel.selector = '$eq:key'
+        sel.limit = 2
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_find_selector_other_method(self):
+        sel = MyDBSelector()
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel.first_greater_or_equal('key'))
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_close_session(self):
+        self.mysess.close()
+        self.assertEqual(self.mysess.session, None)
+        KVSessionTest.mysess = KVSessionTest.myconn.connect()
 
 
 if __name__ == '__main__':

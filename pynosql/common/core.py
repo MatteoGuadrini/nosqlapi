@@ -75,7 +75,7 @@ class Connection(ABC):
     def databases(self):
         """Get all databases
 
-        :return: list
+        :return: Response
         """
         pass
 
@@ -92,17 +92,18 @@ class Selector(ABC):
         self._limit = None
 
     @property
-    @abstractmethod
     def selector(self):
         return self._selector
 
+    @selector.setter
+    def selector(self, value):
+        self._selector = value
+
     @property
-    @abstractmethod
     def fields(self):
         return self._fields
 
     @fields.setter
-    @abstractmethod
     def fields(self, value: list):
         if isinstance(value, list):
             self._fields = value
@@ -110,42 +111,34 @@ class Selector(ABC):
             raise SelectorAttributeError('fields must be a list object')
 
     @property
-    @abstractmethod
     def partition(self):
         return self._partition
 
     @partition.setter
-    @abstractmethod
     def partition(self, value):
         self._partition = value
 
     @property
-    @abstractmethod
     def condition(self):
         return self._condition
 
     @condition.setter
-    @abstractmethod
     def condition(self, value):
         self._condition = value
 
     @property
-    @abstractmethod
     def order(self):
         return self._order
 
     @order.setter
-    @abstractmethod
     def order(self, value):
         self._order = value
 
     @property
-    @abstractmethod
     def limit(self):
         return self._limit
 
     @limit.setter
-    @abstractmethod
     def limit(self, value):
         self._limit = value
 
@@ -179,7 +172,7 @@ class Session(ABC):
     def get(self, *args, **kwargs):
         """Get one or more value
 
-        :return: dict
+        :return: Response
         """
         pass
 
@@ -235,14 +228,14 @@ class Session(ABC):
     def find(self, *args, **kwargs):
         """Find data
 
-        :return: Any
+        :return: Response
         """
         pass
 
 
 class Response(ABC):
 
-    def __init__(self, data, code, header):
+    def __init__(self, data, code=None, header=None):
         self._data = data
         self._code = code
         self._header = header
@@ -261,6 +254,19 @@ class Response(ABC):
     @abstractmethod
     def header(self):
         return self._header
+
+    def __bool__(self):
+        if self.data:
+            return True
+
+    def __str__(self):
+        return str(self.data)
+
+    def __repr__(self):
+        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}>'
+
+    def __contains__(self, item):
+        return True if item in self.data else False
 
 
 # endregion
