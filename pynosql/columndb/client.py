@@ -22,7 +22,7 @@
 
 """Client module for column NOSQL database."""
 from abc import ABC, abstractmethod
-from ..common.core import Selector
+from ..common.core import Selector, Session
 from ..kvdb.client import KVConnection
 
 
@@ -59,3 +59,9 @@ class ColumnSelector(Selector, ABC):
     def count(self):
         """Selects the count of all returned rows: SELECT count(*)"""
         pass
+
+
+class ColumnSession(Session, ABC):
+    """Column NOSQL database Session class"""
+
+    pass
