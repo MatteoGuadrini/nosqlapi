@@ -22,7 +22,7 @@
 
 """Client module for column NOSQL database."""
 from abc import ABC, abstractmethod
-from ..common.core import Selector, Session
+from ..common.core import Selector, Session, Response
 from ..kvdb.client import KVConnection
 
 
@@ -63,5 +63,11 @@ class ColumnSelector(Selector, ABC):
 
 class ColumnSession(Session, ABC):
     """Column NOSQL database Session class"""
+
+    pass
+
+
+class ColumnResponse(Response, ABC):
+    """Column NOSQL database Response class"""
 
     pass
