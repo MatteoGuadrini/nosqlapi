@@ -22,6 +22,7 @@
 
 """Client module for column NOSQL database."""
 from abc import ABC, abstractmethod
+from ..common.core import Selector
 from ..kvdb.client import KVConnection
 
 
@@ -30,3 +31,31 @@ class ColumnConnection(KVConnection, ABC):
 
     pass
 
+
+class ColumnSelector(Selector, ABC):
+    """Column NOSQL database Selector class"""
+
+    @abstractmethod
+    def add(self, selector):
+        """More selector: SELECT col1 + col2..."""
+        pass
+
+    @abstractmethod
+    def all(self):
+        """Star selector: SELECT *..."""
+        pass
+
+    @abstractmethod
+    def alias(self, alias):
+        """Aliases the selector: SELECT count(*) AS total"""
+        pass
+
+    @abstractmethod
+    def cast(self, selector, target_type):
+        """Casts a selector to a type: SELECT CAST(a AS double)"""
+        pass
+
+    @abstractmethod
+    def count(self):
+        """Selects the count of all returned rows: SELECT count(*)"""
+        pass
