@@ -232,6 +232,14 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def grant(self, *args, **kwargs):
+        """Find data
+
+        :return: Response
+        """
+        pass
+
 
 class Response(ABC):
 

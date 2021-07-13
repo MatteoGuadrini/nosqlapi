@@ -176,6 +176,13 @@ class MyDBSession(pynosql.kvdb.KVSession):
         self._item_count = len(out)
         return MyDBResponse(out)
 
+    def grant(self, user, role):
+        self.session.send(f"GRANT={user},{role}")
+        self.session.recv = mock.MagicMock(return_value="GRANT_OK")
+        if self.session.recv(2048) != "GRANT_OK":
+            raise SessionError(f'grant {user} with {role} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'role': role, 'status': "GRANT_OK"})
+
 
 class MyDBResponse(pynosql.kvdb.KVResponse):
 
@@ -351,6 +358,11 @@ class KVSessionTest(unittest.TestCase):
         data = self.mysess.find(sel.first_greater_or_equal('key'))
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
+
+    def test_grant_user_connection(self):
+        resp = self.mysess.grant(user='test', role='read_users')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'GRANT_OK')
 
     def test_close_session(self):
         self.mysess.close()
