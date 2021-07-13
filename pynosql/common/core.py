@@ -168,6 +168,11 @@ class Session(ABC):
     def description(self):
         return self._description
 
+    @property
+    @abstractmethod
+    def acl(self):
+        pass
+
     @abstractmethod
     def get(self, *args, **kwargs):
         """Get one or more value

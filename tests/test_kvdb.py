@@ -98,8 +98,9 @@ class MyDBSession(pynosql.kvdb.KVSession):
         super().__init__()
         self.session = connection
         self.session.send("SHOW_DESC")
-        self.session.recv = mock.MagicMock(return_value="server=mykvdb.local\nport=12345")
-        self._description = self.session.recv(2048)
+        self.session.recv = mock.MagicMock(return_value="server=mykvdb.local\nport=12345\ndatabase=test_db")
+        self._description = {item.split('=')[0]: item.split('=')[1]
+                             for item in self.session.recv(2048).split('\n')}
 
     @property
     def item_count(self):
@@ -108,6 +109,17 @@ class MyDBSession(pynosql.kvdb.KVSession):
     @property
     def description(self):
         return self._description
+
+    @property
+    def acl(self):
+        if not self.description.get('database'):
+            raise ConnectError('connect to a database before request some ACLs')
+        self.session.send(f"GET_ACL={self.description.get('database')}")
+        self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
+        return MyDBResponse(
+            data={item.split(',')[0]: item.split(',')[1]
+                  for item in self.session.recv(2048).split(';')}
+        )
 
     def get(self, key):
         self.session.send(f"GET={key}")
@@ -319,7 +331,7 @@ class KVSessionTest(unittest.TestCase):
         self.assertIsInstance(self.mysess, MyDBSession)
 
     def test_description_session(self):
-        self.assertEqual(self.mysess.description, "server=mykvdb.local\nport=12345")
+        self.assertEqual(self.mysess.description, {'database': 'test_db', 'port': '12345', 'server': 'mykvdb.local'})
 
     def test_get_key(self):
         d = self.mysess.get('key')
@@ -365,6 +377,11 @@ class KVSessionTest(unittest.TestCase):
         data = self.mysess.find(sel.first_greater_or_equal('key'))
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
+
+    def test_get_acl_connection(self):
+        self.assertIn('root', self.mysess.acl)
+        self.assertIn('admin', self.mysess.acl)
+        self.assertIn('test', self.mysess.acl)
 
     def test_grant_user_connection(self):
         resp = self.mysess.grant('test_db', user='test', role='read_users')
