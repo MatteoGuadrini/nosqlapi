@@ -35,6 +35,10 @@ class ColumnConnection(KVConnection, ABC):
 class ColumnSelector(Selector, ABC):
     """Column NOSQL database Selector class"""
 
+    def __init__(self):
+        super().__init__()
+        self._filtering = False
+
     @abstractmethod
     def add(self, selector):
         """More selector: SELECT col1 + col2..."""
@@ -59,6 +63,17 @@ class ColumnSelector(Selector, ABC):
     def count(self):
         """Selects the count of all returned rows: SELECT count(*)"""
         pass
+
+    @property
+    def filtering(self):
+        return self._filtering
+
+    @filtering.setter
+    def filtering(self, value: bool):
+        value_ = bool(value)
+        if not isinstance(value_, bool):
+            raise ValueError(f'{value_} must be bool')
+        self._filtering = value_
 
 
 class ColumnSession(Session, ABC):
