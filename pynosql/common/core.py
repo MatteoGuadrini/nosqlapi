@@ -234,7 +234,15 @@ class Session(ABC):
 
     @abstractmethod
     def grant(self, *args, **kwargs):
-        """Find data
+        """Grant users ACLs
+
+        :return: Response
+        """
+        pass
+
+    @abstractmethod
+    def revoke(self, *args, **kwargs):
+        """Revoke users ACLs
 
         :return: Response
         """

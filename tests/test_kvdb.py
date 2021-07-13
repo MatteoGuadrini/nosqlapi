@@ -2,7 +2,7 @@ import unittest
 import pynosql.kvdb
 from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                      SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
-                     SessionFindingError, SelectorAttributeError)
+                     SessionFindingError, SelectorAttributeError, SessionACLError)
 from unittest import mock
 from string import Template
 
@@ -176,12 +176,19 @@ class MyDBSession(pynosql.kvdb.KVSession):
         self._item_count = len(out)
         return MyDBResponse(out)
 
-    def grant(self, user, role):
-        self.session.send(f"GRANT={user},{role}")
+    def grant(self, database, user, role):
+        self.session.send(f"GRANT={user},{role}:DATABASE={database}")
         self.session.recv = mock.MagicMock(return_value="GRANT_OK")
         if self.session.recv(2048) != "GRANT_OK":
-            raise SessionError(f'grant {user} with {role} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'user': user, 'role': role, 'status': "GRANT_OK"})
+            raise SessionACLError(f'grant {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
+
+    def revoke(self, database, user, role=None):
+        self.session.send(f"REVOKE={user},{role}:DATABASE={database}")
+        self.session.recv = mock.MagicMock(return_value="REVOKE_OK")
+        if self.session.recv(2048) != "REVOKE_OK":
+            raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
 
 class MyDBResponse(pynosql.kvdb.KVResponse):
@@ -305,7 +312,7 @@ class KVConnectionTest(unittest.TestCase):
 
 
 class KVSessionTest(unittest.TestCase):
-    myconn = MyDBConnection('mykvdb.local', 12345)
+    myconn = MyDBConnection('mykvdb.local', 12345, 'test_db')
     mysess = myconn.connect()
 
     def test_session_instance(self):
@@ -360,9 +367,14 @@ class KVSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.item_count, 2)
 
     def test_grant_user_connection(self):
-        resp = self.mysess.grant(user='test', role='read_users')
+        resp = self.mysess.grant('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'GRANT_OK')
+
+    def test_revoke_user_connection(self):
+        resp = self.mysess.revoke('test_db', user='test', role='read_users')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'REVOKE_OK')
 
     def test_close_session(self):
         self.mysess.close()
