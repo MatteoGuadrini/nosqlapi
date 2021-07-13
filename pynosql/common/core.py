@@ -255,28 +255,33 @@ class Session(ABC):
 
 
 class Response(ABC):
+    """Server response abstract class"""
 
-    def __init__(self, data, code=None, header=None):
+    def __init__(self, data, code=None, header=None, error=None):
         self._data = data
         self._code = code
         self._header = header
+        self._error = error
 
     @property
-    @abstractmethod
     def data(self):
         return self._data
 
     @property
-    @abstractmethod
     def code(self):
         return self._code
 
     @property
-    @abstractmethod
     def header(self):
         return self._header
 
+    @property
+    def error(self):
+        return self._error
+
     def __bool__(self):
+        if self.error:
+            return False
         if self.data:
             return True
 
@@ -284,7 +289,7 @@ class Response(ABC):
         return str(self.data)
 
     def __repr__(self):
-        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}>'
+        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}, error={self.error}>'
 
     def __contains__(self, item):
         return True if item in self.data else False
