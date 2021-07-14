@@ -22,9 +22,9 @@
 
 """Client module for key-value NOSQL database."""
 from abc import ABC, abstractmethod
-from ..common.core import Connection, Selector, Session, Response
+from ..common.core import Connection, Selector, Session, Response, Batch
 
-__all__ = ['KVConnection', 'KVSelector', 'KVSession', 'KVResponse']
+__all__ = ['KVConnection', 'KVSelector', 'KVSession', 'KVResponse', 'KVBatch']
 
 
 class KVConnection(Connection, ABC):
@@ -91,5 +91,11 @@ class KVSession(Session, ABC):
 
 class KVResponse(Response, ABC):
     """Key-value NOSQL database Response class"""
+
+    pass
+
+
+class KVBatch(Batch, ABC):
+    """Key-value NOSQL database Batch class"""
 
     pass
