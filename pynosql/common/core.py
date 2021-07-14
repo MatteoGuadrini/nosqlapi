@@ -312,4 +312,12 @@ class Batch(ABC):
             raise SessionError(f'{value} not contains a valid session')
         self._session = value
 
+    @property
+    def query(self):
+        return self._query
+
+    @query.setter
+    def query(self, value):
+        self._query = value
+
 # endregion
