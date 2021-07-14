@@ -300,7 +300,7 @@ class Batch(ABC):
 
     def __init__(self, session: Session, query):
         self.session = session
-        self._query = query
+        self.query = query
 
     @property
     def session(self):
@@ -319,5 +319,13 @@ class Batch(ABC):
     @query.setter
     def query(self, value):
         self._query = value
+
+    @abstractmethod
+    def execute(self, *args, **kwargs):
+        """Execute some statement
+
+        :return: Response
+        """
+        pass
 
 # endregion
