@@ -21,11 +21,22 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Client module for column NOSQL database."""
+# region imports
 from abc import ABC, abstractmethod
 from ..common.core import Selector, Session, Response, Batch
 from ..kvdb.client import KVConnection
 
 
+# endregion
+
+# region global variable
+__all__ = ['ColumnConnection', 'ColumnSelector', 'ColumnSession', 'ColumnResponse', 'ColumnBatch']
+
+
+# endregion
+
+
+# region classes
 class ColumnConnection(KVConnection, ABC):
     """Column NOSQL database Connection class"""
 
@@ -95,6 +106,7 @@ class ColumnResponse(Response, ABC):
 
 
 class ColumnBatch(Batch, ABC):
-    """Key-value NOSQL database Batch class"""
+    """Column NOSQL database Batch class"""
 
     pass
+# endregion

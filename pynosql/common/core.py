@@ -27,7 +27,7 @@ from .exception import *
 
 # endregion
 
-# region Classes
+# region classes
 class Connection(ABC):
     """Server connection abstract class"""
 
