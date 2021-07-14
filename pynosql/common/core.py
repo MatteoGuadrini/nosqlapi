@@ -81,7 +81,7 @@ class Connection(ABC):
 
 
 class Selector(ABC):
-    """Selector class"""
+    """Selector abstract class"""
 
     def __init__(self):
         self._selector = dict()
@@ -294,5 +294,14 @@ class Response(ABC):
     def __contains__(self, item):
         return True if item in self.data else False
 
+
+class Batch(ABC):
+    """Batch abstract class"""
+
+    def __init__(self, session: Session, query):
+        if not isinstance(session, Session):
+            raise SessionError(f'{session} not contains a valid session')
+        self._session = session
+        self._query = query
 
 # endregion
