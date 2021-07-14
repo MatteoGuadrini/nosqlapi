@@ -299,9 +299,17 @@ class Batch(ABC):
     """Batch abstract class"""
 
     def __init__(self, session: Session, query):
-        if not isinstance(session, Session):
-            raise SessionError(f'{session} not contains a valid session')
-        self._session = session
+        self.session = session
         self._query = query
+
+    @property
+    def session(self):
+        return self._session
+
+    @session.setter
+    def session(self, value):
+        if not isinstance(value, Session):
+            raise SessionError(f'{value} not contains a valid session')
+        self._session = value
 
 # endregion
