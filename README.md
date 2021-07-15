@@ -158,7 +158,9 @@ List all databases.
 
 ### Session Objects
 
-`Connection` objects should respond to the following methods.
+`Session` objects should respond to the following methods.
+
+> ATTENTION: Session object it will come instantiated if the Connection object contains a database value.
 
 #### Session attributes
 
@@ -174,6 +176,52 @@ This read-only attribute contains the number of object returned of an operations
 
 This read-only attribute contains the _Access Control List_ in the current session.
 
+
+#### Session methods
+
+`.get(parameters...)`
+
+Get one or more data on specific database.
+
+`.get(parameters...)`
+
+Get one or more data on specific database.
+
+`.insert(parameters...)`
+
+Insert one data on specific database.
+
+`.insert_many(parameters...)`
+
+Insert one or more data on specific database.
+
+`.update(parameters...)`
+
+Update one existing data on specific database.
+
+`.update_many(parameters...)`
+
+Update one or more existing data on specific database.
+
+`.delete(parameters...)`
+
+Delete one existing data on specific database.
+
+`.close()`
+
+Close the session and connection now (can be linked to `.__del__()`).
+
+`.find(parameters...)`
+
+Find data on specific database with string selector or `Selector` object.
+
+`.grant(parameters...)`
+
+Grant ACL on specific database.
+
+`.revoke(parameters...)`
+
+Revoke ACL on specific database.
 
 ## Open source
 _pynosql_ is an open source project. Any contribute, It's welcome.
