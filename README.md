@@ -10,6 +10,17 @@ portability across databases and a broader scope of database connectivity from P
 
 This document describes the Python NOSQL database API specification.
 
+## Module Interface
+
+### Constructors
+
+Access to the database is made available through connection objects. The module must provide the following constructor for these:
+
+`Connection(parameters...)`
+
+Constructor for creating a connection to the database.
+Returns a `Session` object. It takes a number of parameters which are database dependent.
+
 ## Open source
 _pyrrole_ is an open source project. Any contribute, It's welcome.
 
