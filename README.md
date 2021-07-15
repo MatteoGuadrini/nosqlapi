@@ -259,6 +259,30 @@ This read/write attribute represents _limit_ number of objects returned from fin
 
 Building a _selector_ string in the dialect of a NOSQL language based on various property of the `Selector` object.
 
+### Response Objects
+
+`Response` objects should respond to the following attributes.
+
+> `Response` objects is a species of an either type, because contains both success and error values
+
+#### Response attributes
+
+`.data`
+
+This read-only attribute represents the effective data than returned (_Any_ object).
+
+`.code`
+
+This read-only attribute represents a number code of error or success in an operation.
+
+`.header`
+
+This read-only attribute represents a string information (header) of an operation.
+
+`.error`
+
+This read-only attribute represents a string error of an operation.
+
 ## Open source
 _pynosql_ is an open source project. Any contribute, It's welcome.
 
