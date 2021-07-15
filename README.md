@@ -156,6 +156,24 @@ Deletion of a single database with position and keyword arguments.
 
 List all databases.
 
+### Session Objects
+
+`Connection` objects should respond to the following methods.
+
+#### Session attributes
+
+`.description`
+
+This read-only attribute contains the session attribute (can be string, list or dictionary).
+
+`.item_count`
+
+This read-only attribute contains the number of object returned of an operations.
+
+`.acl`
+
+This read-only attribute contains the _Access Control List_ in the current session.
+
 
 ## Open source
 _pynosql_ is an open source project. Any contribute, It's welcome.
