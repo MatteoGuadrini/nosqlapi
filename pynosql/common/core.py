@@ -312,9 +312,9 @@ class Response(ABC):
 class Batch(ABC):
     """Batch abstract class"""
 
-    def __init__(self, session: Session, query):
+    def __init__(self, session: Session, batch):
         self.session = session
-        self.query = query
+        self.batch = batch
 
     @property
     def session(self):
@@ -327,11 +327,11 @@ class Batch(ABC):
         self._session = value
 
     @property
-    def query(self):
+    def batch(self):
         return self._query
 
-    @query.setter
-    def query(self, value):
+    @batch.setter
+    def batch(self, value):
         self._query = value
 
     @abstractmethod
