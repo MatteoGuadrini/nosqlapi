@@ -166,7 +166,7 @@ List all databases.
 
 `.description`
 
-This read-only attribute contains the session attribute (can be string, list or dictionary).
+This read-only attribute contains the session parameters (can be string, list or dictionary).
 
 `.item_count`
 
@@ -222,6 +222,36 @@ Grant ACL on specific database.
 `.revoke(parameters...)`
 
 Revoke ACL on specific database.
+
+### Selector Objects
+
+`Selector` objects should respond to the following methods.
+
+#### Selector attributes
+
+`.selector`
+
+This read/write attribute represents the _selector_ key/value than you want search.
+
+`.fields`
+
+This read/write attribute represents the _fields_ key that returned from find operations. 
+
+`.partition`
+
+This read/write attribute represents the name of _partition/collection_ in a database.
+
+`.condition`
+
+This read/write attribute represents other _condition_ to apply a selectors.
+
+`.order`
+
+This read/write attribute represents _order_ returned from find operations.
+
+`.limit`
+
+This read/write attribute represents _limit_ number of objects returned from find operations.
 
 ## Open source
 _pynosql_ is an open source project. Any contribute, It's welcome.
