@@ -29,6 +29,103 @@ String constant stating the supported DB API level.
 
 Currently only the strings "1.0".
 
+### Exceptions
+
+`Error`
+
+Exception that is the base class of all other error exceptions. You can use this to catch all errors with one single except statement.
+
+`UnknownError`
+
+Exception raised when an unspecified error occurred.
+It must be a subclass of `Error`.
+
+`ConnectError`
+
+Exception raised for errors that are related to the database connection.
+It must be a subclass of `Error`.
+
+`CloseError`
+
+Exception raised for errors that are related to the database close connection.
+It must be a subclass of `Error`.
+
+`DatabaseError`
+
+Exception raised for errors that are related to the database, generally. 
+It must be a subclass of `Error`.
+
+`DatabaseCreationError`
+
+Exception raised for errors that are related to the creation of a database. 
+It must be a subclass of `DatabaseError`.
+
+`DatabaseDeletionError`
+
+Exception raised for errors that are related to the deletion of a database. 
+It must be a subclass of `DatabaseError`.
+
+`SessionError`
+
+Exception raised for errors that are related to the session, generally. 
+It must be a subclass of `Error`.
+
+`SessionInsertingError`
+
+Exception raised for errors that are related to the inserting data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionUpdatingError`
+
+Exception raised for errors that are related to the updating data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionDeletingError`
+
+Exception raised for errors that are related to the deletion data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionClosingError`
+
+Exception raised for errors that are related to the closing database session. 
+It must be a subclass of `SessionError`.
+
+`SessionFindingError`
+
+Exception raised for errors that are related to the finding data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionACLError`
+
+Exception raised for errors that are related to the grant or revoke permission on a database. 
+It must be a subclass of `SessionError`.
+
+`SelectorAttributeError`
+
+Exception raised for errors that are related to the selectors. 
+It must be a subclass of `Error`.
+
+This is the exception inheritance layout:
+
+```
+Exception
+|__Error
+   |__UnknownError
+   |__ConnectError
+   |__CloseError
+   |__DatabaseError
+   |  |__DatabaseCreationError
+   |  |__DatabaseDeletionError
+   |__SessionError
+   |  |__SessionInsertingError
+   |  |__SessionUpdatingError
+   |  |__SessionDeletingError
+   |  |__SessionClosingError
+   |  |__SessionFindingError
+   |  |__SessionACLError
+   |__SelectorAttributeError
+```
+
 ## Open source
 _pyrrole_ is an open source project. Any contribute, It's welcome.
 
