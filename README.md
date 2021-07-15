@@ -21,6 +21,14 @@ Access to the database is made available through connection objects. The module 
 Constructor for creating a connection to the database.
 Returns a `Session` object. It takes a number of parameters which are database dependent.
 
+### Globals
+
+`api_level`
+
+String constant stating the supported DB API level.
+
+Currently only the strings "1.0".
+
 ## Open source
 _pyrrole_ is an open source project. Any contribute, It's welcome.
 
