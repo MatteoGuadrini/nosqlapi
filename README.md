@@ -181,31 +181,31 @@ This read-only attribute contains the _Access Control List_ in the current sessi
 
 `.get(parameters...)`
 
-Getting one or more data on specific database.
+Getting one or more data on specific database with position and keyword arguments.
 
 `.get(parameters...)`
 
-Getting one or more data on specific database.
+Getting one or more data on specific database with position and keyword arguments.
 
 `.insert(parameters...)`
 
-Inserting one data on specific database.
+Inserting one data on specific database with position and keyword arguments.
 
 `.insert_many(parameters...)`
 
-Inserting one or more data on specific database.
+Inserting one or more data on specific database with position and keyword arguments.
 
 `.update(parameters...)`
 
-Updating one existing data on specific database.
+Updating one existing data on specific database with position and keyword arguments.
 
 `.update_many(parameters...)`
 
-Updating one or more existing data on specific database.
+Updating one or more existing data on specific database with position and keyword arguments.
 
 `.delete(parameters...)`
 
-Deleting one existing data on specific database.
+Deleting one existing data on specific database with position and keyword arguments.
 
 `.close()`
 
@@ -213,15 +213,15 @@ Closing the session and connection now (can be linked to `.__del__()`).
 
 `.find(parameters...)`
 
-Finding data on specific database with string selector or `Selector` object.
+Finding data on specific database with string selector or `Selector` object with position and keyword arguments.
 
 `.grant(parameters...)`
 
-Granting ACL on specific database.
+Granting ACL on specific database with position and keyword arguments.
 
 `.revoke(parameters...)`
 
-Revoking ACL on specific database.
+Revoking ACL on specific database with position and keyword arguments.
 
 ### Selector Objects
 
@@ -282,6 +282,26 @@ This read-only attribute represents a string information (header) of an operatio
 `.error`
 
 This read-only attribute represents a string error of an operation.
+
+### Batch Objects
+
+`Batch` objects should respond to the following methods.
+
+#### Batch attributes
+
+`.session`
+
+This read/write attribute represents a `Session` object.
+
+`.batch`
+
+This read/write attribute represents a _batch_ operation.
+
+#### Batch methods
+
+`.execute(parameters...)`
+
+Executing a _batch_ operation with position and keyword arguments.
 
 ## Open source
 _pynosql_ is an open source project. Any contribute, It's welcome.
