@@ -126,8 +126,39 @@ Exception
    |__SelectorAttributeError
 ```
 
+### Connection Objects
+
+`Connection` objects should respond to the following methods.
+
+#### Connection methods
+
+`.close()`
+
+Close the connection now (can be linked to `.__del__()`).
+
+`.connect()`
+
+Connect to database with the arguments when object has been instantiated.
+
+`.create_database(parameters...)`
+
+Creation a single database with position and keyword arguments.
+
+`.has_database(parameters...)`
+
+Check if exists a single database with position and keyword arguments.
+
+`.delete_database(parameters...)`
+
+Deletion of a single database with position and keyword arguments.
+
+`.databases()`
+
+List all databases.
+
+
 ## Open source
-_pyrrole_ is an open source project. Any contribute, It's welcome.
+_pynosql_ is an open source project. Any contribute, It's welcome.
 
 **A great thanks**.
 
