@@ -79,6 +79,13 @@ class Connection(ABC):
         """
         pass
 
+    def __del__(self):
+        """Delete connection
+
+        :return: None
+        """
+        self.close()
+
 
 class Selector(ABC):
     """Selector abstract class"""
@@ -252,6 +259,13 @@ class Session(ABC):
         :return: Response
         """
         pass
+
+    def __del__(self):
+        """Delete session
+
+        :return: None
+        """
+        self.close()
 
 
 class Response(ABC):
