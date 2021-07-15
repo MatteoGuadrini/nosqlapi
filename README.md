@@ -134,23 +134,23 @@ Exception
 
 `.close()`
 
-Close the connection now (can be linked to `.__del__()`).
+Closing the connection now (can be linked to `.__del__()`).
 
 `.connect()`
 
-Connect to database with the arguments when object has been instantiated.
+Connecting to database with the arguments when object has been instantiated.
 
 `.create_database(parameters...)`
 
-Creation a single database with position and keyword arguments.
+Creating a single database with position and keyword arguments.
 
 `.has_database(parameters...)`
 
-Check if exists a single database with position and keyword arguments.
+Checking if exists a single database with position and keyword arguments.
 
 `.delete_database(parameters...)`
 
-Deletion of a single database with position and keyword arguments.
+Deleting of a single database with position and keyword arguments.
 
 `.databases()`
 
@@ -181,47 +181,47 @@ This read-only attribute contains the _Access Control List_ in the current sessi
 
 `.get(parameters...)`
 
-Get one or more data on specific database.
+Getting one or more data on specific database.
 
 `.get(parameters...)`
 
-Get one or more data on specific database.
+Getting one or more data on specific database.
 
 `.insert(parameters...)`
 
-Insert one data on specific database.
+Inserting one data on specific database.
 
 `.insert_many(parameters...)`
 
-Insert one or more data on specific database.
+Inserting one or more data on specific database.
 
 `.update(parameters...)`
 
-Update one existing data on specific database.
+Updating one existing data on specific database.
 
 `.update_many(parameters...)`
 
-Update one or more existing data on specific database.
+Updating one or more existing data on specific database.
 
 `.delete(parameters...)`
 
-Delete one existing data on specific database.
+Deleting one existing data on specific database.
 
 `.close()`
 
-Close the session and connection now (can be linked to `.__del__()`).
+Closing the session and connection now (can be linked to `.__del__()`).
 
 `.find(parameters...)`
 
-Find data on specific database with string selector or `Selector` object.
+Finding data on specific database with string selector or `Selector` object.
 
 `.grant(parameters...)`
 
-Grant ACL on specific database.
+Granting ACL on specific database.
 
 `.revoke(parameters...)`
 
-Revoke ACL on specific database.
+Revoking ACL on specific database.
 
 ### Selector Objects
 
@@ -252,6 +252,12 @@ This read/write attribute represents _order_ returned from find operations.
 `.limit`
 
 This read/write attribute represents _limit_ number of objects returned from find operations.
+
+#### Selector methods
+
+`.build()`
+
+Building a _selector_ string in the dialect of a NOSQL language based on various property of the `Selector` object.
 
 ## Open source
 _pynosql_ is an open source project. Any contribute, It's welcome.
