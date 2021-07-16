@@ -134,7 +134,7 @@ Exception
 
 `.close()`
 
-Closing the connection now (can be linked to `.__del__()`).
+Closing the connection now.
 
 `.connect()`
 
@@ -209,7 +209,7 @@ Deleting one existing data on specific database with position and keyword argume
 
 `.close()`
 
-Closing the session and connection now (can be linked to `.__del__()`).
+Closing the session and connection now.
 
 `.find(parameters...)`
 
