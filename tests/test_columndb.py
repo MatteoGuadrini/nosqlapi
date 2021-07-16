@@ -155,6 +155,15 @@ class MyDBResponse(pynosql.columndb.ColumnResponse):
     pass
 
 
+class MyDBBatch(pynosql.columndb.ColumnBatch):
+
+    def execute(self):
+        self.session.session.send(self.batch)
+        self.session.session.recv = mock.MagicMock(return_value="BATCH_OK")
+        if self.session.session.recv(2048) != "BATCH_OK":
+            raise SessionError(f'batch error: {self.session.session.recv(2048)}')
+
+
 class ColumnConnectionTest(unittest.TestCase):
     def test_kvdb_connect(self):
         myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
