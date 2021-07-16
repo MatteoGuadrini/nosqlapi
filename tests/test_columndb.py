@@ -1,6 +1,6 @@
 import unittest
 import pynosql.columndb
-from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError)
+from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError)
 from unittest import mock
 
 
@@ -118,6 +118,16 @@ class MyDBSession(pynosql.columndb.ColumnSession):
             data={item.split(',')[0]: item.split(',')[1]
                   for item in self.session.recv(2048).split(';')}
         )
+
+    def get(self, table, *columns):
+        self.session.send(f"SELECT {','.join(col for col in columns)} FROM {table}")
+        self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
+        if self.session.recv != 'NOT_FOUND':
+            out = [tuple(row.split(','))
+                   for row in self.session.recv(2048).split('\n')]
+            return MyDBResponse(out)
+        else:
+            raise SessionError(f'columns or table not found')
 
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
