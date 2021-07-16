@@ -39,7 +39,7 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
         if self.return_data != 'OK_PACKET':
             raise ConnectError(f'Server connection error: {self.return_data}')
         self.connection = self.t
-        # return MyDBSession(self.connection)
+        return MyDBSession(self.connection)
 
     def create_database(self, name):
         if self.connection:
@@ -89,9 +89,21 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
             raise ConnectError(f"Server isn't connected")
 
 
+class MyDBSession(pynosql.columndb.ColumnSession):
+
+    def __init__(self, connection):
+        super().__init__()
+        self.session = connection
+        self.session.send("SHOW_DESC")
+        self.session.recv = mock.MagicMock(return_value="server=mycolumndb.local\nport=12345\ndatabase=test_db"
+                                           "\nusername=admin")
+        self._description = {item.split('=')[0]: item.split('=')[1]
+                             for item in self.session.recv(2048).split('\n')}
+
+
 class ColumnConnectionTest(unittest.TestCase):
     def test_kvdb_connect(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass')
+        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
 
