@@ -90,13 +90,7 @@ class ColumnSelector(Selector, ABC):
 class ColumnSession(Session, ABC):
     """Column NOSQL database Session class"""
 
-    @abstractmethod
-    def execute(self, *args, **kwargs):
-        """Execute some statement
-
-        :return: Response
-        """
-        pass
+    pass
 
 
 class ColumnResponse(Response, ABC):
