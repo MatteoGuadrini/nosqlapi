@@ -67,7 +67,7 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
 
     def has_database(self, name):
         if self.connection:
-            if name in self.databases():
+            if name not in self.databases():
                 return False
             else:
                 return True
@@ -97,7 +97,7 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
             self._return_data = self.t.recv(2048)
             if not self:
                 raise DatabaseError(f'Request error: {self.return_data}')
-            # return MyDBResponse(self.return_data.split())
+            return MyDBResponse(self.return_data.split())
         else:
             raise ConnectError(f"Server isn't connected")
 
@@ -342,6 +342,16 @@ class ColumnConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+
+    def test_columndb_exists_database(self):
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn.has_database('test_db'))
+        self.assertFalse(myconn.has_database('casual'))
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
 
 if __name__ == '__main__':
