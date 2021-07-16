@@ -314,10 +314,17 @@ class MyDBSelector(pynosql.columndb.ColumnSelector):
 
 
 class ColumnConnectionTest(unittest.TestCase):
-    def test_kvdb_connect(self):
+    def test_columndb_connect(self):
         myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
+
+    def test_columndb_close(self):
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
 
 
 if __name__ == '__main__':
