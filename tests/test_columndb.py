@@ -1,7 +1,7 @@
 import unittest
 import pynosql.columndb
 from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                     SessionInsertingError)
+                     SessionInsertingError, SessionClosingError)
 from unittest import mock
 from typing import List
 
@@ -202,6 +202,12 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         if "DELETION" in self.session.recv(2048):
             raise SessionInsertingError(f'deleting from {table} failure: {self.session.recv(2048)}')
         self._item_count = self.session.recv(2048).split(':')[1]
+
+    def close(self):
+        self.session.close()
+        if not self.session:
+            SessionClosingError('session was not closed')
+        self.session = None
 
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
