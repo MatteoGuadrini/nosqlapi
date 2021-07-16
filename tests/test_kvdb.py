@@ -112,7 +112,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
 
     @property
     def acl(self):
-        if not self.description.get('database'):
+        if 'database' not in self.description:
             raise ConnectError('connect to a database before request some ACLs')
         self.session.send(f"GET_ACL={self.description.get('database')}")
         self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")

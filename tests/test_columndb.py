@@ -96,9 +96,32 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         self.session = connection
         self.session.send("SHOW_DESC")
         self.session.recv = mock.MagicMock(return_value="server=mycolumndb.local\nport=12345\ndatabase=test_db"
-                                           "\nusername=admin")
+                                                        "\nusername=admin")
         self._description = {item.split('=')[0]: item.split('=')[1]
                              for item in self.session.recv(2048).split('\n')}
+
+    @property
+    def item_count(self):
+        return self._item_count
+
+    @property
+    def description(self):
+        return self._description
+
+    @property
+    def acl(self):
+        if 'database' not in self.description:
+            raise ConnectError('connect to a database before request some ACLs')
+        self.session.send(f"GET_ACL={self.description.get('database')}")
+        self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
+        return MyDBResponse(
+            data={item.split(',')[0]: item.split(',')[1]
+                  for item in self.session.recv(2048).split(';')}
+        )
+
+
+class MyDBResponse(pynosql.columndb.ColumnResponse):
+    pass
 
 
 class ColumnConnectionTest(unittest.TestCase):
