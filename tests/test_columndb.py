@@ -1,7 +1,7 @@
 import unittest
 import pynosql.columndb
 from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                     SessionInsertingError, SessionClosingError, SessionFindingError)
+                     SessionInsertingError, SessionClosingError, SessionFindingError, SessionACLError)
 from unittest import mock
 from typing import List
 
@@ -219,6 +219,20 @@ class MyDBSession(pynosql.columndb.ColumnSession):
                for row in self.session.recv(2048).split('\n')]
         self._item_count = len(out)
         return MyDBResponse(out)
+
+    def grant(self, database, user, role):
+        self.session.send(f"GRANT {user} ON {database} TO {role};")
+        self.session.recv = mock.MagicMock(return_value="GRANT_OK")
+        if self.session.recv(2048) != "GRANT_OK":
+            raise SessionACLError(f'grant {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
+
+    def revoke(self, database, user, role=None):
+        self.session.send(f"REVOKE {user} ON {database} TO {role};")
+        self.session.recv = mock.MagicMock(return_value="REVOKE_OK")
+        if self.session.recv(2048) != "REVOKE_OK":
+            raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
