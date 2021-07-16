@@ -3,6 +3,7 @@ import pynosql.columndb
 from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                      SessionInsertingError)
 from unittest import mock
+from typing import List
 
 
 # Below classes is a simple emulation of Cassandra like database
@@ -134,7 +135,13 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         else:
             raise SessionError(f'columns or table not found')
 
-    def insert(self, table, columns: tuple, values: tuple, ttl=None, timestamp=None, not_exists=False):
+    def insert(self,
+               table,
+               columns: tuple,
+               values: tuple,
+               ttl=None,
+               timestamp=None,
+               not_exists: bool = False):
         if not isinstance(columns, tuple):
             columns = tuple(columns)
         if not isinstance(values, tuple):
@@ -144,11 +151,38 @@ class MyDBSession(pynosql.columndb.ColumnSession):
             query += f'\nUSING TTL {ttl}'
         if timestamp and ttl and isinstance(timestamp, int):
             query += f' AND TIMESTAMP {timestamp}'
+        if bool(not_exists):
+            query += f'\nIF NOT EXISTS'
+        query += ';'
         self.session.send(query)
         self.session.recv = mock.MagicMock(return_value="INSERT_OK")
         if self.session.recv(2048) != "INSERT_OK":
             raise SessionInsertingError(f'insert into {columns} with value {values} failure: {self.session.recv(2048)}')
         self._item_count = 1
+
+    def insert_many(self,
+                    table,
+                    columns: tuple,
+                    values: List[tuple],
+                    ttl=None,
+                    timestamp=None,
+                    not_exists: bool = False):
+        query = "BEGIN BATCH\n"
+        for value in values:
+            if not isinstance(columns, tuple):
+                columns = tuple(columns)
+            query += f"INSERT INTO {table} {columns} VALUES {value}"
+            if ttl and isinstance(ttl, int):
+                query += f'\nUSING TTL {ttl}'
+            if timestamp and ttl and isinstance(timestamp, int):
+                query += f' AND TIMESTAMP {timestamp}'
+            if bool(not_exists):
+                query += f'\nIF NOT EXISTS'
+            query += ';\n'
+        query += 'APPLY BATCH;'
+        batch = MyDBBatch(self, query)
+        batch.execute()
+        self._item_count = len(values)
 
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
