@@ -186,11 +186,22 @@ class MyDBSession(pynosql.columndb.ColumnSession):
 
     def update(self):
         # For this operation only for this test, use Batch object
-        pass
+        raise NotImplementedError('For this operation only for this test, use Batch object')
 
     def update_many(self):
         # For this operation only for this test, use Batch object
-        pass
+        raise NotImplementedError('For this operation only for this test, use Batch object')
+
+    def delete(self, table, exists: bool = False, *conditions):
+        query = f"DELETE FROM {table} WHERE {' AND '.join(condition for condition in conditions)}"
+        if bool(exists):
+            query += f'\nIF EXISTS'
+        query += ';'
+        self.session.send(query)
+        self.session.recv = mock.MagicMock(return_value="DELETION:1")
+        if "DELETION" in self.session.recv(2048):
+            raise SessionInsertingError(f'deleting from {table} failure: {self.session.recv(2048)}')
+        self._item_count = self.session.recv(2048).split(':')[1]
 
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
