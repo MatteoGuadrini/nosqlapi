@@ -363,6 +363,17 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
+    def test_columndb_get_all_database(self):
+        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        dbs = myconn.databases()
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.databases)
+
 
 if __name__ == '__main__':
     unittest.main()
