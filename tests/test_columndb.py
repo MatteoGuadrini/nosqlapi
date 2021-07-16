@@ -344,7 +344,7 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_columndb_exists_database(self):
-        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         self.assertTrue(myconn.has_database('test_db'))
@@ -352,6 +352,16 @@ class ColumnConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
+
+    def test_columndb_delete_database(self):
+        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.delete_database('test_db')
+        self.assertEqual(myconn.return_data, 'DB_DELETED')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
 
 if __name__ == '__main__':
