@@ -1,7 +1,8 @@
 import unittest
 import pynosql.columndb
 from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                     SessionInsertingError, SessionClosingError, SessionFindingError, SessionACLError)
+                     SessionInsertingError, SessionClosingError, SessionFindingError, SessionACLError,
+                     SelectorAttributeError)
 from unittest import mock
 from typing import List
 
@@ -246,6 +247,70 @@ class MyDBBatch(pynosql.columndb.ColumnBatch):
         self.session.session.recv = mock.MagicMock(return_value="BATCH_OK")
         if self.session.session.recv(2048) != "BATCH_OK":
             raise SessionError(f'batch error: {self.session.session.recv(2048)}')
+
+
+class MyDBSelector(pynosql.columndb.ColumnSelector):
+
+    def build(self):
+        """Build string query selector
+
+        :return: string
+        """
+        if not self.selector:
+            raise SelectorAttributeError('selector is mandatory for build query')
+        if not self.fields:
+            raise SelectorAttributeError('fields is mandatory for build query')
+        query = 'SELECT '
+        # Check field
+        if self.fields:
+            query += f"{','.join(self.fields)}"
+        else:
+            query += "*"
+        # Check partition
+        if self.partition:
+            query += f' DISTINCT {self.partition}'
+        # Check selector == table
+        query += f' FROM {self.selector}'
+        # Check condition
+        if self.condition:
+            query += f" WHERE {' AND '.join(condition for condition in self.condition)}"
+        # Check order
+        if self.order:
+            query += f" ORDER BY {self.order} DESC"
+        # Check limit
+        if self.limit:
+            query += f" LIMIT {self.limit}"
+        # Check limit
+        if self.filtering:
+            query += " ALLOW FILTERING"
+        # Finalize query
+        query += ';'
+        return query
+
+    def add(self, *columns):
+        """More selector: SELECT col1 + col2..."""
+        self.fields = f'{" + ".join(column for column in columns)}'
+        self.build()
+
+    def all(self):
+        """Star selector: SELECT *..."""
+        self.fields = '*'
+        self.build()
+
+    def alias(self, alias):
+        """Aliases the selector: SELECT count(*) AS total"""
+        self.fields = f'{",".join(column for column in self.fields)} AS {alias})'
+        self.build()
+
+    def cast(self, column, type_):
+        """Casts a selector to a type: SELECT CAST(a AS double)"""
+        self.fields = f'CAST({column} AS {type_})'
+        self.build()
+
+    def count(self, column='*'):
+        """Selects the count of all returned rows: SELECT count(*)"""
+        self.fields = f'count({column})'
+        self.build()
 
 
 class ColumnConnectionTest(unittest.TestCase):

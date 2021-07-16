@@ -48,7 +48,7 @@ class ColumnSelector(Selector, ABC):
 
     def __init__(self):
         super().__init__()
-        self._filtering = False
+        self.filtering = False
 
     @abstractmethod
     def add(self, *args, **kwargs):
@@ -62,7 +62,7 @@ class ColumnSelector(Selector, ABC):
 
     @abstractmethod
     def alias(self, *args, **kwargs):
-        """Aliases the selector: SELECT count(*) AS total"""
+        """Aliases the selector: SELECT col1 AS person"""
         pass
 
     @abstractmethod
