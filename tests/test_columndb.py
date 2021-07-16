@@ -184,6 +184,14 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         batch.execute()
         self._item_count = len(values)
 
+    def update(self):
+        # For this operation only for this test, use Batch object
+        pass
+
+    def update_many(self):
+        # For this operation only for this test, use Batch object
+        pass
+
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
     pass
