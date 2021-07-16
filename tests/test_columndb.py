@@ -47,9 +47,16 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
         self.connection = self.t
         return MyDBSession(self.connection)
 
-    def create_database(self, name):
+    def create_database(self, name, not_exists: bool = False, replication=None, durable_writes=None):
         if self.connection:
-            self.connection.send(f"CREATE_DB='{name}'")
+            query = f"CREATE  KEYSPACE '{name}'"
+            if not_exists:
+                query += " IF NOT EXISTS"
+            if replication:
+                query += f" WITH REPLICATION = {replication}"
+            if durable_writes is not None:
+                query += f" AND DURABLE_WRITES = {str(bool(durable_writes)).lower()}"
+            self.connection.send(query)
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
             self._return_data = self.t.recv(2048)
@@ -60,20 +67,20 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
 
     def has_database(self, name):
         if self.connection:
-            self.connection.send(f"DB_EXISTS='{name}'")
-            # while len(self.t.recv(2048)) > 0:
-            self.t.recv = mock.MagicMock(return_value='DB_EXISTS')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_EXISTS':
+            if name in self.databases():
                 return False
             else:
                 return True
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def delete_database(self, name):
+    def delete_database(self, name, exists=False):
         if self.connection:
-            self.connection.send(f"DELETE_DB='{name}'")
+            query = f'DROP KEYSPACE'
+            if exists:
+                query += ' IF EXISTS'
+            query += f' {name};'
+            self.connection.send(query)
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
             self._return_data = self.t.recv(2048)
@@ -84,7 +91,7 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
 
     def databases(self):
         if self.connection:
-            self.connection.send(f"GET_ALL_DBS")
+            self.connection.send(f"DESCRIBE keyspaces;")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='test_db db1 db2')
             self._return_data = self.t.recv(2048)
@@ -320,11 +327,21 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'OK_PACKET')
 
     def test_columndb_close(self):
-        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
+
+    def test_columndb_create_database(self):
+        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.create_database('test_db')
+        self.assertEqual(myconn.return_data, 'DB_CREATED')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
 
 if __name__ == '__main__':
