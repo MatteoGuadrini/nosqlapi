@@ -6,6 +6,8 @@ from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, Databas
 from unittest import mock
 from string import Template
 
+# Below classes is a emulation of FoundationDB like database
+
 
 class MyDBConnection(pynosql.kvdb.KVConnection):
     # Simulate socket.socket

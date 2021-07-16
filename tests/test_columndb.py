@@ -1,7 +1,11 @@
 import unittest
 import pynosql.columndb
-from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError)
+from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
+                     SessionInsertingError)
 from unittest import mock
+
+
+# Below classes is a simple emulation of Cassandra like database
 
 
 class MyDBConnection(pynosql.columndb.ColumnConnection):
@@ -125,9 +129,26 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         if self.session.recv != 'NOT_FOUND':
             out = [tuple(row.split(','))
                    for row in self.session.recv(2048).split('\n')]
+            self._item_count = len(out)
             return MyDBResponse(out)
         else:
             raise SessionError(f'columns or table not found')
+
+    def insert(self, table, columns: tuple, values: tuple, ttl=None, timestamp=None, not_exists=False):
+        if not isinstance(columns, tuple):
+            columns = tuple(columns)
+        if not isinstance(values, tuple):
+            values = tuple(values)
+        query = f"INSERT INTO {table} {columns} VALUES {values}"
+        if ttl and isinstance(ttl, int):
+            query += f'\nUSING TTL {ttl}'
+        if timestamp and ttl and isinstance(timestamp, int):
+            query += f' AND TIMESTAMP {timestamp}'
+        self.session.send(query)
+        self.session.recv = mock.MagicMock(return_value="INSERT_OK")
+        if self.session.recv(2048) != "INSERT_OK":
+            raise SessionInsertingError(f'insert into {columns} with value {values} failure: {self.session.recv(2048)}')
+        self._item_count = 1
 
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
