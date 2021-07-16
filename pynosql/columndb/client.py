@@ -51,7 +51,7 @@ class ColumnSelector(Selector, ABC):
         self._filtering = False
 
     @abstractmethod
-    def add(self, selector):
+    def add(self, *args, **kwargs):
         """More selector: SELECT col1 + col2..."""
         pass
 
@@ -61,12 +61,12 @@ class ColumnSelector(Selector, ABC):
         pass
 
     @abstractmethod
-    def alias(self, alias):
+    def alias(self, *args, **kwargs):
         """Aliases the selector: SELECT count(*) AS total"""
         pass
 
     @abstractmethod
-    def cast(self, selector, target_type):
+    def cast(self, *args, **kwargs):
         """Casts a selector to a type: SELECT CAST(a AS double)"""
         pass
 
