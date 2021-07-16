@@ -83,13 +83,13 @@ class Connection(ABC):
 class Selector(ABC):
     """Selector abstract class"""
 
-    def __init__(self):
-        self._selector = dict()
-        self._fields = None
-        self._partition = None
-        self._condition = None
-        self._order = None
-        self._limit = None
+    def __init__(self, selector=None, fields=None, partition=None, condition=None, order=None, limit=None):
+        self.selector = selector
+        self.fields = fields
+        self.partition = partition
+        self.condition = condition
+        self.order = order
+        self.limit = limit
 
     @property
     def selector(self):
