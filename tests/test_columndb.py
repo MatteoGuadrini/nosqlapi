@@ -1,7 +1,7 @@
 import unittest
 import pynosql.columndb
 from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                     SessionInsertingError, SessionClosingError)
+                     SessionInsertingError, SessionClosingError, SessionFindingError)
 from unittest import mock
 from typing import List
 
@@ -208,6 +208,17 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         if not self.session:
             SessionClosingError('session was not closed')
         self.session = None
+
+    def find(self, selector: pynosql.columndb.ColumnSelector):
+        if isinstance(selector, pynosql.columndb.ColumnSelector):
+            self.session.send(selector.build())
+            self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
+        else:
+            raise SessionFindingError('selector is incompatible')
+        out = [tuple(row.split(','))
+               for row in self.session.recv(2048).split('\n')]
+        self._item_count = len(out)
+        return MyDBResponse(out)
 
 
 class MyDBResponse(pynosql.columndb.ColumnResponse):
