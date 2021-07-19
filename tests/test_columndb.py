@@ -192,11 +192,21 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         batch.execute()
         self._item_count = len(values)
 
-    def update(self):
+    def update(self,
+               table,
+               columns: tuple,
+               values: tuple,
+               ttl=None,
+               timestamp=None):
         # For this operation only for this test, use Batch object
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
-    def update_many(self):
+    def update_many(self,
+                    table,
+                    columns: tuple,
+                    values: List[tuple],
+                    ttl=None,
+                    timestamp=None):
         # For this operation only for this test, use Batch object
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
@@ -428,6 +438,13 @@ class ColumnSessionTest(unittest.TestCase):
         self.mysess.insert_many('table', columns=('name', 'age'), values=values, ttl=123456,
                            timestamp=1626681089, not_exists=True)
         self.assertEqual(self.mysess.item_count, 2)
+
+    def test_update_data(self):
+        self.assertRaises(NotImplementedError, self.mysess.update, 'table', ('name', 'age'), ('Matteo', '35'))
+
+    def test_update_many_data(self):
+        self.assertRaises(NotImplementedError, self.mysess.update_many, 'table', ('name', 'age'),
+                          [('Matteo', '35'), ('Arthur', '42')])
 
 
 if __name__ == '__main__':
