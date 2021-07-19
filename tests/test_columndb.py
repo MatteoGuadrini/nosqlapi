@@ -1,8 +1,8 @@
 import unittest
 import pynosql.columndb
-from pynosql import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                     SessionInsertingError, SessionClosingError, SessionFindingError, SessionACLError,
-                     SelectorAttributeError)
+from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
+                     SessionInsertingError, SessionClosingError, SessionDeletingError,
+                     SessionFindingError, SelectorAttributeError, SessionACLError)
 from unittest import mock
 from typing import List
 
@@ -210,16 +210,17 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         # For this operation only for this test, use Batch object
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
-    def delete(self, table, exists: bool = False, *conditions):
+    def delete(self, table, conditions: list, exists: bool = False):
         query = f"DELETE FROM {table} WHERE {' AND '.join(condition for condition in conditions)}"
         if bool(exists):
             query += f'\nIF EXISTS'
         query += ';'
+        print(query)
         self.session.send(query)
         self.session.recv = mock.MagicMock(return_value="DELETION:1")
-        if "DELETION" in self.session.recv(2048):
-            raise SessionInsertingError(f'deleting from {table} failure: {self.session.recv(2048)}')
-        self._item_count = self.session.recv(2048).split(':')[1]
+        if "DELETION" not in self.session.recv(2048):
+            raise SessionDeletingError(f'deleting from {table} failure: {self.session.recv(2048)}')
+        self._item_count = int(self.session.recv(2048).split(':')[1])
 
     def close(self):
         self.session.close()
@@ -445,6 +446,14 @@ class ColumnSessionTest(unittest.TestCase):
     def test_update_many_data(self):
         self.assertRaises(NotImplementedError, self.mysess.update_many, 'table', ('name', 'age'),
                           [('Matteo', '35'), ('Arthur', '42')])
+
+    def test_delete_data(self):
+        self.mysess.delete('table', ['name=Matteo'])
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_delete_data_with_more_conditions(self):
+        self.mysess.delete('table', ['name=Matteo', 'age>=34'])
+        self.assertEqual(self.mysess.item_count, 1)
 
 
 if __name__ == '__main__':
