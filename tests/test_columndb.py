@@ -512,6 +512,11 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'REVOKE_OK')
 
+    def test_close_session(self):
+        self.mysess.close()
+        self.assertEqual(self.mysess.session, None)
+        ColumnSessionTest.mysess = ColumnSessionTest.myconn.connect()
+
 
 if __name__ == '__main__':
     unittest.main()
