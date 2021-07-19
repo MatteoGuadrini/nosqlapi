@@ -304,29 +304,24 @@ class MyDBSelector(pynosql.columndb.ColumnSelector):
         query += ';'
         return query
 
-    def add(self, *columns):
-        """More selector: SELECT col1 + col2..."""
-        self.fields = f'{" + ".join(column for column in columns)}'
-        self.build()
-
     def all(self):
         """Star selector: SELECT *..."""
         self.fields = '*'
         self.build()
 
-    def alias(self, alias):
+    def alias(self, what, alias):
         """Aliases the selector: SELECT count(*) AS total"""
-        self.fields = f'{",".join(column for column in self.fields)} AS {alias})'
+        self.fields = [f"{what} AS {alias}"]
         self.build()
 
     def cast(self, column, type_):
         """Casts a selector to a type: SELECT CAST(a AS double)"""
-        self.fields = f'CAST({column} AS {type_})'
+        self.fields = [f'CAST({column} AS {type_})']
         self.build()
 
     def count(self, column='*'):
         """Selects the count of all returned rows: SELECT count(*)"""
-        self.fields = f'count({column})'
+        self.fields = [f'count({column})']
         self.build()
 
 
@@ -458,6 +453,45 @@ class ColumnSessionTest(unittest.TestCase):
         sel = MyDBSelector()
         sel.selector = 'table'
         sel.fields = ['name', 'age']
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 3)
+
+    def test_find_selector_with_all(self):
+        sel = MyDBSelector()
+        sel.selector = 'table'
+        sel.all()
+        sel.partition = 'users'
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 3)
+
+    def test_find_selector_with_alias(self):
+        sel = MyDBSelector()
+        sel.selector = 'table'
+        sel.alias('name', 'cn')
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 3)
+
+    def test_find_selector_with_cast(self):
+        sel = MyDBSelector()
+        sel.selector = 'table'
+        sel.fields = ['name', 'age']
+        sel.cast('age', 'float')
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 3)
+
+    def test_find_selector_with_count(self):
+        sel = MyDBSelector()
+        sel.selector = 'table'
+        sel.fields = ['name', 'age']
+        sel.count('age')
         self.assertIsInstance(sel, MyDBSelector)
         data = self.mysess.find(sel)
         self.assertIsInstance(data, MyDBResponse)

@@ -51,11 +51,6 @@ class ColumnSelector(Selector, ABC):
         self.filtering = False
 
     @abstractmethod
-    def add(self, *args, **kwargs):
-        """More selector: SELECT col1 + col2..."""
-        pass
-
-    @abstractmethod
     def all(self):
         """Star selector: SELECT *..."""
         pass
