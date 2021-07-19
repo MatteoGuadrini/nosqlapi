@@ -408,6 +408,27 @@ class ColumnSessionTest(unittest.TestCase):
                            timestamp=1626681089, not_exists=True)
         self.assertEqual(self.mysess.item_count, 1)
 
+    def test_insert_many_data(self):
+        values = [('Matteo', '35'), ('Arthur', '42')]
+        self.mysess.insert_many('table', columns=('name', 'age'), values=values)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_insert_many_data_with_ttl(self):
+        values = [('Matteo', '35'), ('Arthur', '42')]
+        self.mysess.insert_many('table', columns=('name', 'age'), values=values, ttl=123456)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_insert_many_data_with_timestamp(self):
+        values = [('Matteo', '35'), ('Arthur', '42')]
+        self.mysess.insert_many('table', columns=('name', 'age'), values=values, ttl=123456, timestamp=1626681089)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_insert_many_data_with_if_not_exists(self):
+        values = [('Matteo', '35'), ('Arthur', '42')]
+        self.mysess.insert_many('table', columns=('name', 'age'), values=values, ttl=123456,
+                           timestamp=1626681089, not_exists=True)
+        self.assertEqual(self.mysess.item_count, 2)
+
 
 if __name__ == '__main__':
     unittest.main()
