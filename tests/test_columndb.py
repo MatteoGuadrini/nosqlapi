@@ -391,6 +391,23 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn(('name', 'age'), d)
 
+    def test_insert_data(self):
+        self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'))
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_insert_data_with_ttl(self):
+        self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'), ttl=123456)
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_insert_data_with_timestamp(self):
+        self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'), ttl=123456, timestamp=1626681089)
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_insert_data_with_if_not_exists(self):
+        self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'), ttl=123456,
+                           timestamp=1626681089, not_exists=True)
+        self.assertEqual(self.mysess.item_count, 1)
+
 
 if __name__ == '__main__':
     unittest.main()
