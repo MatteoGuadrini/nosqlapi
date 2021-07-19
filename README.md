@@ -10,8 +10,318 @@ portability across databases and a broader scope of database connectivity from P
 
 This document describes the Python NOSQL database API specification.
 
+## Module Interface
+
+### Constructors
+
+Access to the database is made available through connection objects. The module must provide the following constructor for these:
+
+`Connection(parameters...)`
+
+Constructor for creating a connection to the database.
+Returns a `Session` object. It takes a number of parameters which are database dependent.
+
+### Globals
+
+`api_level`
+
+String constant stating the supported DB API level.
+
+Currently only the strings "1.0".
+
+### Exceptions
+
+`Error`
+
+Exception that is the base class of all other error exceptions. You can use this to catch all errors with one single except statement.
+
+`UnknownError`
+
+Exception raised when an unspecified error occurred.
+It must be a subclass of `Error`.
+
+`ConnectError`
+
+Exception raised for errors that are related to the database connection.
+It must be a subclass of `Error`.
+
+`CloseError`
+
+Exception raised for errors that are related to the database close connection.
+It must be a subclass of `Error`.
+
+`DatabaseError`
+
+Exception raised for errors that are related to the database, generally. 
+It must be a subclass of `Error`.
+
+`DatabaseCreationError`
+
+Exception raised for errors that are related to the creation of a database. 
+It must be a subclass of `DatabaseError`.
+
+`DatabaseDeletionError`
+
+Exception raised for errors that are related to the deletion of a database. 
+It must be a subclass of `DatabaseError`.
+
+`SessionError`
+
+Exception raised for errors that are related to the session, generally. 
+It must be a subclass of `Error`.
+
+`SessionInsertingError`
+
+Exception raised for errors that are related to the inserting data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionUpdatingError`
+
+Exception raised for errors that are related to the updating data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionDeletingError`
+
+Exception raised for errors that are related to the deletion data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionClosingError`
+
+Exception raised for errors that are related to the closing database session. 
+It must be a subclass of `SessionError`.
+
+`SessionFindingError`
+
+Exception raised for errors that are related to the finding data on a database session. 
+It must be a subclass of `SessionError`.
+
+`SessionACLError`
+
+Exception raised for errors that are related to the grant or revoke permission on a database. 
+It must be a subclass of `SessionError`.
+
+`SelectorAttributeError`
+
+Exception raised for errors that are related to the selectors. 
+It must be a subclass of `Error`.
+
+This is the exception inheritance layout:
+
+```
+Exception
+|__Error
+   |__UnknownError
+   |__ConnectError
+   |__CloseError
+   |__DatabaseError
+   |  |__DatabaseCreationError
+   |  |__DatabaseDeletionError
+   |__SessionError
+   |  |__SessionInsertingError
+   |  |__SessionUpdatingError
+   |  |__SessionDeletingError
+   |  |__SessionClosingError
+   |  |__SessionFindingError
+   |  |__SessionACLError
+   |__SelectorAttributeError
+```
+
+### Connection Objects
+
+`Connection` objects should respond to the following methods.
+
+#### Connection methods
+
+`.close()`
+
+Closing the connection now.
+
+`.connect()`
+
+Connecting to database with the arguments when object has been instantiated.
+
+`.create_database(parameters...)`
+
+Creating a single database with position and keyword arguments.
+
+`.has_database(parameters...)`
+
+Checking if exists a single database with position and keyword arguments.
+
+`.delete_database(parameters...)`
+
+Deleting of a single database with position and keyword arguments.
+
+`.databases()`
+
+List all databases.
+
+### Session Objects
+
+`Session` objects should respond to the following methods.
+
+> ATTENTION: Session object it will come instantiated if the Connection object contains a database value.
+
+#### Session attributes
+
+`.description`
+
+This read-only attribute contains the session parameters (can be string, list or dictionary).
+
+`.item_count`
+
+This read-only attribute contains the number of object returned of an operations.
+
+`.acl`
+
+This read-only attribute contains the _Access Control List_ in the current session.
+
+
+#### Session methods
+
+`.get(parameters...)`
+
+Getting one or more data on specific database with position and keyword arguments.
+
+`.get(parameters...)`
+
+Getting one or more data on specific database with position and keyword arguments.
+
+`.insert(parameters...)`
+
+Inserting one data on specific database with position and keyword arguments.
+
+`.insert_many(parameters...)`
+
+Inserting one or more data on specific database with position and keyword arguments.
+
+`.update(parameters...)`
+
+Updating one existing data on specific database with position and keyword arguments.
+
+`.update_many(parameters...)`
+
+Updating one or more existing data on specific database with position and keyword arguments.
+
+`.delete(parameters...)`
+
+Deleting one existing data on specific database with position and keyword arguments.
+
+`.close()`
+
+Closing the session and connection now.
+
+`.find(parameters...)`
+
+Finding data on specific database with string selector or `Selector` object with position and keyword arguments.
+
+`.grant(parameters...)`
+
+Granting ACL on specific database with position and keyword arguments.
+
+`.revoke(parameters...)`
+
+Revoking ACL on specific database with position and keyword arguments.
+
+### Selector Objects
+
+`Selector` objects should respond to the following methods.
+
+#### Selector attributes
+
+`.selector`
+
+This read/write attribute represents the _selector_ key/value than you want search.
+
+`.fields`
+
+This read/write attribute represents the _fields_ key that returned from find operations. 
+
+`.partition`
+
+This read/write attribute represents the name of _partition/collection_ in a database.
+
+`.condition`
+
+This read/write attribute represents other _condition_ to apply a selectors.
+
+`.order`
+
+This read/write attribute represents _order_ returned from find operations.
+
+`.limit`
+
+This read/write attribute represents _limit_ number of objects returned from find operations.
+
+#### Selector methods
+
+`.build()`
+
+Building a _selector_ string in the dialect of a NOSQL language based on various property of the `Selector` object.
+
+### Response Objects
+
+`Response` objects should respond to the following attributes.
+
+> `Response` objects is a species of an either type, because contains both success and error values
+
+#### Response attributes
+
+`.data`
+
+This read-only attribute represents the effective data than returned (_Any_ object).
+
+`.code`
+
+This read-only attribute represents a number code of error or success in an operation.
+
+`.header`
+
+This read-only attribute represents a string information (header) of an operation.
+
+`.error`
+
+This read-only attribute represents a string error of an operation.
+
+### Batch Objects
+
+`Batch` objects should respond to the following methods.
+
+#### Batch attributes
+
+`.session`
+
+This read/write attribute represents a `Session` object.
+
+`.batch`
+
+This read/write attribute represents a _batch_ operation.
+
+#### Batch methods
+
+`.execute(parameters...)`
+
+Executing a _batch_ operation with position and keyword arguments.
+
+## pynosql package
+
+The package _pynosql_ is a collection of interface and utility class and functions for build your own NOSQL python package.
+
+### Type of NoSql Database
+
+NoSql databases are of four types:
+
+- Key/Value database
+- Column database
+- Document database
+- Graph database
+
+For each type of database, _pynosql_ offers standard interfaces, in order to unify as much as possible the names of methods and functions.
+
+For an example, just look at the relevant package test files.
+
 ## Open source
-_pyrrole_ is an open source project. Any contribute, It's welcome.
+_pynosql_ is an open source project. Any contribute, It's welcome.
 
 **A great thanks**.
 

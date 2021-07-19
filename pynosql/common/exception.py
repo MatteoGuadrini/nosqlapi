@@ -79,6 +79,10 @@ class SessionFindingError(SessionError):
     pass
 
 
+class SessionACLError(SessionError):
+    pass
+
+
 # Other error
 class SelectorAttributeError(Error):
     pass

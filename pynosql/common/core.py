@@ -27,7 +27,7 @@ from .exception import *
 
 # endregion
 
-# region Classes
+# region classes
 class Connection(ABC):
     """Server connection abstract class"""
 
@@ -81,15 +81,15 @@ class Connection(ABC):
 
 
 class Selector(ABC):
-    """Selector class"""
+    """Selector abstract class"""
 
-    def __init__(self):
-        self._selector = dict()
-        self._fields = None
-        self._partition = None
-        self._condition = None
-        self._order = None
-        self._limit = None
+    def __init__(self, selector=None, fields=None, partition=None, condition=None, order=None, limit=None):
+        self.selector = selector
+        self.fields = fields
+        self.partition = partition
+        self.condition = condition
+        self.order = order
+        self.limit = limit
 
     @property
     def selector(self):
@@ -105,10 +105,7 @@ class Selector(ABC):
 
     @fields.setter
     def fields(self, value: list):
-        if isinstance(value, list):
-            self._fields = value
-        else:
-            raise SelectorAttributeError('fields must be a list object')
+        self._fields = value
 
     @property
     def partition(self):
@@ -167,6 +164,11 @@ class Session(ABC):
     @abstractmethod
     def description(self):
         return self._description
+
+    @property
+    @abstractmethod
+    def acl(self):
+        pass
 
     @abstractmethod
     def get(self, *args, **kwargs):
@@ -232,30 +234,51 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def grant(self, *args, **kwargs):
+        """Grant users ACLs
+
+        :return: Response
+        """
+        pass
+
+    @abstractmethod
+    def revoke(self, *args, **kwargs):
+        """Revoke users ACLs
+
+        :return: Response
+        """
+        pass
+
 
 class Response(ABC):
+    """Server response abstract class"""
 
-    def __init__(self, data, code=None, header=None):
+    def __init__(self, data, code=None, header=None, error=None):
         self._data = data
         self._code = code
         self._header = header
+        self._error = error
 
     @property
-    @abstractmethod
     def data(self):
         return self._data
 
     @property
-    @abstractmethod
     def code(self):
         return self._code
 
     @property
-    @abstractmethod
     def header(self):
         return self._header
 
+    @property
+    def error(self):
+        return self._error
+
     def __bool__(self):
+        if self.error:
+            return False
         if self.data:
             return True
 
@@ -263,10 +286,43 @@ class Response(ABC):
         return str(self.data)
 
     def __repr__(self):
-        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}>'
+        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}, error={self.error}>'
 
     def __contains__(self, item):
         return True if item in self.data else False
 
+
+class Batch(ABC):
+    """Batch abstract class"""
+
+    def __init__(self, session: Session, batch):
+        self.session = session
+        self.batch = batch
+
+    @property
+    def session(self):
+        return self._session
+
+    @session.setter
+    def session(self, value):
+        if not isinstance(value, Session):
+            raise SessionError(f'{value} not contains a valid session')
+        self._session = value
+
+    @property
+    def batch(self):
+        return self._query
+
+    @batch.setter
+    def batch(self, value):
+        self._query = value
+
+    @abstractmethod
+    def execute(self, *args, **kwargs):
+        """Execute some statement
+
+        :return: Response
+        """
+        pass
 
 # endregion
