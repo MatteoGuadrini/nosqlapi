@@ -375,5 +375,13 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertRaises(ConnectError, myconn.databases)
 
 
+class ColumnSessionTest(unittest.TestCase):
+    myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+    mysess = myconn.connect()
+
+    def test_session_instance(self):
+        self.assertIsInstance(self.mysess, MyDBSession)
+
+
 if __name__ == '__main__':
     unittest.main()
