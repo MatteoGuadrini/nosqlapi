@@ -382,6 +382,10 @@ class ColumnSessionTest(unittest.TestCase):
     def test_session_instance(self):
         self.assertIsInstance(self.mysess, MyDBSession)
 
+    def test_description_session(self):
+        self.assertEqual(self.mysess.description, {'database': 'test_db', 'port': '12345',
+                                                   'server': 'mycolumndb.local', 'username': 'admin'})
+
 
 if __name__ == '__main__':
     unittest.main()
