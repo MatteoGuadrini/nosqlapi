@@ -215,7 +215,6 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         if bool(exists):
             query += f'\nIF EXISTS'
         query += ';'
-        print(query)
         self.session.send(query)
         self.session.recv = mock.MagicMock(return_value="DELETION:1")
         if "DELETION" not in self.session.recv(2048):
@@ -454,6 +453,15 @@ class ColumnSessionTest(unittest.TestCase):
     def test_delete_data_with_more_conditions(self):
         self.mysess.delete('table', ['name=Matteo', 'age>=34'])
         self.assertEqual(self.mysess.item_count, 1)
+
+    def test_find_selector(self):
+        sel = MyDBSelector()
+        sel.selector = 'table'
+        sel.fields = ['name', 'age']
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 3)
 
 
 if __name__ == '__main__':

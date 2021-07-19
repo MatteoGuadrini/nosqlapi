@@ -105,10 +105,7 @@ class Selector(ABC):
 
     @fields.setter
     def fields(self, value: list):
-        if isinstance(value, list):
-            self._fields = value
-        else:
-            raise SelectorAttributeError('fields must be a list object')
+        self._fields = value
 
     @property
     def partition(self):
