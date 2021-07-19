@@ -517,6 +517,15 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.session, None)
         ColumnSessionTest.mysess = ColumnSessionTest.myconn.connect()
 
+    def test_batch(self):
+        query = """
+        BEGIN BATCH
+            UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;
+        APPLY BATCH ;
+        """
+        batch = MyDBBatch(self.mysess, query)
+        batch.execute()
+
 
 if __name__ == '__main__':
     unittest.main()
