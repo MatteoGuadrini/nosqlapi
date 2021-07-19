@@ -386,6 +386,11 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.description, {'database': 'test_db', 'port': '12345',
                                                    'server': 'mycolumndb.local', 'username': 'admin'})
 
+    def test_get_column(self):
+        d = self.mysess.get('table', 'col1', 'col2')
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn(('name', 'age'), d)
+
 
 if __name__ == '__main__':
     unittest.main()
