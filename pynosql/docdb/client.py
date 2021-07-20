@@ -23,7 +23,7 @@
 """Client module for column NOSQL database."""
 # region imports
 from abc import ABC
-from ..common.core import Connection, Session, Selector
+from ..common.core import Connection, Session, Selector, Response
 
 
 # endregion
@@ -64,6 +64,12 @@ class DocSession(Session, ABC):
 
 class DocSelector(Selector, ABC):
     """Selector NOSQL database Session class"""
+
+    pass
+
+
+class DocResponse(Response, ABC):
+    """Response NOSQL database Session class"""
 
     pass
 
