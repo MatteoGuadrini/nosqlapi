@@ -45,7 +45,7 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
         if self.return_data != 'OK_PACKET':
             raise ConnectError(f'Server connection error: {self.return_data}')
         self.connection = self.t
-        return MyDBSession(self.connection)
+        return MyDBSession(self.connection, self.database)
 
     def create_database(self, name, not_exists: bool = False, replication=None, durable_writes=None):
         if self.connection:
@@ -104,7 +104,7 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
 
 class MyDBSession(pynosql.columndb.ColumnSession):
 
-    def __init__(self, connection):
+    def __init__(self, connection, database=None):
         super().__init__()
         self.session = connection
         self.session.send("SHOW_DESC")
@@ -112,18 +112,11 @@ class MyDBSession(pynosql.columndb.ColumnSession):
                                                         "\nusername=admin")
         self._description = {item.split('=')[0]: item.split('=')[1]
                              for item in self.session.recv(2048).split('\n')}
-
-    @property
-    def item_count(self):
-        return self._item_count
-
-    @property
-    def description(self):
-        return self._description
+        self._database = database
 
     @property
     def acl(self):
-        if 'database' not in self.description:
+        if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
         self.session.send(f"GET_ACL={self.description.get('database')}")
         self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
@@ -133,6 +126,8 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         )
 
     def get(self, table, *columns):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"SELECT {','.join(col for col in columns)} FROM {table}")
         self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
         if self.session.recv != 'NOT_FOUND':
@@ -150,6 +145,8 @@ class MyDBSession(pynosql.columndb.ColumnSession):
                ttl=None,
                timestamp=None,
                not_exists: bool = False):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         if not isinstance(columns, tuple):
             columns = tuple(columns)
         if not isinstance(values, tuple):
@@ -175,6 +172,8 @@ class MyDBSession(pynosql.columndb.ColumnSession):
                     ttl=None,
                     timestamp=None,
                     not_exists: bool = False):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         query = "BEGIN BATCH\n"
         for value in values:
             if not isinstance(columns, tuple):
@@ -211,6 +210,8 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
     def delete(self, table, conditions: list, exists: bool = False):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         query = f"DELETE FROM {table} WHERE {' AND '.join(condition for condition in conditions)}"
         if bool(exists):
             query += f'\nIF EXISTS'
@@ -228,6 +229,8 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         self.session = None
 
     def find(self, selector: pynosql.columndb.ColumnSelector):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         if isinstance(selector, pynosql.columndb.ColumnSelector):
             self.session.send(selector.build())
             self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
@@ -239,6 +242,8 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         return MyDBResponse(out)
 
     def grant(self, database, user, role):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"GRANT {user} ON {database} TO {role};")
         self.session.recv = mock.MagicMock(return_value="GRANT_OK")
         if self.session.recv(2048) != "GRANT_OK":
@@ -246,6 +251,8 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
 
     def revoke(self, database, user, role=None):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"REVOKE {user} ON {database} TO {role};")
         self.session.recv = mock.MagicMock(return_value="REVOKE_OK")
         if self.session.recv(2048) != "REVOKE_OK":
@@ -431,7 +438,7 @@ class ColumnSessionTest(unittest.TestCase):
     def test_insert_many_data_with_if_not_exists(self):
         values = [('Matteo', '35'), ('Arthur', '42')]
         self.mysess.insert_many('table', columns=('name', 'age'), values=values, ttl=123456,
-                           timestamp=1626681089, not_exists=True)
+                                timestamp=1626681089, not_exists=True)
         self.assertEqual(self.mysess.item_count, 2)
 
     def test_update_data(self):
