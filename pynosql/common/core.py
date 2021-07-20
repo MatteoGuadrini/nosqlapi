@@ -254,6 +254,8 @@ class Session(ABC):
 class Response(ABC):
     """Server response abstract class"""
 
+    __slots__ = ('_data', '_code', '_header', '_error')
+
     def __init__(self, data, code=None, header=None, error=None):
         self._data = data
         self._code = code
