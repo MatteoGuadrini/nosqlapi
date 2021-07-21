@@ -1,5 +1,6 @@
 import unittest
 import nosqlapi.docdb
+import json
 from unittest import mock
 from nosqlapi import (ConnectError, DatabaseCreationError)
 
@@ -38,6 +39,20 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             ret = self.req.put(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
+        else:
+            raise ConnectError("server isn't connected")
+
+    def has_database(self, name):
+        self.req.put = mock.MagicMock(return_value={'body': '{"result": ["test", "db1", "db2"]}',
+                                                    'status': 200,
+                                                    'header': 'HTTP header OK'})
+        if self.connection:
+            ret = self.req.put(f"{self.connection}/databases")
+            dbs = json.loads(ret.get('body'))
+            if name in dbs.get('result'):
+                return True
+            else:
+                return False
         else:
             raise ConnectError("server isn't connected")
 
