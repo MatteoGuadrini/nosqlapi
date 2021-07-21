@@ -39,6 +39,9 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             ret = self.req.put(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
+            return MyDBResponse(json.loads(ret['body']),
+                                ret['status'],
+                                ret['header'])
         else:
             raise ConnectError("server isn't connected")
 
@@ -59,6 +62,9 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             ret = self.req.delete(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
+            return MyDBResponse(json.loads(ret['body']),
+                                ret['status'],
+                                ret['header'])
         else:
             raise ConnectError("server isn't connected")
 
@@ -70,7 +76,9 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             ret = self.req.get(f"{self.connection}/databases")
             dbs = json.loads(ret.get('body'))
             if dbs:
-                return dbs.get('result')
+                return MyDBResponse(json.loads(ret['body']),
+                                    ret['status'],
+                                    ret['header'])
             else:
                 raise DatabaseError('no databases found on this server')
         else:
