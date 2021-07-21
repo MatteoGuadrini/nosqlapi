@@ -77,6 +77,10 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             raise ConnectError("server isn't connected")
 
 
+class MyDBResponse(nosqlapi.docdb.DocResponse):
+    pass
+
+
 class DocConnectionTest(unittest.TestCase):
     pass
 
