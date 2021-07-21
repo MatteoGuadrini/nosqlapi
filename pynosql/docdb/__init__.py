@@ -19,3 +19,7 @@
 #
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Package document NOSQL database."""
+
+from pynosql.docdb.client import DocConnection, DocSelector, DocSession, DocResponse, DocBatch

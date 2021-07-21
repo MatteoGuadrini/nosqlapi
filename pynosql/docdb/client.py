@@ -28,6 +28,12 @@ from ..common.core import Connection, Session, Selector, Response, Batch
 
 # endregion
 
+# region global variable
+__all__ = ['DocConnection', 'DocSelector', 'DocSession', 'DocResponse', 'DocBatch']
+
+
+# endregion
+
 # region classes
 class DocConnection(Connection, ABC):
     """Document NOSQL database Connection class"""

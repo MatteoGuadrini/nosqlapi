@@ -25,5 +25,6 @@
 from pynosql.common.exception import *
 from pynosql.kvdb import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
 from pynosql.columndb import ColumnConnection, ColumnSelector, ColumnSession, ColumnResponse, ColumnBatch
+from pynosql.docdb import DocConnection, DocSelector, DocSession, DocResponse, DocBatch
 
 apilevel = '1.0'

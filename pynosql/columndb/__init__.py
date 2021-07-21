@@ -20,4 +20,6 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Package column NOSQL database."""
+
 from pynosql.columndb.client import ColumnConnection, ColumnSelector, ColumnSession, ColumnResponse, ColumnBatch
