@@ -2,7 +2,7 @@ import unittest
 import nosqlapi.docdb
 import json
 from unittest import mock
-from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError)
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError)
 
 
 # Below classes is a simple emulation of MongoDB like database
@@ -43,13 +43,8 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             raise ConnectError("server isn't connected")
 
     def has_database(self, name):
-        self.req.put = mock.MagicMock(return_value={'body': '{"result": ["test", "db1", "db2"]}',
-                                                    'status': 200,
-                                                    'header': 'HTTP header OK'})
         if self.connection:
-            ret = self.req.put(f"{self.connection}/databases")
-            dbs = json.loads(ret.get('body'))
-            if name in dbs.get('result'):
+            if name in self.databases():
                 return True
             else:
                 return False
@@ -58,12 +53,26 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
 
     def delete_database(self, name):
         self.req.delete = mock.MagicMock(return_value={'body': '{"result": "ok"}',
-                                                    'status': 200,
-                                                    'header': 'HTTP header OK'})
+                                                       'status': 200,
+                                                       'header': 'HTTP header OK'})
         if self.connection:
             ret = self.req.delete(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
+        else:
+            raise ConnectError("server isn't connected")
+
+    def databases(self):
+        self.req.get = mock.MagicMock(return_value={'body': '{"result": ["test", "db1", "db2"]}',
+                                                    'status': 200,
+                                                    'header': 'HTTP header OK'})
+        if self.connection:
+            ret = self.req.get(f"{self.connection}/databases")
+            dbs = json.loads(ret.get('body'))
+            if dbs:
+                return dbs.get('result')
+            else:
+                raise DatabaseError('no databases found on this server')
         else:
             raise ConnectError("server isn't connected")
 
