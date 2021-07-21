@@ -2,7 +2,7 @@ import unittest
 import nosqlapi.docdb
 import json
 from unittest import mock
-from nosqlapi import (ConnectError, DatabaseCreationError)
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError)
 
 
 # Below classes is a simple emulation of MongoDB like database
@@ -53,6 +53,17 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
                 return True
             else:
                 return False
+        else:
+            raise ConnectError("server isn't connected")
+
+    def delete_database(self, name):
+        self.req.delete = mock.MagicMock(return_value={'body': '{"result": "ok"}',
+                                                    'status': 200,
+                                                    'header': 'HTTP header OK'})
+        if self.connection:
+            ret = self.req.delete(f"{self.connection}/{name}")
+            if ret.get('status') != 200:
+                raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
         else:
             raise ConnectError("server isn't connected")
 
