@@ -1,7 +1,7 @@
 import unittest
 import nosqlapi.docdb
 from unittest import mock
-from nosqlapi import (ConnectError)
+from nosqlapi import (ConnectError, DatabaseCreationError)
 
 
 # Below classes is a simple emulation of MongoDB like database
@@ -19,6 +19,8 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
     def connect(self):
         # Connection
         scheme = 'https://' if self.ssl else 'http://'
+        if self.username and self.password:
+            scheme += f'{self.username}:{self.password}@'
         url = f'{scheme}{self.host}'
         self.req.get = mock.MagicMock(return_value={'body': 'server http response ok',
                                                     'status': 200,
@@ -27,6 +29,17 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             raise ConnectError('server not respond')
         self.connection = url
         # return MyDBSession(self.connection, self.database)
+
+    def create_database(self, name):
+        self.req.put = mock.MagicMock(return_value={'body': '{"result": "ok"}',
+                                                    'status': 200,
+                                                    'header': 'HTTP header OK'})
+        if self.connection:
+            ret = self.req.put(f"{self.connection}/{name}")
+            if ret.get('status') != 200:
+                raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
+        else:
+            raise ConnectError("server isn't connected")
 
 
 class DocConnectionTest(unittest.TestCase):
