@@ -1,7 +1,7 @@
 ---
-name: pynosql bug
-about: pynosql bug template
-title: pynosql bug
+name: nosqlapi bug
+about: nosqlapi bug template
+title: nosqlapi bug
 labels: bug
 assignees: MatteoGuadrini
 ---
@@ -20,7 +20,7 @@ Description of what is expected
 
 ## Your Environment
 
-* pynosql version used:
+* nosqlapi version used:
 * Operating System and version:
 
 Additional context

@@ -1,5 +1,5 @@
 import unittest
-import pynosql.columndb
+import nosqlapi.columndb
 from unittest import mock
 
 

@@ -1,8 +1,8 @@
 import unittest
-import pynosql.columndb
-from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
-                     SessionInsertingError, SessionClosingError, SessionDeletingError,
-                     SessionFindingError, SelectorAttributeError, SessionACLError)
+import nosqlapi.columndb
+from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
+                      SessionInsertingError, SessionClosingError, SessionDeletingError,
+                      SessionFindingError, SelectorAttributeError, SessionACLError)
 from unittest import mock
 from typing import List
 
@@ -10,7 +10,7 @@ from typing import List
 # Below classes is a simple emulation of Cassandra like database
 
 
-class MyDBConnection(pynosql.columndb.ColumnConnection):
+class MyDBConnection(nosqlapi.columndb.ColumnConnection):
     # Simulate socket.socket
     t = mock.Mock('AF_INET', 'SOCK_STREAM')
     t.connect = mock.MagicMock()
@@ -102,7 +102,7 @@ class MyDBConnection(pynosql.columndb.ColumnConnection):
             raise ConnectError(f"Server isn't connected")
 
 
-class MyDBSession(pynosql.columndb.ColumnSession):
+class MyDBSession(nosqlapi.columndb.ColumnSession):
 
     def __init__(self, connection, database=None):
         super().__init__()
@@ -228,10 +228,10 @@ class MyDBSession(pynosql.columndb.ColumnSession):
             SessionClosingError('session was not closed')
         self.session = None
 
-    def find(self, selector: pynosql.columndb.ColumnSelector):
+    def find(self, selector: nosqlapi.columndb.ColumnSelector):
         if not self.database:
             raise ConnectError('connect to a database before some request')
-        if isinstance(selector, pynosql.columndb.ColumnSelector):
+        if isinstance(selector, nosqlapi.columndb.ColumnSelector):
             self.session.send(selector.build())
             self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
         else:
@@ -260,11 +260,11 @@ class MyDBSession(pynosql.columndb.ColumnSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
 
-class MyDBResponse(pynosql.columndb.ColumnResponse):
+class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
 
 
-class MyDBBatch(pynosql.columndb.ColumnBatch):
+class MyDBBatch(nosqlapi.columndb.ColumnBatch):
 
     def execute(self):
         self.session.session.send(self.batch)
@@ -273,7 +273,7 @@ class MyDBBatch(pynosql.columndb.ColumnBatch):
             raise SessionError(f'batch error: {self.session.session.recv(2048)}')
 
 
-class MyDBSelector(pynosql.columndb.ColumnSelector):
+class MyDBSelector(nosqlapi.columndb.ColumnSelector):
 
     def build(self):
         """Build string query selector

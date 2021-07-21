@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# __init__.py -- pynosql
+# exception -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -20,6 +20,69 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Package document NOSQL database."""
+"""Exception module for NOSQL databases."""
 
-from pynosql.docdb.client import DocConnection, DocSelector, DocSession, DocResponse, DocBatch
+
+# Generic error
+class Error(Exception):
+    pass
+
+
+class UnknownError(Error):
+    pass
+
+
+# Connection error
+class ConnectError(Error):
+    pass
+
+
+class CloseError(ConnectError):
+    pass
+
+
+# Database error
+class DatabaseError(Error):
+    pass
+
+
+class DatabaseCreationError(DatabaseError):
+    pass
+
+
+class DatabaseDeletionError(DatabaseError):
+    pass
+
+
+# Session error
+class SessionError(Error):
+    pass
+
+
+class SessionInsertingError(SessionError):
+    pass
+
+
+class SessionUpdatingError(SessionError):
+    pass
+
+
+class SessionDeletingError(SessionError):
+    pass
+
+
+class SessionClosingError(SessionError):
+    pass
+
+
+class SessionFindingError(SessionError):
+    pass
+
+
+class SessionACLError(SessionError):
+    pass
+
+
+# Other error
+class SelectorAttributeError(Error):
+    pass

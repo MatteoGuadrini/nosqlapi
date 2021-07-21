@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# __info__ -- pynosql
+# __info__ -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -25,4 +25,4 @@
 __version__ = '0.0.4'
 __author__ = 'Matteo Guadrini'
 __email__ = 'matteo.guadrini@hotmail.it'
-__homepage__ = 'https://github.com/MatteoGuadrini/pynosql'
+__homepage__ = 'https://github.com/MatteoGuadrini/nosqlapi'

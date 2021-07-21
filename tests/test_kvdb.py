@@ -1,15 +1,15 @@
 import unittest
-import pynosql.kvdb
-from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
-                     SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
-                     SessionFindingError, SelectorAttributeError, SessionACLError)
+import nosqlapi.kvdb
+from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
+                      SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
+                      SessionFindingError, SelectorAttributeError, SessionACLError)
 from unittest import mock
 from string import Template
 
 # Below classes is a emulation of FoundationDB like database
 
 
-class MyDBConnection(pynosql.kvdb.KVConnection):
+class MyDBConnection(nosqlapi.kvdb.KVConnection):
     # Simulate socket.socket
     t = mock.Mock('AF_INET', 'SOCK_STREAM')
     t.connect = mock.MagicMock()
@@ -94,7 +94,7 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
             raise ConnectError(f"Server isn't connected")
 
 
-class MyDBSession(pynosql.kvdb.KVSession):
+class MyDBSession(nosqlapi.kvdb.KVSession):
 
     def __init__(self, connection, database=None):
         super().__init__()
@@ -183,7 +183,7 @@ class MyDBSession(pynosql.kvdb.KVSession):
         if isinstance(selector, str):
             self.session.send(f"FIND={selector}")
             self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
-        elif isinstance(selector, pynosql.kvdb.KVSelector):
+        elif isinstance(selector, nosqlapi.kvdb.KVSelector):
             self.session.send(f"FIND={selector.build()}")
             self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
         else:
@@ -214,11 +214,11 @@ class MyDBSession(pynosql.kvdb.KVSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
 
-class MyDBResponse(pynosql.kvdb.KVResponse):
+class MyDBResponse(nosqlapi.kvdb.KVResponse):
     pass
 
 
-class MyDBSelector(pynosql.kvdb.KVSelector):
+class MyDBSelector(nosqlapi.kvdb.KVSelector):
 
     def build(self):
         """Build string query selector

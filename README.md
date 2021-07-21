@@ -1,6 +1,6 @@
-# pynosql
+# nosqlapi
 
-_pynosql_ is a library for building standard NOSQL python libraries.
+_nosqlapi_ is a library for building standard NOSQL python libraries.
 
 ## Introduction
 
@@ -303,9 +303,9 @@ This read/write attribute represents a _batch_ operation.
 
 Executing a _batch_ operation with position and keyword arguments.
 
-## pynosql package
+## nosqlapi package
 
-The package _pynosql_ is a collection of interface and utility class and functions for build your own NOSQL python package.
+The package _nosqlapi_ is a collection of interface and utility class and functions for build your own NOSQL python package.
 
 ### Type of NoSql Database
 
@@ -316,12 +316,12 @@ NoSql databases are of four types:
 - Document database
 - Graph database
 
-For each type of database, _pynosql_ offers standard interfaces, in order to unify as much as possible the names of methods and functions.
+For each type of database, _nosqlapi_ offers standard interfaces, in order to unify as much as possible the names of methods and functions.
 
 For an example, just look at the relevant package test files.
 
 ## Open source
-_pynosql_ is an open source project. Any contribute, It's welcome.
+_nosqlapi_ is an open source project. Any contribute, It's welcome.
 
 **A great thanks**.
 
