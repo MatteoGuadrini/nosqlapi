@@ -1,6 +1,7 @@
 import unittest
 import nosqlapi.docdb
 from unittest import mock
+from nosqlapi import (ConnectError)
 
 
 # Below classes is a simple emulation of MongoDB like database
@@ -9,11 +10,23 @@ from unittest import mock
 class MyDBConnection(nosqlapi.docdb.DocConnection):
     # Simulate socket.socket
     req = mock.Mock()
-    req.get = mock.MagicMock()
-    req.put = mock.MagicMock()
-    req.post = mock.MagicMock()
-    req.delete = mock.MagicMock()
-    req.head = mock.MagicMock()
+
+    def close(self):
+        self.connection = None
+        if self.connection is not None:
+            raise ConnectError('Close connection error')
+
+    def connect(self):
+        # Connection
+        scheme = 'https://' if self.ssl else 'http://'
+        url = f'{scheme}{self.host}'
+        self.req.get = mock.MagicMock(return_value={'body': 'server http response ok',
+                                                    'status': 200,
+                                                    'header': 'HTTP header OK'})
+        if self.req.get(url).get('status') != 200:
+            raise ConnectError('server not respond')
+        self.connection = url
+        # return MyDBSession(self.connection, self.database)
 
 
 class DocConnectionTest(unittest.TestCase):
