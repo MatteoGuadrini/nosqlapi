@@ -69,14 +69,14 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             raise ConnectError("server isn't connected")
 
     def databases(self):
-        self.req.get = mock.MagicMock(return_value={'body': '{"result": ["test", "db1", "db2"]}',
+        self.req.get = mock.MagicMock(return_value={'body': '{"result": ["test_db", "db1", "db2"]}',
                                                     'status': 200,
                                                     'header': 'HTTP header OK'})
         if self.connection:
             ret = self.req.get(f"{self.connection}/databases")
             dbs = json.loads(ret.get('body'))
-            if dbs:
-                return MyDBResponse(json.loads(ret['body']),
+            if dbs['result']:
+                return MyDBResponse(dbs['result'],
                                     ret['status'],
                                     ret['header'])
             else:
@@ -90,7 +90,10 @@ class MyDBResponse(nosqlapi.docdb.DocResponse):
 
 
 class DocConnectionTest(unittest.TestCase):
-    pass
+    def test_kvdb_connect(self):
+        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
 
 
 class DocSessionTest(unittest.TestCase):
