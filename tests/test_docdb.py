@@ -102,6 +102,16 @@ class DocConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertEqual(myconn.connection, None)
 
+    def test_kvdb_create_database(self):
+        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
+        resp = myconn.create_database('test_db')
+        self.assertEqual(resp.data['result'], 'ok')
+        myconn.close()
+        self.assertEqual(myconn.connection, None)
+        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+
 
 class DocSessionTest(unittest.TestCase):
     pass
