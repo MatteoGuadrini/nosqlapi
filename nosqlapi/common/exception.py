@@ -84,5 +84,9 @@ class SessionACLError(SessionError):
 
 
 # Other error
-class SelectorAttributeError(Error):
+class SelectorError(Error):
+    pass
+
+
+class SelectorAttributeError(SelectorError):
     pass

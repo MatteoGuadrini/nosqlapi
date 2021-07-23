@@ -102,10 +102,15 @@ It must be a subclass of `SessionError`.
 Exception raised for errors that are related to the grant or revoke permission on a database. 
 It must be a subclass of `SessionError`.
 
+`SelectorError`
+
+Exception raised for errors that are related to the selectors in general.
+It must be a subclass of `Error`.
+
 `SelectorAttributeError`
 
-Exception raised for errors that are related to the selectors. 
-It must be a subclass of `Error`.
+Exception raised for errors that are related to the selectors attribute. 
+It must be a subclass of `SelectorError`.
 
 This is the exception inheritance layout:
 
@@ -125,7 +130,8 @@ Exception
    |  |__SessionClosingError
    |  |__SessionFindingError
    |  |__SessionACLError
-   |__SelectorAttributeError
+   |__SelectorError
+      |__SelectorAttributeError
 ```
 
 ### Connection Objects
