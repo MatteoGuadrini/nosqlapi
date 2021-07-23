@@ -3,7 +3,8 @@ import nosqlapi.docdb
 import json
 from unittest import mock
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                      SessionInsertingError)
+                      SessionInsertingError, SelectorAttributeError, SessionUpdatingError, SessionDeletingError,
+                      SessionFindingError, SessionACLError)
 
 
 # Below classes is a simple emulation of MongoDB like database
@@ -137,7 +138,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                                                      'header': '"Content-Type": [ "application/json" ]'})
         ret = self.req.post(f"{self.session}/{path}", doc)
         if ret.get('status') != 200:
-            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -168,7 +169,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         doc_with_rev['revision'] = 2
         ret = self.req.post(f"{self.session}/{path}", json.dumps(doc_with_rev))
         if ret.get('status') != 200:
-            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -185,7 +186,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         doc_with_rev['query'] = query
         ret = self.req.post(f"{self.session}/{path}", json.dumps(doc_with_rev))
         if ret.get('status') != 200:
-            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -202,7 +203,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         else:
             ret = self.req.delete(f"{self.session}/{path}?revision={rev}")
         if ret.get('status') != 200:
-            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionDeletingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -217,9 +218,12 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                                                              '"name": "Matteo", "age": 35}',
                                                      'status': 200,
                                                      'header': '"Content-Type": [ "application/json" ]'})
-        ret = self.req.post(f"{self.session}/find", selector.build())
+        if isinstance(selector, nosqlapi.docdb.DocSelector):
+            ret = self.req.post(f"{self.session}/find", selector.build())
+        else:
+            ret = self.req.post(f"{self.session}/find", selector)
         if ret.get('status') != 200:
-            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionFindingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -235,7 +239,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         role_[user] = {"role": role, "db": database}
         ret = self.req.post(f"{self.session}/grantRolesToUser", json.dumps(role_))
         if ret.get('status') != 200:
-            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -249,7 +253,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         role_ = {"role": role, "db": database}
         ret = self.req.post(f"{self.session}/revokeRolesFromUser", json.dumps(role_))
         if ret.get('status') != 200:
-            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -257,6 +261,26 @@ class MyDBSession(nosqlapi.docdb.DocSession):
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
+
+
+class MySelector(nosqlapi.docdb.DocSelector):
+
+    def build(self):
+        query = dict()
+        if not self.selector:
+            raise SelectorAttributeError("selector is mandatory")
+        query["selector"] = self.selector
+        if self.fields:
+            query["fields"] = self.fields
+        if self.limit:
+            query["limit"] = self.limit
+        if self.partition:
+            query["partition"] = self.partition
+        if self.condition:
+            query["condition"] = self.condition
+        if self.order:
+            query["order"] = self.order
+        return json.dumps(query)
 
 
 class DocConnectionTest(unittest.TestCase):
