@@ -9,7 +9,7 @@ from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError
 
 
 class MyDBConnection(nosqlapi.docdb.DocConnection):
-    # Simulate socket.socket
+    # Simulate http requests
     req = mock.Mock()
 
     def close(self):
@@ -25,16 +25,16 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         url = f'{scheme}{self.host}'
         self.req.get = mock.MagicMock(return_value={'body': 'server http response ok',
                                                     'status': 200,
-                                                    'header': 'HTTP header OK'})
+                                                    'header': '"Content-Type": [ "application/json" ]'})
         if self.req.get(url).get('status') != 200:
             raise ConnectError('server not respond')
         self.connection = url
-        # return MyDBSession(self.connection, self.database)
+        # return MyDBSession(self.connection)
 
     def create_database(self, name):
         self.req.put = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                     'status': 200,
-                                                    'header': 'HTTP header OK'})
+                                                    'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
             ret = self.req.put(f"{self.connection}/{name}")
             if ret.get('status') != 200:
@@ -57,7 +57,7 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
     def delete_database(self, name):
         self.req.delete = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                        'status': 200,
-                                                       'header': 'HTTP header OK'})
+                                                       'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
             ret = self.req.delete(f"{self.connection}/{name}")
             if ret.get('status') != 200:
@@ -71,7 +71,7 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
     def databases(self):
         self.req.get = mock.MagicMock(return_value={'body': '{"result": ["test_db", "db1", "db2"]}',
                                                     'status': 200,
-                                                    'header': 'HTTP header OK'})
+                                                    'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
             ret = self.req.get(f"{self.connection}/databases")
             dbs = json.loads(ret.get('body'))
@@ -83,6 +83,35 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
                 raise DatabaseError('no databases found on this server')
         else:
             raise ConnectError("server isn't connected")
+
+
+class MyDBSession(nosqlapi.docdb.DocSession):
+    # Simulate http requests
+    req = mock.Mock()
+
+    def __init__(self, connection):
+        super().__init__()
+        self.session = connection
+        self.req.get = mock.MagicMock(return_value={'body': '{"host" : "mydocdb.local",\n"version" : "1.0",\n'
+                                                            '"uptime" : 123445566}',
+                                                    'status': 200,
+                                                    'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.get(f"{self.session}/serverStatus")
+        if ret.get('status') != 200:
+            raise ConnectError('server not respond')
+        self._description = json.loads(ret.get('body'))
+
+    @property
+    def acl(self):
+        self.req.get = mock.MagicMock(return_value={'body': '{"user": "admin", "roles": ["administrator", "all"]}',
+                                                    'status': 200,
+                                                    'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.get(f"{self.session}/privileges")
+        if ret.get('status') != 200:
+            raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
 
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
