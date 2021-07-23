@@ -2,7 +2,8 @@ import unittest
 import nosqlapi.docdb
 import json
 from unittest import mock
-from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError)
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
+                      SessionInsertingError)
 
 
 # Below classes is a simple emulation of MongoDB like database
@@ -130,13 +131,28 @@ class MyDBSession(nosqlapi.docdb.DocSession):
     def insert(self, path, doc):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        self.req.post = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391"'
+        self.req.post = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391",'
                                                              '"revision": 1}',
                                                      'status': 200,
                                                      'header': '"Content-Type": [ "application/json" ]'})
         ret = self.req.post(f"{self.session}/{path}", doc)
         if ret.get('status') != 200:
             raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def insert_many(self, path, *docs):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        self.req.post = mock.MagicMock(return_value={'body': '{"insertedIds": [ "5099803df3f4948bd2f98391", '
+                                                             '"5099803df3f4948bd2f98392", '
+                                                             '"5099803df3f4948bd2f98393"]}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.post(f"{self.session}/{path}", f"{[doc for doc in docs]}")
+        if ret.get('status') != 200:
+            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
