@@ -224,6 +224,22 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    def grant(self, database, user, role):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"user": "{user}"'
+                                                             f'"role": "{role}"}}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        role_ = dict()
+        role_[user] = {"role": role, "db": database}
+        ret = self.req.post(f"{self.session}/grantRolesToUser", json.dumps(role_))
+        if ret.get('status') != 200:
+            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
