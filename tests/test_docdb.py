@@ -207,6 +207,9 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    def close(self):
+        self.session = None
+
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
