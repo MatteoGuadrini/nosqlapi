@@ -173,6 +173,23 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    def update_many(self, path, *docs, query):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        self.req.post = mock.MagicMock(return_value={'body': '{"insertedIds": [ "5099803df3f4948bd2f98391", '
+                                                             '"5099803df3f4948bd2f98392", '
+                                                             '"5099803df3f4948bd2f98393"]}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        doc_with_rev = json.loads(f"{[doc for doc in docs]}")
+        doc_with_rev['query'] = query
+        ret = self.req.post(f"{self.session}/{path}", json.dumps(doc_with_rev))
+        if ret.get('status') != 200:
+            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
