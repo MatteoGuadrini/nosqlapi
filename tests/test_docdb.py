@@ -120,7 +120,21 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                                                             '"name": "Matteo", "age": 35}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
-        ret = self.req.get(f"{self.session}/db/doc")
+        ret = self.req.get(f"{self.session}/{path}")
+        if ret.get('status') != 200:
+            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def insert(self, path, doc):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        self.req.post = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391"'
+                                                             '"revision": 1}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.post(f"{self.session}/{path}", doc)
         if ret.get('status') != 200:
             raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
