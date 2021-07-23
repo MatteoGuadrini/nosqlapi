@@ -2,7 +2,7 @@ import unittest
 import nosqlapi.docdb
 import json
 from unittest import mock
-from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError)
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError)
 
 
 # Below classes is a simple emulation of MongoDB like database
@@ -109,6 +109,20 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         ret = self.req.get(f"{self.session}/privileges")
         if ret.get('status') != 200:
             raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def get(self, path):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        self.req.get = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391"'
+                                                            '"name": "Matteo", "age": 35}',
+                                                    'status': 200,
+                                                    'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.get(f"{self.session}/db/doc")
+        if ret.get('status') != 200:
+            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
