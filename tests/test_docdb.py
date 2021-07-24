@@ -31,7 +31,7 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         if self.req.get(url).get('status') != 200:
             raise ConnectError('server not respond')
         self.connection = url
-        # return MyDBSession(self.connection)
+        return MyDBSession(self.connection)
 
     def create_database(self, name):
         self.req.put = mock.MagicMock(return_value={'body': '{"result": "ok"}',
@@ -118,7 +118,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
     def get(self, path):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        self.req.get = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391"'
+        self.req.get = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391",'
                                                             '"name": "Matteo", "age": 35}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
@@ -174,7 +174,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
-    def update_many(self, path, *docs, query):
+    def update_many(self, path, query, *docs):
         if not self.session:
             raise ConnectError('connect to a server before some request')
         self.req.post = mock.MagicMock(return_value={'body': '{"insertedIds": [ "5099803df3f4948bd2f98391", '
@@ -182,8 +182,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                                                              '"5099803df3f4948bd2f98393"]}',
                                                      'status': 200,
                                                      'header': '"Content-Type": [ "application/json" ]'})
-        doc_with_rev = json.loads(f"{[doc for doc in docs]}")
-        doc_with_rev['query'] = query
+        doc_with_rev = {"docs": f"{list(docs)}", 'query': query}
         ret = self.req.post(f"{self.session}/{path}", json.dumps(doc_with_rev))
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
@@ -194,10 +193,10 @@ class MyDBSession(nosqlapi.docdb.DocSession):
     def delete(self, path, rev=None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        self.req.get = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391"'
-                                                            '"name": "Matteo", "age": 35}',
-                                                    'status': 200,
-                                                    'header': '"Content-Type": [ "application/json" ]'})
+        self.req.delete = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391",'
+                                                               '"revision": 3}',
+                                                       'status': 200,
+                                                       'header': '"Content-Type": [ "application/json" ]'})
         if not rev:
             ret = self.req.delete(f"{self.session}/{path}")
         else:
@@ -214,7 +213,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
     def find(self, selector):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        self.req.post = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391"'
+        self.req.post = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391",'
                                                              '"name": "Matteo", "age": 35}',
                                                      'status': 200,
                                                      'header': '"Content-Type": [ "application/json" ]'})
@@ -247,7 +246,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
     def revoke(self, database, role):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        self.req.post = mock.MagicMock(return_value={'body': f'"role": "{role}"}}',
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"role": "{role}"}}',
                                                      'status': 200,
                                                      'header': '"Content-Type": [ "application/json" ]'})
         role_ = {"role": role, "db": database}
@@ -263,7 +262,7 @@ class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
 
 
-class MySelector(nosqlapi.docdb.DocSelector):
+class MyDBSelector(nosqlapi.docdb.DocSelector):
 
     def build(self):
         query = dict()
@@ -338,7 +337,11 @@ class DocConnectionTest(unittest.TestCase):
 
 
 class DocSessionTest(unittest.TestCase):
-    pass
+    myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
+    mysess = myconn.connect()
+
+    def test_session_instance(self):
+        self.assertIsInstance(self.mysess, MyDBSession)
 
 
 if __name__ == '__main__':
