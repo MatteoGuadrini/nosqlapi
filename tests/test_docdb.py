@@ -346,6 +346,12 @@ class DocSessionTest(unittest.TestCase):
     def test_description_session(self):
         self.assertEqual(self.mysess.description, {'host': 'mydocdb.local', 'version': '1.0', 'uptime': 123445566})
 
+    def test_get_data(self):
+        d = self.mysess.get('db/doc1')
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('_id', d)
+        self.assertEqual(d.data['_id'], '5099803df3f4948bd2f98391')
+
 
 if __name__ == '__main__':
     unittest.main()
