@@ -356,6 +356,15 @@ class DocSessionTest(unittest.TestCase):
         ret = self.mysess.insert('db/doc1', '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}')
         self.assertEqual(ret.data['revision'], 1)
 
+    def test_insert_many_data(self):
+        ret = self.mysess.insert_many('db',
+                                      '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}',
+                                      '{"_id": "5099803df3f4948bd2f98392", "name": "Matteo", "age": 35}',
+                                      '{"_id": "5099803df3f4948bd2f98393", "name": "Matteo", "age": 35}')
+        self.assertEqual(ret.data['insertedIds'], ["5099803df3f4948bd2f98391",
+                                                   "5099803df3f4948bd2f98392",
+                                                   "5099803df3f4948bd2f98393"])
+
 
 if __name__ == '__main__':
     unittest.main()
