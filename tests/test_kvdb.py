@@ -1,15 +1,15 @@
 import unittest
-import pynosql.kvdb
-from pynosql import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
-                     SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
-                     SessionFindingError, SelectorAttributeError, SessionACLError)
+import nosqlapi.kvdb
+from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
+                      SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
+                      SessionFindingError, SelectorAttributeError, SessionACLError)
 from unittest import mock
 from string import Template
 
 # Below classes is a emulation of FoundationDB like database
 
 
-class MyDBConnection(pynosql.kvdb.KVConnection):
+class MyDBConnection(nosqlapi.kvdb.KVConnection):
     # Simulate socket.socket
     t = mock.Mock('AF_INET', 'SOCK_STREAM')
     t.connect = mock.MagicMock()
@@ -44,7 +44,7 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
         if self.return_data != 'OK_PACKET':
             raise ConnectError(f'Server connection error: {self.return_data}')
         self.connection = self.t
-        return MyDBSession(self.connection)
+        return MyDBSession(self.connection, self.database)
 
     def create_database(self, name):
         if self.connection:
@@ -94,27 +94,20 @@ class MyDBConnection(pynosql.kvdb.KVConnection):
             raise ConnectError(f"Server isn't connected")
 
 
-class MyDBSession(pynosql.kvdb.KVSession):
+class MyDBSession(nosqlapi.kvdb.KVSession):
 
-    def __init__(self, connection):
+    def __init__(self, connection, database=None):
         super().__init__()
         self.session = connection
         self.session.send("SHOW_DESC")
         self.session.recv = mock.MagicMock(return_value="server=mykvdb.local\nport=12345\ndatabase=test_db")
         self._description = {item.split('=')[0]: item.split('=')[1]
                              for item in self.session.recv(2048).split('\n')}
-
-    @property
-    def item_count(self):
-        return self._item_count
-
-    @property
-    def description(self):
-        return self._description
+        self._database = database
 
     @property
     def acl(self):
-        if 'database' not in self.description:
+        if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
         self.session.send(f"GET_ACL={self.description.get('database')}")
         self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
@@ -124,6 +117,8 @@ class MyDBSession(pynosql.kvdb.KVSession):
         )
 
     def get(self, key):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"GET={key}")
         self.session.recv = mock.MagicMock(return_value=f"{key}=value")
         if self.session.recv != 'KEY_NOT_FOUND':
@@ -136,6 +131,8 @@ class MyDBSession(pynosql.kvdb.KVSession):
             raise SessionError(f'key {key} not exists')
 
     def insert(self, key, value):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"INSERT={key},{value}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
         if self.session.recv(2048) != "NEW_KEY_OK":
@@ -143,6 +140,8 @@ class MyDBSession(pynosql.kvdb.KVSession):
         self._item_count = 1
 
     def insert_many(self, dict_: dict):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
         if self.session.recv(2048) != "NEW_KEY_OK":
@@ -150,6 +149,8 @@ class MyDBSession(pynosql.kvdb.KVSession):
         self._item_count = len(dict_)
 
     def update(self, key, value):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         if self.get(key):
             self.session.send(f"UPDATE={key},{value}")
             self.session.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
@@ -162,6 +163,8 @@ class MyDBSession(pynosql.kvdb.KVSession):
         raise NotImplementedError('update_many not implemented for this module')
 
     def delete(self, key):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"DELETE={key}")
         self.session.recv = mock.MagicMock(return_value="DELETE_OK")
         if self.session.recv(2048) != 'DELETE_OK':
@@ -175,10 +178,12 @@ class MyDBSession(pynosql.kvdb.KVSession):
         self.session = None
 
     def find(self, selector):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         if isinstance(selector, str):
             self.session.send(f"FIND={selector}")
             self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
-        elif isinstance(selector, pynosql.kvdb.KVSelector):
+        elif isinstance(selector, nosqlapi.kvdb.KVSelector):
             self.session.send(f"FIND={selector.build()}")
             self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
         else:
@@ -191,6 +196,8 @@ class MyDBSession(pynosql.kvdb.KVSession):
         return MyDBResponse(out)
 
     def grant(self, database, user, role):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"GRANT={user},{role}:DATABASE={database}")
         self.session.recv = mock.MagicMock(return_value="GRANT_OK")
         if self.session.recv(2048) != "GRANT_OK":
@@ -198,6 +205,8 @@ class MyDBSession(pynosql.kvdb.KVSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
 
     def revoke(self, database, user, role=None):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
         self.session.send(f"REVOKE={user},{role}:DATABASE={database}")
         self.session.recv = mock.MagicMock(return_value="REVOKE_OK")
         if self.session.recv(2048) != "REVOKE_OK":
@@ -205,11 +214,11 @@ class MyDBSession(pynosql.kvdb.KVSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
 
-class MyDBResponse(pynosql.kvdb.KVResponse):
+class MyDBResponse(nosqlapi.kvdb.KVResponse):
     pass
 
 
-class MyDBSelector(pynosql.kvdb.KVSelector):
+class MyDBSelector(nosqlapi.kvdb.KVSelector):
 
     def build(self):
         """Build string query selector

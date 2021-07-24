@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# __init__.py -- pynosql
+# __init__.py -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -22,4 +22,4 @@
 
 """Package key-value NOSQL database."""
 
-from pynosql.kvdb.client import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
+from nosqlapi.kvdb.client import KVConnection, KVSelector, KVSession, KVResponse, KVBatch

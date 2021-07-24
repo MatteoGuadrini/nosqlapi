@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# exception -- pynosql
+# exception -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -84,5 +84,9 @@ class SessionACLError(SessionError):
 
 
 # Other error
-class SelectorAttributeError(Error):
+class SelectorError(Error):
+    pass
+
+
+class SelectorAttributeError(SelectorError):
     pass

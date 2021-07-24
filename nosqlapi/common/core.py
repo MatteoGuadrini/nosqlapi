@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# core -- pynosql
+# core -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -151,19 +151,22 @@ class Selector(ABC):
 class Session(ABC):
     """Server session abstract class"""
 
-    def __init__(self):
+    def __init__(self, database=None):
         self._item_count = 0
         self._description = ()
+        self._database = database
 
     @property
-    @abstractmethod
     def item_count(self):
         return self._item_count
 
     @property
-    @abstractmethod
     def description(self):
         return self._description
+
+    @property
+    def database(self):
+        return self._database
 
     @property
     @abstractmethod
@@ -253,6 +256,8 @@ class Session(ABC):
 
 class Response(ABC):
     """Server response abstract class"""
+
+    __slots__ = ('_data', '_code', '_header', '_error')
 
     def __init__(self, data, code=None, header=None, error=None):
         self._data = data

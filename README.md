@@ -1,6 +1,8 @@
-# pynosql
+# nosqlapi
 
-_pynosql_ is a library for building standard NOSQL python libraries.
+_nosqlapi_ is a library for building standard NOSQL python libraries.
+
+> ATTENTION: This is **WIP** in _alpha_ version
 
 ## Introduction
 
@@ -100,10 +102,15 @@ It must be a subclass of `SessionError`.
 Exception raised for errors that are related to the grant or revoke permission on a database. 
 It must be a subclass of `SessionError`.
 
+`SelectorError`
+
+Exception raised for errors that are related to the selectors in general.
+It must be a subclass of `Error`.
+
 `SelectorAttributeError`
 
-Exception raised for errors that are related to the selectors. 
-It must be a subclass of `Error`.
+Exception raised for errors that are related to the selectors attribute. 
+It must be a subclass of `SelectorError`.
 
 This is the exception inheritance layout:
 
@@ -123,7 +130,8 @@ Exception
    |  |__SessionClosingError
    |  |__SessionFindingError
    |  |__SessionACLError
-   |__SelectorAttributeError
+   |__SelectorError
+      |__SelectorAttributeError
 ```
 
 ### Connection Objects
@@ -303,9 +311,9 @@ This read/write attribute represents a _batch_ operation.
 
 Executing a _batch_ operation with position and keyword arguments.
 
-## pynosql package
+## nosqlapi package
 
-The package _pynosql_ is a collection of interface and utility class and functions for build your own NOSQL python package.
+The package _nosqlapi_ is a collection of interface and utility class and functions for build your own NOSQL python package.
 
 ### Type of NoSql Database
 
@@ -316,12 +324,12 @@ NoSql databases are of four types:
 - Document database
 - Graph database
 
-For each type of database, _pynosql_ offers standard interfaces, in order to unify as much as possible the names of methods and functions.
+For each type of database, _nosqlapi_ offers standard interfaces, in order to unify as much as possible the names of methods and functions.
 
 For an example, just look at the relevant package test files.
 
 ## Open source
-_pynosql_ is an open source project. Any contribute, It's welcome.
+_nosqlapi_ is an open source project. Any contribute, It's welcome.
 
 **A great thanks**.
 

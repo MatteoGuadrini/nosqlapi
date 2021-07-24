@@ -1,7 +1,7 @@
 ---
-name: pynosql enhancement
-about: pynosql enhancement template
-title: pynosql enhancement
+name: nosqlapi enhancement
+about: nosqlapi enhancement template
+title: nosqlapi enhancement
 labels: enhancement
 assignees: MatteoGuadrini
 ---

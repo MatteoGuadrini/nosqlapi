@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# client -- pynosql
+# client -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -20,28 +20,27 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Client module for key-value NOSQL database."""
-
+"""Client module for column NOSQL database."""
 # region imports
-from abc import ABC, abstractmethod
-from ..common.core import Connection, Selector, Session, Response, Batch
+from abc import ABC
+from ..common.core import Connection, Session, Selector, Response, Batch
+
 
 # endregion
 
 # region global variable
-__all__ = ['KVConnection', 'KVSelector', 'KVSession', 'KVResponse', 'KVBatch']
+__all__ = ['DocConnection', 'DocSelector', 'DocSession', 'DocResponse', 'DocBatch']
 
 
 # endregion
 
 # region classes
-class KVConnection(Connection, ABC):
-    """Key-value NOSQL database Connection class"""
+class DocConnection(Connection, ABC):
+    """Document NOSQL database Connection class"""
 
     def __init__(self,
                  host=None,
                  port=None,
-                 database=None,
                  username=None,
                  password=None,
                  ssl=None,
@@ -52,7 +51,6 @@ class KVConnection(Connection, ABC):
                  ):
         self.host = host
         self.port = port
-        self.database = database
         self.username = username
         self.password = password
         self.ssl = ssl
@@ -61,50 +59,29 @@ class KVConnection(Connection, ABC):
         self.ca_cert = ca_cert
         self.ca_bundle = ca_bundle
         self.connection = None
-        self._return_data = None
-
-    @property
-    def return_data(self):
-        return self._return_data
 
 
-class KVSelector(Selector, ABC):
-    """Key-value NOSQL database Selector class"""
-
-    @abstractmethod
-    def first_greater_or_equal(self, key):
-        pass
-
-    @abstractmethod
-    def first_greater_than(self, key):
-        pass
-
-    @abstractmethod
-    def last_less_or_equal(self, key):
-        pass
-
-    @abstractmethod
-    def last_less_than(self, key):
-        pass
-
-    def __str__(self):
-        return f"selector: {self.selector}, fields: {self.fields}"
-
-
-class KVSession(Session, ABC):
-    """Key-value NOSQL database Session class"""
+class DocSession(Session, ABC):
+    """Document NOSQL database Session class"""
 
     pass
 
 
-class KVResponse(Response, ABC):
-    """Key-value NOSQL database Response class"""
+class DocSelector(Selector, ABC):
+    """Selector NOSQL database Session class"""
 
     pass
 
 
-class KVBatch(Batch, ABC):
-    """Key-value NOSQL database Batch class"""
+class DocResponse(Response, ABC):
+    """Response NOSQL database Session class"""
 
     pass
+
+
+class DocBatch(Batch, ABC):
+    """Batch NOSQL database Session class"""
+
+    pass
+
 # endregion

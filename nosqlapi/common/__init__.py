@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# __init__.py -- pynosql
+# __init__.py -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -20,10 +20,4 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Python NOSQL Database library."""
-
-from pynosql.common.exception import *
-from pynosql.kvdb import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
-from pynosql.columndb import ColumnConnection, ColumnSelector, ColumnSession, ColumnResponse, ColumnBatch
-
-apilevel = '1.0'
+"""Common interface classes for NOSQL database type."""
