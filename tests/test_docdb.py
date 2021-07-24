@@ -379,6 +379,10 @@ class DocSessionTest(unittest.TestCase):
                                                    "5099803df3f4948bd2f98392",
                                                    "5099803df3f4948bd2f98393"])
 
+    def test_delete_data(self):
+        ret = self.mysess.delete('db/doc1')
+        self.assertEqual(ret.data['revision'], 3)
+
 
 if __name__ == '__main__':
     unittest.main()
