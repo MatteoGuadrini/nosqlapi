@@ -397,6 +397,9 @@ class DocSessionTest(unittest.TestCase):
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(data.data['_id'], '5099803df3f4948bd2f98391')
 
+    def test_get_acl_connection(self):
+        self.assertIn('user', self.mysess.acl)
+
 
 if __name__ == '__main__':
     unittest.main()
