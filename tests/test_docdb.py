@@ -405,6 +405,11 @@ class DocSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['user'], 'test')
 
+    def test_revoke_user_connection(self):
+        resp = self.mysess.revoke('db', role='read_users')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['role'], 'read_users')
+
 
 if __name__ == '__main__':
     unittest.main()
