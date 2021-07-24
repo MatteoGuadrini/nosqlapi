@@ -388,6 +388,15 @@ class DocSessionTest(unittest.TestCase):
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(data.data['_id'], '5099803df3f4948bd2f98391')
 
+    def test_find_selector(self):
+        sel = MyDBSelector()
+        sel.selector = {"name": "Matteo"}
+        sel.limit = 2
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(data.data['_id'], '5099803df3f4948bd2f98391')
+
 
 if __name__ == '__main__':
     unittest.main()
