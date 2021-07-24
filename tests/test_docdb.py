@@ -383,6 +383,11 @@ class DocSessionTest(unittest.TestCase):
         ret = self.mysess.delete('db/doc1')
         self.assertEqual(ret.data['revision'], 3)
 
+    def test_find_string_data(self):
+        data = self.mysess.find('{"name": "Matteo"}')
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(data.data['_id'], '5099803df3f4948bd2f98391')
+
 
 if __name__ == '__main__':
     unittest.main()
