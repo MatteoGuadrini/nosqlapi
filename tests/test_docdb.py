@@ -410,6 +410,11 @@ class DocSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['role'], 'read_users')
 
+    def test_close_session(self):
+        self.mysess.close()
+        self.assertEqual(self.mysess.session, None)
+        DocSessionTest.mysess = DocSessionTest.myconn.connect()
+
 
 if __name__ == '__main__':
     unittest.main()
