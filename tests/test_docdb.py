@@ -352,6 +352,10 @@ class DocSessionTest(unittest.TestCase):
         self.assertIn('_id', d)
         self.assertEqual(d.data['_id'], '5099803df3f4948bd2f98391')
 
+    def test_insert_data(self):
+        ret = self.mysess.insert('db/doc1', '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}')
+        self.assertEqual(ret.data['revision'], 1)
+
 
 if __name__ == '__main__':
     unittest.main()
