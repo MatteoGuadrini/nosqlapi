@@ -68,19 +68,19 @@ class DocSession(Session, ABC):
 
 
 class DocSelector(Selector, ABC):
-    """Selector NOSQL database Session class"""
+    """Document NOSQL database Selector class"""
 
     pass
 
 
 class DocResponse(Response, ABC):
-    """Response NOSQL database Session class"""
+    """Document NOSQL database Response class"""
 
     pass
 
 
 class DocBatch(Batch, ABC):
-    """Batch NOSQL database Session class"""
+    """Document NOSQL database Batch class"""
 
     pass
 
