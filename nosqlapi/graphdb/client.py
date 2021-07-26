@@ -23,12 +23,13 @@
 """Client module for graph NOSQL database."""
 # region imports
 from abc import ABC
-from ..common.core import Connection
+from ..common.core import Connection, Session
 
 # endregion
 
 
 class GraphConnection(Connection, ABC):
+    """Graph NOSQL database Connection class"""
 
     def __init__(self,
                  host=None,
@@ -51,3 +52,9 @@ class GraphConnection(Connection, ABC):
         self.ca_cert = ca_cert
         self.ca_bundle = ca_bundle
         self.connection = None
+
+
+class GraphSession(Session, ABC):
+    """Graph NOSQL database Session class"""
+
+    pass
