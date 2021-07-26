@@ -23,7 +23,7 @@
 """Client module for graph NOSQL database."""
 # region imports
 from abc import ABC
-from ..common.core import Connection, Session
+from ..common.core import Connection, Session, Selector
 
 # endregion
 
@@ -56,5 +56,11 @@ class GraphConnection(Connection, ABC):
 
 class GraphSession(Session, ABC):
     """Graph NOSQL database Session class"""
+
+    pass
+
+
+class GraphSelector(Selector, ABC):
+    """Selector NOSQL database Session class"""
 
     pass
