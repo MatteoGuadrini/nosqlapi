@@ -22,5 +22,32 @@
 
 """Client module for graph NOSQL database."""
 # region imports
+from abc import ABC
+from ..common.core import Connection
 
 # endregion
+
+
+class GraphConnection(Connection, ABC):
+
+    def __init__(self,
+                 host=None,
+                 port=None,
+                 username=None,
+                 password=None,
+                 ssl=None,
+                 tls=None,
+                 cert=None,
+                 ca_cert=None,
+                 ca_bundle=None
+                 ):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.ssl = ssl
+        self.tls = tls
+        self.cert = cert
+        self.ca_cert = ca_cert
+        self.ca_bundle = ca_bundle
+        self.connection = None
