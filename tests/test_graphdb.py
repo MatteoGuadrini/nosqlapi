@@ -54,6 +54,15 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
+    def has_database(self, name):
+        if self.connection:
+            if name in self.databases():
+                return True
+            else:
+                return False
+        else:
+            raise ConnectError("server isn't connected")
+
 
 class GraphConnectionTest(unittest.TestCase):
     pass
