@@ -1,7 +1,8 @@
+import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError)
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError)
 
 
 # Below classes is a simple emulation of Neo4j like database
@@ -75,6 +76,24 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             # return MyDBResponse(json.loads(ret['body']),
             #                     ret['status'],
             #                     ret['header'])
+        else:
+            raise ConnectError("server isn't connected")
+
+    def databases(self):
+        if self.connection:
+            cypher = 'SHOW DATABASES'
+            self.req.get = mock.MagicMock(return_value={'body': '{"result": ["test_db", "db1", "db2"]}',
+                                                        'status': 200,
+                                                        'header': cypher})
+            ret = self.req.get(self.connection, cypher)
+            dbs = json.loads(ret.get('body'))
+            if dbs['result']:
+                pass
+                # return MyDBResponse(dbs['result'],
+                #                     ret['status'],
+                #                     ret['header'])
+            else:
+                raise DatabaseError('no databases found on this server')
         else:
             raise ConnectError("server isn't connected")
 
