@@ -21,3 +21,5 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Package graph NOSQL database."""
+
+from nosqlapi.graphdb.client import GraphConnection, GraphSelector, GraphSession, GraphResponse, GraphBatch
