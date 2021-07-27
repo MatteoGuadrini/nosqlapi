@@ -49,9 +49,9 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             ret = self.req.post(f"{self.connection}", cypher, options)
             if ret.get('status') != 200:
                 raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
-            # return MyDBResponse(json.loads(ret['body']),
-            #                     ret['status'],
-            #                     ret['header'])
+            return MyDBResponse(ret['body'],
+                                ret['status'],
+                                ret['header'])
         else:
             raise ConnectError("server isn't connected")
 
@@ -73,9 +73,9 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             ret = self.req.delete(f"{self.connection}", cypher)
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
-            # return MyDBResponse(json.loads(ret['body']),
-            #                     ret['status'],
-            #                     ret['header'])
+            return MyDBResponse(ret['body'],
+                                ret['status'],
+                                ret['header'])
         else:
             raise ConnectError("server isn't connected")
 
@@ -88,14 +88,17 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             ret = self.req.get(self.connection, cypher)
             dbs = json.loads(ret.get('body'))
             if dbs['result']:
-                pass
-                # return MyDBResponse(dbs['result'],
-                #                     ret['status'],
-                #                     ret['header'])
+                return MyDBResponse(dbs['result'],
+                                    ret['status'],
+                                    ret['header'])
             else:
                 raise DatabaseError('no databases found on this server')
         else:
             raise ConnectError("server isn't connected")
+
+
+class MyDBResponse(nosqlapi.graphdb.GraphResponse):
+    pass
 
 
 class GraphConnectionTest(unittest.TestCase):
