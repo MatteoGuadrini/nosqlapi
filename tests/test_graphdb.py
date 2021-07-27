@@ -36,7 +36,7 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
 
     def create_database(self, name, not_exists=False, replace=False, options=None):
         if not_exists and replace:
-            raise DatabaseCreationError('IF NOT EXISTS and OR REPLACE parts of this command cannot be used together.')
+            raise DatabaseCreationError('IF NOT EXISTS and OR REPLACE parts of this command cannot be used together')
         if self.connection:
             cypher = f'CREATE DATABASE {name}'
             if not_exists:
@@ -64,13 +64,21 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def delete_database(self, name):
+    def delete_database(self, name, exists=False, dump=False, destroy=False):
         if self.connection:
-            cypher = f'CREATE DATABASE {name}'
-            self.req.delete = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
-                                                           'status': 200,
-                                                           'header': cypher})
-            ret = self.req.delete(f"{self.connection}", cypher)
+            cypher = f'DROP DATABASE {name}'
+            if exists:
+                cypher += ' IF EXISTS'
+            if dump and destroy:
+                raise DatabaseDeletionError('DUMP DATA and DESTROY DATA parts of this command cannot be used together')
+            if dump:
+                cypher += ' DUMP DATA'
+            if destroy:
+                cypher += ' DESTROY DATA'
+            self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                         'status': 200,
+                                                         'header': cypher})
+            ret = self.req.post(f"{self.connection}", cypher)
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
             return MyDBResponse(ret['body'],
