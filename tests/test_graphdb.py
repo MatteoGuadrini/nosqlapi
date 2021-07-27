@@ -14,6 +14,24 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         if self.connection is not None:
             raise ConnectError('Close connection error')
 
+    def connect(self):
+        # Connection
+        if not self.port:
+            self.port = 7474
+        scheme = 'bolt://'
+        url = f'{scheme}'
+        if self.username and self.password:
+            url += f'{self.username}:{self.password}@'
+        url += f'{self.host}:{self.port}'
+        self.req.get = mock.MagicMock(return_value={'body': 'server connected',
+                                                    'status': 200,
+                                                    'header': f'CONNECT TO {url}'
+                                                              f'WITH TIMEOUT 30'})
+        if self.req.get(url).get('status') != 200:
+            raise ConnectError('server not respond')
+        self.connection = url
+        # return MyDBSession(self.connection)
+
 
 class GraphConnectionTest(unittest.TestCase):
     pass
