@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi import (ConnectError, DatabaseCreationError)
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError)
 
 
 # Below classes is a simple emulation of Neo4j like database
@@ -60,6 +60,21 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
                 return True
             else:
                 return False
+        else:
+            raise ConnectError("server isn't connected")
+
+    def delete_database(self, name):
+        if self.connection:
+            cypher = f'CREATE DATABASE {name}'
+            self.req.delete = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                           'status': 200,
+                                                           'header': cypher})
+            ret = self.req.delete(f"{self.connection}", cypher)
+            if ret.get('status') != 200:
+                raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
+            # return MyDBResponse(json.loads(ret['body']),
+            #                     ret['status'],
+            #                     ret['header'])
         else:
             raise ConnectError("server isn't connected")
 
