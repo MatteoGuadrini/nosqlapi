@@ -21,10 +21,12 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
 
     def connect(self):
         # Connection
+        if not self.port:
+            self.port = 27017
         scheme = 'https://' if self.ssl else 'http://'
         if self.username and self.password:
             scheme += f'{self.username}:{self.password}@'
-        url = f'{scheme}{self.host}'
+        url = f'{scheme}{self.host}:{self.port}'
         self.req.get = mock.MagicMock(return_value={'body': 'server http response ok',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
