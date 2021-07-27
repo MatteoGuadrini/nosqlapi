@@ -1,7 +1,8 @@
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi import (ConnectError)
+from nosqlapi import (ConnectError, DatabaseCreationError)
+
 
 # Below classes is a simple emulation of Neo4j like database
 
@@ -31,6 +32,27 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             raise ConnectError('server not respond')
         self.connection = url
         # return MyDBSession(self.connection)
+
+    def create_database(self, name, not_exists=False, replace=False, options=None):
+        if not_exists and replace:
+            raise DatabaseCreationError('IF NOT EXISTS and OR REPLACE parts of this command cannot be used together.')
+        if self.connection:
+            cypher = f'CREATE DATABASE {name}'
+            if not_exists:
+                cypher = f' IF NOT EXISTS'
+            elif replace:
+                cypher = f' OR REPLACE'
+            self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                         'status': 200,
+                                                         'header': cypher})
+            ret = self.req.post(f"{self.connection}", cypher, options)
+            if ret.get('status') != 200:
+                raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
+            # return MyDBResponse(json.loads(ret['body']),
+            #                     ret['status'],
+            #                     ret['header'])
+        else:
+            raise ConnectError("server isn't connected")
 
 
 class GraphConnectionTest(unittest.TestCase):
