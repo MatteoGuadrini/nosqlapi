@@ -153,6 +153,21 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             raise ConnectError("server not respond or database doesn't exists")
         self._description = json.loads(ret.get('body'))
 
+    @property
+    def acl(self):
+        stm = {'statements': 'SHOW PRIVILEGES YIELD role, access, action, segment ORDER BY action'}
+        self.req.post = mock.MagicMock(return_value={'body': '["admin","GRANTED","access","database"],'
+                                                             '["admin","GRANTED","constraint","database"],'
+                                                             '["admin","GRANTED","dbms_actions","database"]',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
