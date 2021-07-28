@@ -105,6 +105,12 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             raise ConnectError("server isn't connected")
 
 
+class MyDBSession(nosqlapi.graphdb.GraphSession):
+    # Simulate http requests
+    req = mock.Mock()
+
+
+
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
 
