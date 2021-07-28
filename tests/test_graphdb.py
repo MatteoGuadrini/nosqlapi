@@ -36,7 +36,7 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         if self.req.post(url).get('status') != 200:
             raise ConnectError('server not respond')
         self.connection = url
-        return MyDBSession(self.connection, self.database)
+        return MyDBSession(self.connection)
 
     def create_database(self, name, not_exists=False, replace=False, options=None):
         if not_exists and replace:
@@ -60,7 +60,7 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                          'status': 200,
                                                          'header': cypher})
-            ret = self.req.post(url, stm)
+            ret = self.req.post(url, json.dumps(stm))
             if ret.get('status') != 200:
                 raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
             return MyDBResponse(ret['body'],
@@ -100,7 +100,7 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                          'status': 200,
                                                          'header': cypher})
-            ret = self.req.post(url, stm)
+            ret = self.req.post(url, json.dumps(stm))
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
             return MyDBResponse(ret['body'],
@@ -123,7 +123,7 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             self.req.get = mock.MagicMock(return_value={'body': '{"result": ["test_db", "db1", "db2"]}',
                                                         'status': 200,
                                                         'header': cypher})
-            ret = self.req.get(url, stm)
+            ret = self.req.get(url, json.dumps(stm))
             dbs = json.loads(ret.get('body'))
             if dbs['result']:
                 return MyDBResponse(dbs['result'],
@@ -139,6 +139,19 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     # Simulate http requests
     req = mock.Mock()
 
+    def __init__(self, connection):
+        super().__init__()
+        db = connection.split('/')[-1]
+        self.session = connection + '/data/transaction/commit'
+        stm = {'statements': f'SHOW DATABASE {db}'}
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"nodes" : {{"name": {db}}}, '
+                                                             f'"role": "standalone", "currentStatus": "online"}}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise ConnectError("server not respond or database doesn't exists")
+        self._description = json.loads(ret.get('body'))
 
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
