@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError)
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError)
 
 
 # Below classes is a simple emulation of Neo4j like database
@@ -164,6 +164,41 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.session, json.dumps(stm))
         if ret.get('status') != 200:
             raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def get(self,
+            item,
+            return_properties: list = None,
+            properties: dict = None,
+            relationship_label=None,
+            relationship_object=None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = item.split(':')
+        cypher = 'MATCH '
+        if properties:
+            match_block = f'(:{label} {properties})' if not obj else f'({obj}:{label} {properties})'
+        else:
+            match_block = f'(:{label})' if not obj else f'({obj}:{label})'
+        cypher += f'{match_block}'
+        if relationship_label:
+            if not relationship_label and not relationship_object:
+                raise SessionError('"relationship_label" and "relationship_object" both are needed')
+            rel_obj, rel_obj_label = relationship_object.split(':')
+            if rel_obj:
+                cypher += f'-[:{relationship_label}]->({rel_obj}:{rel_obj_label})'
+            else:
+                cypher += f'-[:{relationship_label}]->(:{rel_obj_label})'
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo", "Arthur"],'
+                                                             '"n.age": [35, 42]}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
