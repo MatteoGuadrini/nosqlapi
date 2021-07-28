@@ -41,6 +41,7 @@ class GraphConnection(Connection, ABC):
     def __init__(self,
                  host=None,
                  port=None,
+                 database=None,
                  username=None,
                  password=None,
                  ssl=None,
@@ -51,6 +52,7 @@ class GraphConnection(Connection, ABC):
                  ):
         self.host = host
         self.port = port
+        self.database = database
         self.username = username
         self.password = password
         self.ssl = ssl
