@@ -357,16 +357,32 @@ class MyDBSelector(nosqlapi.graphdb.GraphSelector):
             raise SelectorAttributeError("selector is mandatory")
         cypher += f'MATCH ({obj}:{label} {self.condition})\n'
         if self.condition:
-            cypher += f'WHERE {self.condition}'
+            cypher += f'WHERE {self.condition}\n'
         if self.order:
-            cypher += f'ORDER BY {self.order} DESC'
+            cypher += f'ORDER BY {self.order} DESC\n'
         if self.limit:
-            cypher += f'LIMIT {self.limit}'
+            cypher += f'LIMIT {self.limit}\n'
         if self.fields:
             cypher += 'RETURN ' + ','.join(f'{obj}.{field}' for field in self.fields)
         else:
             cypher += f'RETURN {obj}'
         return cypher
+
+
+class MyDBBatch(nosqlapi.graphdb.GraphBatch):
+    # Simulate http requests
+    req = mock.Mock()
+
+    def execute(self):
+        stm = {'statements': self.batch}
+        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo"],'
+                                                             '"n.age": [35]}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
 
 
 class GraphConnectionTest(unittest.TestCase):
