@@ -271,6 +271,9 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def update_many(self, nodes: list, properties: List[dict] = None):
+        raise NotImplemented('for this operation use batch object')
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
