@@ -4,7 +4,7 @@ from unittest import mock
 import nosqlapi.graphdb
 from typing import List
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                      SessionInsertingError)
+                      SessionInsertingError, SessionUpdatingError, SessionDeletingError)
 
 
 # Below classes is a simple emulation of Neo4j like database
@@ -266,13 +266,33 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                      'header': stm['statements']})
         ret = self.req.post(self.session, json.dumps(stm))
         if ret.get('status') != 200:
-            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+            raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
 
     def update_many(self, nodes: list, properties: List[dict] = None):
         raise NotImplemented('for this operation use batch object')
+
+    def delete(self, node, properties: dict = None, with_rel=False):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = node.split(':', 1)
+        cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
+        if not with_rel:
+            cypher += f'DELETE {obj}'
+        else:
+            cypher += f'DETACH DELETE {obj}'
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionDeletingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
 
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
