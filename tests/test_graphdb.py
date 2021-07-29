@@ -294,6 +294,9 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def close(self):
+        self.session = None
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
