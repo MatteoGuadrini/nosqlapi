@@ -248,6 +248,29 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def update(self, node, values: dict, return_properties: list = None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = node.split(':', 1)
+        cypher = f"MATCH ({obj}:{label})\n"
+        for prop, value in values:
+            cypher += f"SET ({obj}.{prop} = {value}\n)"
+        if return_properties:
+            cypher += '\nRETURN ' + ','.join([f'{obj}.{prop}' for prop in return_properties])
+        else:
+            cypher += f'\nRETURN {obj}'
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo"],'
+                                                             '"n.age": [42]}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
