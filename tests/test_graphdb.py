@@ -5,7 +5,7 @@ import nosqlapi.graphdb
 from typing import List
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                       SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
-                      SessionACLError)
+                      SessionACLError, SelectorAttributeError)
 
 
 # Below classes is a simple emulation of Neo4j like database
@@ -346,6 +346,27 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
+
+
+class MyDBSelector(nosqlapi.graphdb.GraphSelector):
+
+    def build(self):
+        cypher = ''
+        obj, label = self.selector.split(':', 1)
+        if not self.selector:
+            raise SelectorAttributeError("selector is mandatory")
+        cypher += f'MATCH ({obj}:{label} {self.condition})\n'
+        if self.condition:
+            cypher += f'WHERE {self.condition}'
+        if self.order:
+            cypher += f'ORDER BY {self.order} DESC'
+        if self.limit:
+            cypher += f'LIMIT {self.limit}'
+        if self.fields:
+            cypher += 'RETURN ' + ','.join(f'{obj}.{field}' for field in self.fields)
+        else:
+            cypher += f'RETURN {obj}'
+        return cypher
 
 
 class GraphConnectionTest(unittest.TestCase):
