@@ -2,7 +2,9 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError)
+from typing import List
+from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
+                      SessionInsertingError)
 
 
 # Below classes is a simple emulation of Neo4j like database
@@ -169,14 +171,14 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def get(self,
-            item,
+            node,
             return_properties: list = None,
             properties: dict = None,
             relationship_label=None,
             relationship_object=None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = item.split(':')
+        obj, label = node.split(':', 1)
         cypher = 'MATCH '
         if properties:
             match_block = f'(:{label} {properties})' if not obj else f'({obj}:{label} {properties})'
@@ -199,6 +201,27 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.session, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def insert(self, node, properties: dict = None, return_properties: list = None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = node.split(':', 1)
+        cypher = f"CREATE ({obj}:{label} {properties if properties else ''})"
+        if return_properties:
+            cypher += '\nRETURN ' + ','.join([f'{obj}.{prop}' for prop in return_properties])
+        else:
+            cypher += f'\nRETURN {obj}'
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo"],'
+                                                             '"n.age": [35]}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
