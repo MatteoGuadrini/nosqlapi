@@ -4,7 +4,8 @@ from unittest import mock
 import nosqlapi.graphdb
 from typing import List
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
-                      SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError)
+                      SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
+                      SessionACLError)
 
 
 # Below classes is a simple emulation of Neo4j like database
@@ -311,6 +312,20 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         if ret.get('status') != 200:
             raise SessionFindingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def grant(self, user, role):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        cypher = f"GRANT ROLE {role} TO {user}"
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
                             ret['status'],
                             ret['header'])
 
