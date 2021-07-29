@@ -226,6 +226,28 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def insert_many(self, nodes: list, properties: List[dict] = None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        nodes = list(zip(nodes, properties))
+        cypher = 'CREATE '
+        ns = list()
+        for node, prop in nodes:
+            obj, label = node.split(':', 1)
+            ns.append(f"({obj}:{label} {prop if prop else ''})")
+        cypher += ','.join(ns)
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo", "Arthur"],'
+                                                             '"n.age": [35, 42]}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
