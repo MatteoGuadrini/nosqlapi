@@ -329,6 +329,20 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def revoke(self, user, role):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        cypher = f"REVOKE ROLE {role} TO {user}"
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
