@@ -147,7 +147,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         db = connection.split('/')[-1]
         self.session = connection + '/data/transaction/commit'
         stm = {'statements': f'SHOW DATABASE {db}'}
-        self.req.post = mock.MagicMock(return_value={'body': f'{{"nodes" : {{"name": {db}}}, '
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"nodes" : {{"name": "{db}"}}, '
                                                              f'"role": "standalone", "currentStatus": "online"}}',
                                                      'status': 200,
                                                      'header': stm['statements']})
@@ -386,7 +386,11 @@ class MyDBBatch(nosqlapi.graphdb.GraphBatch):
 
 
 class GraphConnectionTest(unittest.TestCase):
-    pass
+
+    def test_kvdb_connect(self):
+        myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
 
 
 if __name__ == '__main__':
