@@ -422,6 +422,15 @@ class GraphConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
+    def test_graphdb_exists_database(self):
+        myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertTrue(myconn.has_database('test_db'))
+        myconn.close()
+        self.assertEqual(myconn.connection, None)
+        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+
 
 if __name__ == '__main__':
     unittest.main()
