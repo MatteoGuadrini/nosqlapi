@@ -448,7 +448,7 @@ class GraphConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
-    def test_docdb_get_all_database(self):
+    def test_graphdb_get_all_database(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
         self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
@@ -458,6 +458,11 @@ class GraphConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.databases)
+
+
+class GraphSessionTest(unittest.TestCase):
+    myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
+    mysess = myconn.connect()
 
 
 if __name__ == '__main__':
