@@ -387,10 +387,17 @@ class MyDBBatch(nosqlapi.graphdb.GraphBatch):
 
 class GraphConnectionTest(unittest.TestCase):
 
-    def test_kvdb_connect(self):
+    def test_graphdb_connect(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
         self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+
+    def test_graphdb_close(self):
+        myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        myconn.close()
+        self.assertEqual(myconn.connection, None)
 
 
 if __name__ == '__main__':
