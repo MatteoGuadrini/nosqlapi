@@ -285,19 +285,19 @@ class MyDBSelector(nosqlapi.docdb.DocSelector):
 
 
 class DocConnectionTest(unittest.TestCase):
-    def test_kvdb_connect(self):
+    def test_docdb_connect(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
 
-    def test_kvdb_close(self):
+    def test_docdb_close(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
         myconn.close()
         self.assertEqual(myconn.connection, None)
 
-    def test_kvdb_create_database(self):
+    def test_docdb_create_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
@@ -307,7 +307,7 @@ class DocConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
-    def test_kvdb_exists_database(self):
+    def test_docdb_exists_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
@@ -316,7 +316,7 @@ class DocConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
-    def test_kvdb_delete_database(self):
+    def test_docdb_delete_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
@@ -326,7 +326,7 @@ class DocConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
-    def test_kvdb_get_all_database(self):
+    def test_docdb_get_all_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
