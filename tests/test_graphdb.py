@@ -54,9 +54,9 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
             url += f'{self.host}:{self.port}'
             cypher = f'CREATE DATABASE {name}'
             if not_exists:
-                cypher = f' IF NOT EXISTS'
+                cypher += f' IF NOT EXISTS'
             elif replace:
-                cypher = f' OR REPLACE'
+                cypher += f' OR REPLACE'
             stm = {'statements': cypher}
             if options:
                 stm['options'] = options
@@ -404,6 +404,17 @@ class GraphConnectionTest(unittest.TestCase):
         myconn.connect()
         self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
         resp = myconn.create_database('test_db')
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+        myconn.close()
+        self.assertEqual(myconn.connection, None)
+        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+
+    def test_graphdb_create_database_if_not_exists(self):
+        myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        resp = myconn.create_database('test_db', not_exists=True)
+        print(resp.header)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
         myconn.close()
         self.assertEqual(myconn.connection, None)
