@@ -429,7 +429,17 @@ class GraphConnectionTest(unittest.TestCase):
         self.assertTrue(myconn.has_database('test_db'))
         myconn.close()
         self.assertEqual(myconn.connection, None)
-        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+        self.assertRaises(ConnectError, myconn.has_database, 'test_db')
+
+    def test_graphdb_delete_database(self):
+        myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        resp = myconn.delete_database('test_db')
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+        myconn.close()
+        self.assertEqual(myconn.connection, None)
+        self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
 
 if __name__ == '__main__':
