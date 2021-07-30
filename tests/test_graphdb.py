@@ -464,6 +464,9 @@ class GraphSessionTest(unittest.TestCase):
     myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
     mysess = myconn.connect()
 
+    def test_session_instance(self):
+        self.assertIsInstance(self.mysess, MyDBSession)
+
 
 if __name__ == '__main__':
     unittest.main()
