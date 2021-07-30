@@ -335,7 +335,7 @@ class DocConnectionTest(unittest.TestCase):
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
         self.assertEqual(myconn.connection, None)
-        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+        self.assertRaises(ConnectError, myconn.databases)
 
 
 class DocSessionTest(unittest.TestCase):
