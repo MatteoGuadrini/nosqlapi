@@ -551,6 +551,11 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
+    def test_close_session(self):
+        self.mysess.close()
+        self.assertEqual(self.mysess.session, None)
+        GraphSessionTest.mysess = GraphSessionTest.myconn.connect()
+
 
 if __name__ == '__main__':
     unittest.main()
