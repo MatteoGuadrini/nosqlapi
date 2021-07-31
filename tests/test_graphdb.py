@@ -556,7 +556,7 @@ class GraphSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.session, None)
         GraphSessionTest.mysess = GraphSessionTest.myconn.connect()
 
-        def test_batch(self):
+    def test_batch(self):
             b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
     SET rel.startYear = date({year: 2018})
     RETURN p"""
