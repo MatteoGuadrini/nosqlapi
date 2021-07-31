@@ -159,9 +159,9 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     @property
     def acl(self):
         stm = {'statements': 'SHOW PRIVILEGES YIELD role, access, action, segment ORDER BY action'}
-        self.req.post = mock.MagicMock(return_value={'body': '["admin","GRANTED","access","database"],'
+        self.req.post = mock.MagicMock(return_value={'body': '[["admin","GRANTED","access","database"],'
                                                              '["admin","GRANTED","constraint","database"],'
-                                                             '["admin","GRANTED","dbms_actions","database"]',
+                                                             '["admin","GRANTED","dbms_actions","database"]]',
                                                      'status': 200,
                                                      'header': stm['statements']})
         ret = self.req.post(self.session, json.dumps(stm))
@@ -187,7 +187,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             match_block = f'(:{label})' if not obj else f'({obj}:{label})'
         cypher += f'{match_block}'
         if relationship_label:
-            if not relationship_label and not relationship_object:
+            if not relationship_object:
                 raise SessionError('"relationship_label" and "relationship_object" both are needed')
             rel_obj, rel_obj_label = relationship_object.split(':')
             if rel_obj:
@@ -238,8 +238,10 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             ns.append(f"({obj}:{label} {prop if prop else ''})")
         cypher += ','.join(ns)
         stm = {'statements': cypher}
-        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo", "Arthur"],'
-                                                             '"n.age": [35, 42]}',
+        self.req.post = mock.MagicMock(return_value={'body': '[{"matteo.name": "Matteo",'
+                                                             '"matteo.age": 35},'
+                                                             '{"arthur.name": "Arthur",'
+                                                             '"arthur.age": 42}]',
                                                      'status': 200,
                                                      'header': stm['statements']})
         ret = self.req.post(self.session, json.dumps(stm))
@@ -254,15 +256,15 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             raise ConnectError('connect to a server before some request')
         obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label})\n"
-        for prop, value in values:
+        for prop, value in values.items():
             cypher += f"SET ({obj}.{prop} = {value}\n)"
         if return_properties:
             cypher += '\nRETURN ' + ','.join([f'{obj}.{prop}' for prop in return_properties])
         else:
             cypher += f'\nRETURN {obj}'
         stm = {'statements': cypher}
-        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo"],'
-                                                             '"n.age": [42]}',
+        self.req.post = mock.MagicMock(return_value={'body': '{"matteo.name": "Matteo",'
+                                                             '"matteo.age": 42}',
                                                      'status': 200,
                                                      'header': stm['statements']})
         ret = self.req.post(self.session, json.dumps(stm))
@@ -272,8 +274,8 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def update_many(self, nodes: list, properties: List[dict] = None):
-        raise NotImplemented('for this operation use batch object')
+    def update_many(self):
+        raise NotImplementedError('for this operation use batch object')
 
     def delete(self, node, properties: dict = None, with_rel=False):
         if not self.session:
@@ -285,7 +287,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         else:
             cypher += f'DETACH DELETE {obj}'
         stm = {'statements': cypher}
-        self.req.post = mock.MagicMock(return_value={'body': '',
+        self.req.post = mock.MagicMock(return_value={'body': '{}',
                                                      'status': 200,
                                                      'header': stm['statements']})
         ret = self.req.post(self.session, json.dumps(stm))
@@ -301,8 +303,10 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     def find(self, selector):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo", "Arthur"],'
-                                                             '"n.age": [35, 42]}',
+        self.req.post = mock.MagicMock(return_value={'body': '[{"matteo.name": "Matteo",'
+                                                             '"matteo.age": 35},'
+                                                             '{"arthur.name": "Arthur",'
+                                                             '"arthur.age": 42}]',
                                                      'status': 200,
                                                      'header': selector.build()})
         if isinstance(selector, nosqlapi.graphdb.GraphSelector):
@@ -355,7 +359,7 @@ class MyDBSelector(nosqlapi.graphdb.GraphSelector):
         obj, label = self.selector.split(':', 1)
         if not self.selector:
             raise SelectorAttributeError("selector is mandatory")
-        cypher += f'MATCH ({obj}:{label} {self.condition})\n'
+        cypher += f'MATCH ({obj}:{label})\n'
         if self.condition:
             cypher += f'WHERE {self.condition}\n'
         if self.order:
@@ -375,8 +379,8 @@ class MyDBBatch(nosqlapi.graphdb.GraphBatch):
 
     def execute(self):
         stm = {'statements': self.batch}
-        self.req.post = mock.MagicMock(return_value={'body': '{"n.name": ["Matteo"],'
-                                                             '"n.age": [35]}',
+        self.req.post = mock.MagicMock(return_value={'body': '{"matteo.name": "Matteo",'
+                                                             '"matteo.age": 35}',
                                                      'status': 200,
                                                      'header': stm['statements']})
         ret = self.req.post(self.session, json.dumps(stm))
@@ -466,6 +470,11 @@ class GraphSessionTest(unittest.TestCase):
 
     def test_session_instance(self):
         self.assertIsInstance(self.mysess, MyDBSession)
+
+    def test_description_session(self):
+        self.assertEqual(self.mysess.description, {'nodes': {'name': 'db'},
+                                                   'role': 'standalone',
+                                                   'currentStatus': 'online'})
 
 
 if __name__ == '__main__':
