@@ -497,6 +497,10 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIn('Matteo', d.data['n.name'])
         self.assertRaises(SessionError, self.mysess.get, 'n:Person', relationship_label='WORK_IN')
 
+    def test_insert_data(self):
+        ret = self.mysess.insert('n:Person', {'name': 'Matteo', 'age': 35}, return_properties=['name', 'age'])
+        self.assertEqual(ret.data, {'n.name': ['Matteo'], 'n.age': [35]})
+
 
 if __name__ == '__main__':
     unittest.main()
