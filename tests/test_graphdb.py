@@ -538,6 +538,9 @@ class GraphSessionTest(unittest.TestCase):
         self.assertEqual(data.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
                                      {'arthur.name': 'Arthur', 'arthur.age': 42}])
 
+    def test_get_acl_connection(self):
+        self.assertIn(['admin', 'GRANTED', 'access', 'database'], self.mysess.acl)
+
 
 if __name__ == '__main__':
     unittest.main()
