@@ -514,6 +514,17 @@ class GraphSessionTest(unittest.TestCase):
     def test_update_many_data(self):
         self.assertRaises(NotImplementedError, self.mysess.update_many)
 
+    def test_delete_data(self):
+        # Delete all person
+        ret = self.mysess.delete(':Person')
+        self.assertEqual(ret.data, {})
+        # Delete all person with name "Matteo"
+        ret = self.mysess.delete(':Person', properties={'name': 'Matteo'})
+        self.assertEqual(ret.data, {})
+        # Delete all person and with name "Matteo" and his relationships
+        ret = self.mysess.delete(':Person', properties={'name': 'Matteo'}, with_rel=True)
+        self.assertEqual(ret.data, {})
+
 
 if __name__ == '__main__':
     unittest.main()
