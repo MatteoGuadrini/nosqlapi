@@ -476,6 +476,27 @@ class GraphSessionTest(unittest.TestCase):
                                                    'role': 'standalone',
                                                    'currentStatus': 'online'})
 
+    def test_get_data(self):
+        # Get all nodes with Person label
+        d = self.mysess.get('n:Person')
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('n.name', d)
+        self.assertEqual(d.data['n.name'], ['Matteo', 'Arthur'])
+        # Get all nodes with Person label with returned properties
+        d = self.mysess.get('n:Person', return_properties=['name', 'age'])
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('n.age', d)
+        self.assertEqual(d.data['n.age'], [35, 42])
+        # Get all nodes with Person label match properties
+        d = self.mysess.get('n:Person', properties={'name': 'Matteo'})
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('Matteo', d.data['n.name'])
+        # Get all nodes with Person label with relationship
+        d = self.mysess.get('n:Person', relationship_label='WORK_IN', relationship_object='work:MyWork')
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('Matteo', d.data['n.name'])
+        self.assertRaises(SessionError, self.mysess.get, 'n:Person', relationship_label='WORK_IN')
+
 
 if __name__ == '__main__':
     unittest.main()
