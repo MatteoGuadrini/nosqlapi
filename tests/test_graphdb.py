@@ -546,6 +546,11 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
+    def test_revoke_user_connection(self):
+        resp = self.mysess.revoke(user='test', role='read_users')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
 
 if __name__ == '__main__':
     unittest.main()
