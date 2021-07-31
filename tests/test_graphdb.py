@@ -507,6 +507,10 @@ class GraphSessionTest(unittest.TestCase):
         self.assertEqual(ret.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
                                     {'arthur.name': 'Arthur', 'arthur.age': 42}])
 
+    def test_update_data(self):
+        ret = self.mysess.update('matteo:Person', {'name': 'Matteo', 'age': 42}, return_properties=['name', 'age'])
+        self.assertEqual(ret.data, {'matteo.name': 'Matteo', 'matteo.age': 42})
+
 
 if __name__ == '__main__':
     unittest.main()
