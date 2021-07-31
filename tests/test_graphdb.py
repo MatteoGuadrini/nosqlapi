@@ -525,6 +525,19 @@ class GraphSessionTest(unittest.TestCase):
         ret = self.mysess.delete(':Person', properties={'name': 'Matteo'}, with_rel=True)
         self.assertEqual(ret.data, {})
 
+    def test_find_selector(self):
+        sel = MyDBSelector()
+        sel.selector = 'people:Person'
+        sel.condition = 'people.age>=35'
+        sel.order = 'age'
+        sel.fields = ['name', 'age']
+        sel.limit = 2
+        self.assertIsInstance(sel, MyDBSelector)
+        data = self.mysess.find(sel)
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(data.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
+                                     {'arthur.name': 'Arthur', 'arthur.age': 42}])
+
 
 if __name__ == '__main__':
     unittest.main()
