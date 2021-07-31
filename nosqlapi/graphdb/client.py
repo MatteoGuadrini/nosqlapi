@@ -20,27 +20,28 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Client module for column NOSQL database."""
+"""Client module for graph NOSQL database."""
 # region imports
 from abc import ABC
 from ..common.core import Connection, Session, Selector, Response, Batch
 
-
 # endregion
 
 # region global variable
-__all__ = ['DocConnection', 'DocSelector', 'DocSession', 'DocResponse', 'DocBatch']
+__all__ = ['GraphConnection', 'GraphSelector', 'GraphSession', 'GraphResponse', 'GraphBatch']
 
 
 # endregion
 
 # region classes
-class DocConnection(Connection, ABC):
-    """Document NOSQL database Connection class"""
+
+class GraphConnection(Connection, ABC):
+    """Graph NOSQL database Connection class"""
 
     def __init__(self,
                  host=None,
                  port=None,
+                 database=None,
                  username=None,
                  password=None,
                  ssl=None,
@@ -51,6 +52,7 @@ class DocConnection(Connection, ABC):
                  ):
         self.host = host
         self.port = port
+        self.database = database
         self.username = username
         self.password = password
         self.ssl = ssl
@@ -61,26 +63,26 @@ class DocConnection(Connection, ABC):
         self.connection = None
 
 
-class DocSession(Session, ABC):
-    """Document NOSQL database Session class"""
+class GraphSession(Session, ABC):
+    """Graph NOSQL database Session class"""
 
     pass
 
 
-class DocSelector(Selector, ABC):
-    """Document NOSQL database Selector class"""
+class GraphSelector(Selector, ABC):
+    """Graph NOSQL database Selector class"""
 
     pass
 
 
-class DocResponse(Response, ABC):
-    """Document NOSQL database Response class"""
+class GraphResponse(Response, ABC):
+    """Response NOSQL database Session class"""
 
     pass
 
 
-class DocBatch(Batch, ABC):
-    """Document NOSQL database Batch class"""
+class GraphBatch(Batch, ABC):
+    """Batch NOSQL database Session class"""
 
     pass
 

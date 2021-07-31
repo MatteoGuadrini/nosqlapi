@@ -328,6 +328,17 @@ For each type of database, _nosqlapi_ offers standard interfaces, in order to un
 
 For an example, just look at the relevant package test files.
 
+Look as each test module has same class and each class has same method name.
+For instance, look at **MyDBSession** class as inherit for each _nosqlapi_ type of abstract class:
+
+```console
+$ grep "class MyDBSession" tests/*
+tests/test_columndb.py:class MyDBSession(nosqlapi.columndb.ColumnSession):
+tests/test_docdb.py:class MyDBSession(nosqlapi.docdb.DocSession):
+tests/test_graphdb.py:class MyDBSession(nosqlapi.graphdb.GraphSession):
+tests/test_kvdb.py:class MyDBSession(nosqlapi.kvdb.KVSession):
+```
+
 ## Open source
 _nosqlapi_ is an open source project. Any contribute, It's welcome.
 

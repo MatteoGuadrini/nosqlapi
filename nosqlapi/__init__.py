@@ -26,5 +26,6 @@ from nosqlapi.common.exception import *
 from nosqlapi.kvdb import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
 from nosqlapi.columndb import ColumnConnection, ColumnSelector, ColumnSession, ColumnResponse, ColumnBatch
 from nosqlapi.docdb import DocConnection, DocSelector, DocSession, DocResponse, DocBatch
+from nosqlapi.graphdb import GraphConnection, GraphSelector, GraphSession, GraphResponse, GraphBatch
 
 apilevel = '1.0'

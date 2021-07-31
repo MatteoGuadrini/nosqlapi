@@ -21,10 +21,12 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
 
     def connect(self):
         # Connection
+        if not self.port:
+            self.port = 27017
         scheme = 'https://' if self.ssl else 'http://'
         if self.username and self.password:
             scheme += f'{self.username}:{self.password}@'
-        url = f'{scheme}{self.host}'
+        url = f'{scheme}{self.host}:{self.port}'
         self.req.get = mock.MagicMock(return_value={'body': 'server http response ok',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
@@ -283,57 +285,57 @@ class MyDBSelector(nosqlapi.docdb.DocSelector):
 
 
 class DocConnectionTest(unittest.TestCase):
-    def test_kvdb_connect(self):
+    def test_docdb_connect(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
 
-    def test_kvdb_close(self):
+    def test_docdb_close(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         myconn.close()
         self.assertEqual(myconn.connection, None)
 
-    def test_kvdb_create_database(self):
+    def test_docdb_create_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         resp = myconn.create_database('test_db')
         self.assertEqual(resp.data['result'], 'ok')
         myconn.close()
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
-    def test_kvdb_exists_database(self):
+    def test_docdb_exists_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         self.assertTrue(myconn.has_database('test_db'))
         myconn.close()
         self.assertEqual(myconn.connection, None)
-        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+        self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
-    def test_kvdb_delete_database(self):
+    def test_docdb_delete_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         resp = myconn.delete_database('test_db')
         self.assertEqual(resp.data['result'], 'ok')
         myconn.close()
         self.assertEqual(myconn.connection, None)
-        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+        self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
-    def test_kvdb_get_all_database(self):
+    def test_docdb_get_all_database(self):
         myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local')
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
         self.assertEqual(myconn.connection, None)
-        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+        self.assertRaises(ConnectError, myconn.databases)
 
 
 class DocSessionTest(unittest.TestCase):
