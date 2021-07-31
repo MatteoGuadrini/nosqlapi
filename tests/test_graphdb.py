@@ -501,6 +501,12 @@ class GraphSessionTest(unittest.TestCase):
         ret = self.mysess.insert('n:Person', {'name': 'Matteo', 'age': 35}, return_properties=['name', 'age'])
         self.assertEqual(ret.data, {'n.name': ['Matteo'], 'n.age': [35]})
 
+    def test_insert_many_data(self):
+        ret = self.mysess.insert_many(['matteo:Person', 'arthur:Person'],
+                                      [{'name': 'Matteo', 'age': 35}, {'name': 'Arthur', 'age': 42}])
+        self.assertEqual(ret.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
+                                    {'arthur.name': 'Arthur', 'arthur.age': 42}])
+
 
 if __name__ == '__main__':
     unittest.main()
