@@ -541,6 +541,11 @@ class GraphSessionTest(unittest.TestCase):
     def test_get_acl_connection(self):
         self.assertIn(['admin', 'GRANTED', 'access', 'database'], self.mysess.acl)
 
+    def test_grant_user_connection(self):
+        resp = self.mysess.grant(user='test', role='read_users')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
 
 if __name__ == '__main__':
     unittest.main()
