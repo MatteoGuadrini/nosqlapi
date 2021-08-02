@@ -137,6 +137,32 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
+    def show_database(self, name):
+        if self.connection:
+            if not self.port:
+                self.port = 7474
+            scheme = 'bolt://'
+            url = f'{scheme}'
+            if self.username and self.password:
+                url += f'{self.username}:{self.password}@'
+            url += f'{self.host}:{self.port}'
+            cypher = f'USE {name}; CALL db.schema.visualization()'
+            stm = {'statements': cypher}
+            self.req.get = mock.MagicMock(return_value={'body': '{"result": {"nodes": ["matteo:Person"], '
+                                                                '"relationships": [":WORK_IN"]}}',
+                                                        'status': 200,
+                                                        'header': cypher})
+            ret = self.req.get(url, json.dumps(stm))
+            dbs = json.loads(ret.get('body'))
+            if dbs['result']:
+                return MyDBResponse(dbs['result'],
+                                    ret['status'],
+                                    ret['header'])
+            else:
+                raise DatabaseError('no databases found on this server')
+        else:
+            raise ConnectError("server isn't connected")
+
 
 class MyDBSession(nosqlapi.graphdb.GraphSession):
     # Simulate http requests
@@ -463,6 +489,17 @@ class GraphConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.databases)
 
+    def test_graphdb_show_database(self):
+        myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        dbs = myconn.show_database('test_db')
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, {'nodes': ['matteo:Person'], 'relationships': [':WORK_IN']})
+        myconn.close()
+        self.assertEqual(myconn.connection, None)
+        self.assertRaises(ConnectError, myconn.databases)
+
 
 class GraphSessionTest(unittest.TestCase):
     myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
@@ -557,12 +594,12 @@ class GraphSessionTest(unittest.TestCase):
         GraphSessionTest.mysess = GraphSessionTest.myconn.connect()
 
     def test_batch(self):
-            b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
+        b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
     SET rel.startYear = date({year: 2018})
     RETURN p"""
-            batch = MyDBBatch(self.mysess, b)
-            resp = batch.execute()
-            self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
+        batch = MyDBBatch(self.mysess, b)
+        resp = batch.execute()
+        self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
 
 
 if __name__ == '__main__':

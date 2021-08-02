@@ -88,6 +88,22 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
+    def show_database(self, name):
+        self.req.get = mock.MagicMock(return_value={'body': '{"result": {"name": "test_db", "size": "0.4GB"}}',
+                                                    'status': 200,
+                                                    'header': '"Content-Type": [ "application/json" ]'})
+        if self.connection:
+            ret = self.req.get(f"{self.connection}/databases?name={name}")
+            dbs = json.loads(ret.get('body'))
+            if dbs['result']:
+                return MyDBResponse(dbs['result'],
+                                    ret['status'],
+                                    ret['header'])
+            else:
+                raise DatabaseError('no databases found on this server')
+        else:
+            raise ConnectError("server isn't connected")
+
 
 class MyDBSession(nosqlapi.docdb.DocSession):
     # Simulate http requests
@@ -333,6 +349,17 @@ class DocConnectionTest(unittest.TestCase):
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
+        myconn.close()
+        self.assertEqual(myconn.connection, None)
+        self.assertRaises(ConnectError, myconn.databases)
+
+    def test_columndb_show_database(self):
+        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
+        myconn.connect()
+        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        dbs = myconn.show_database('test_db')
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, {'name': 'test_db', 'size': '0.4GB'})
         myconn.close()
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.databases)

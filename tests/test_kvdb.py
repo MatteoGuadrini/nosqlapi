@@ -93,6 +93,18 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
+    def show_database(self, name):
+        if self.connection:
+            self.connection.send(f"GET_DB={name}")
+            # while len(self.t.recv(2048)) > 0:
+            self.t.recv = mock.MagicMock(return_value='name=test_db, size=0.4GB')
+            self._return_data = self.t.recv(2048)
+            if not self:
+                raise DatabaseError(f'Request error: {self.return_data}')
+            return MyDBResponse(self.return_data)
+        else:
+            raise ConnectError(f"Server isn't connected")
+
 
 class MyDBSession(nosqlapi.kvdb.KVSession):
 
@@ -318,6 +330,17 @@ class KVConnectionTest(unittest.TestCase):
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.databases)
+
+    def test_columndb_show_database(self):
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        dbs = myconn.show_database('test_db')
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, 'name=test_db, size=0.4GB')
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.databases)
