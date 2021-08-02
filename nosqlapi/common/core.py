@@ -32,7 +32,7 @@ class Connection(ABC):
     """Server connection abstract class"""
 
     @abstractmethod
-    def close(self):
+    def close(self, *args, **kwargs):
         """Delete this object
 
         :return: None
@@ -40,7 +40,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def connect(self):
+    def connect(self, *args, **kwargs):
         """Connect database server
 
         :return: Session object
@@ -72,7 +72,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def databases(self):
+    def databases(self, *args, **kwargs):
         """Get all databases
 
         :return: Response
@@ -148,7 +148,7 @@ class Selector(ABC):
         self._limit = value
 
     @abstractmethod
-    def build(self):
+    def build(self, *args, **kwargs):
         """Build string query selector
 
         :return: string
@@ -230,7 +230,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def close(self):
+    def close(self, *args, **kwargs):
         """Delete session
 
         :return: None
