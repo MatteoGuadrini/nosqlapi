@@ -79,6 +79,14 @@ class Connection(ABC):
         """
         pass
 
+    @abstractmethod
+    def show_database(self, *args, **kwargs):
+        """Show a database information
+
+        :return : Response object
+        """
+        pass
+
 
 class Selector(ABC):
     """Selector abstract class"""

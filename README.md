@@ -164,6 +164,10 @@ Deleting of a single database with position and keyword arguments.
 
 List all databases.
 
+`.show_database(parameters...)`
+
+Show an information of a specific database
+
 ### Session Objects
 
 `Session` objects should respond to the following methods.
