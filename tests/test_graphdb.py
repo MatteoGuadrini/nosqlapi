@@ -171,9 +171,10 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     def __init__(self, connection):
         super().__init__()
         db = connection.split('/')[-1]
+        self._database = db
         self.session = connection + '/data/transaction/commit'
-        stm = {'statements': f'SHOW DATABASE {db}'}
-        self.req.post = mock.MagicMock(return_value={'body': f'{{"nodes" : {{"name": "{db}"}}, '
+        stm = {'statements': f'SHOW DATABASE {self.database}'}
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"nodes" : {{"name": "{self.database}"}}, '
                                                              f'"role": "standalone", "currentStatus": "online"}}',
                                                      'status': 200,
                                                      'header': stm['statements']})
