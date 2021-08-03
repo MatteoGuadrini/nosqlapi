@@ -303,6 +303,12 @@ class Session(ABC):
         if self.description:
             return True
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
 
 class Response(ABC):
     """Server response abstract class"""
