@@ -109,6 +109,12 @@ class Connection(ABC):
         if self.connected:
             return True
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
 
 class Selector(ABC):
     """Selector abstract class"""
