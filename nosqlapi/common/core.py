@@ -341,7 +341,7 @@ class Response(ABC):
         return str(self.data)
 
     def __repr__(self):
-        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}, error={self.error}>'
+        return f"<{API_NAME} {self.__class__.__name__} object>"
 
     def __contains__(self, item):
         return True if item in self.data else False
@@ -379,5 +379,15 @@ class Batch(ABC):
         :return: Response
         """
         pass
+
+    def __repr__(self):
+        return f"<{API_NAME} {self.__class__.__name__} object>"
+
+    def __str__(self):
+        return str(self.batch)
+
+    def __bool__(self):
+        if self.batch:
+            return True
 
 # endregion
