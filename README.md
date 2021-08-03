@@ -138,6 +138,12 @@ Exception
 
 `Connection` objects should respond to the following methods.
 
+#### Connection attributes
+
+`.connected`
+
+This read-only attribute contains a boolean value.
+
 #### Connection methods
 
 `.close()`

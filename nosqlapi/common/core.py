@@ -24,12 +24,24 @@
 from abc import ABC, abstractmethod
 from .exception import *
 
+# endregion
+
+# region global variables
+API_NAME = 'nosqlapi'
+
 
 # endregion
 
 # region classes
 class Connection(ABC):
     """Server connection abstract class"""
+
+    def __init__(self):
+        self._connected = False
+
+    @property
+    def connected(self):
+        return bool(self._connected)
 
     @abstractmethod
     def close(self, *args, **kwargs):

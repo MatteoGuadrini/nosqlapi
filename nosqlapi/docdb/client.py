@@ -38,17 +38,9 @@ __all__ = ['DocConnection', 'DocSelector', 'DocSession', 'DocResponse', 'DocBatc
 class DocConnection(Connection, ABC):
     """Document NOSQL database Connection class"""
 
-    def __init__(self,
-                 host=None,
-                 port=None,
-                 username=None,
-                 password=None,
-                 ssl=None,
-                 tls=None,
-                 cert=None,
-                 ca_cert=None,
-                 ca_bundle=None
-                 ):
+    def __init__(self, host=None, port=None, username=None, password=None, ssl=None, tls=None, cert=None, ca_cert=None,
+                 ca_bundle=None):
+        super().__init__()
         self.host = host
         self.port = port
         self.username = username
