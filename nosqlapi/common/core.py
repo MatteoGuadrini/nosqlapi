@@ -293,6 +293,16 @@ class Session(ABC):
         """
         pass
 
+    def __repr__(self):
+        return f"<{API_NAME} {self.__class__.__name__} object>"
+
+    def __str__(self):
+        return f"database={self.database}, description={self.description}"
+
+    def __bool__(self):
+        if self.description:
+            return True
+
 
 class Response(ABC):
     """Server response abstract class"""
