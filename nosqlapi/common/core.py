@@ -99,6 +99,16 @@ class Connection(ABC):
         """
         pass
 
+    def __repr__(self):
+        return f"<{API_NAME} {self.__class__.__name__} object>"
+
+    def __str__(self):
+        return f"{repr(self)}, connected={self.connected}"
+
+    def __bool__(self):
+        if self.connected:
+            return True
+
 
 class Selector(ABC):
     """Selector abstract class"""
