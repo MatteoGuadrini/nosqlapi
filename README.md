@@ -138,6 +138,12 @@ Exception
 
 `Connection` objects should respond to the following methods.
 
+#### Connection attributes
+
+`.connected`
+
+This read-only attribute contains a boolean value.
+
 #### Connection methods
 
 `.close()`
@@ -163,6 +169,10 @@ Deleting of a single database with position and keyword arguments.
 `.databases()`
 
 List all databases.
+
+`.show_database(parameters...)`
+
+Show an information of a specific database
 
 ### Session Objects
 

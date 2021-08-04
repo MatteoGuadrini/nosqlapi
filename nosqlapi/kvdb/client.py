@@ -38,18 +38,9 @@ __all__ = ['KVConnection', 'KVSelector', 'KVSession', 'KVResponse', 'KVBatch']
 class KVConnection(Connection, ABC):
     """Key-value NOSQL database Connection class"""
 
-    def __init__(self,
-                 host=None,
-                 port=None,
-                 database=None,
-                 username=None,
-                 password=None,
-                 ssl=None,
-                 tls=None,
-                 cert=None,
-                 ca_cert=None,
-                 ca_bundle=None
-                 ):
+    def __init__(self, host=None, port=None, database=None, username=None, password=None, ssl=None, tls=None, cert=None,
+                 ca_cert=None, ca_bundle=None):
+        super().__init__()
         self.host = host
         self.port = port
         self.database = database

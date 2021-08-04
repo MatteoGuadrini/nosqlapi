@@ -24,6 +24,11 @@
 from abc import ABC, abstractmethod
 from .exception import *
 
+# endregion
+
+# region global variables
+API_NAME = 'nosqlapi'
+
 
 # endregion
 
@@ -31,8 +36,15 @@ from .exception import *
 class Connection(ABC):
     """Server connection abstract class"""
 
+    def __init__(self):
+        self._connected = False
+
+    @property
+    def connected(self):
+        return bool(self._connected)
+
     @abstractmethod
-    def close(self):
+    def close(self, *args, **kwargs):
         """Delete this object
 
         :return: None
@@ -40,7 +52,7 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def connect(self):
+    def connect(self, *args, **kwargs):
         """Connect database server
 
         :return: Session object
@@ -72,12 +84,36 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    def databases(self):
+    def databases(self, *args, **kwargs):
         """Get all databases
 
         :return: Response
         """
         pass
+
+    @abstractmethod
+    def show_database(self, *args, **kwargs):
+        """Show a database information
+
+        :return : Response object
+        """
+        pass
+
+    def __repr__(self):
+        return f"<{API_NAME} {self.__class__.__name__} object>"
+
+    def __str__(self):
+        return f"{repr(self)}, connected={self.connected}"
+
+    def __bool__(self):
+        if self.connected:
+            return True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 
 class Selector(ABC):
@@ -140,12 +176,22 @@ class Selector(ABC):
         self._limit = value
 
     @abstractmethod
-    def build(self):
+    def build(self, *args, **kwargs):
         """Build string query selector
 
         :return: string
         """
         pass
+
+    def __repr__(self):
+        return f"<{API_NAME} {self.__class__.__name__} object>"
+
+    def __str__(self):
+        return self.build()
+
+    def __bool__(self):
+        if self.selector:
+            return True
 
 
 class Session(ABC):
@@ -222,7 +268,7 @@ class Session(ABC):
         pass
 
     @abstractmethod
-    def close(self):
+    def close(self, *args, **kwargs):
         """Delete session
 
         :return: None
@@ -252,6 +298,22 @@ class Session(ABC):
         :return: Response
         """
         pass
+
+    def __repr__(self):
+        return f"<{API_NAME} {self.__class__.__name__} object>"
+
+    def __str__(self):
+        return f"database={self.database}, description={self.description}"
+
+    def __bool__(self):
+        if self.description:
+            return True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 
 class Response(ABC):
@@ -291,7 +353,7 @@ class Response(ABC):
         return str(self.data)
 
     def __repr__(self):
-        return f'<class {self.__class__.__name__}: data={type(self.data)}, code={self.code}, error={self.error}>'
+        return f"<{API_NAME} {self.__class__.__name__} object>"
 
     def __contains__(self, item):
         return True if item in self.data else False
@@ -329,5 +391,15 @@ class Batch(ABC):
         :return: Response
         """
         pass
+
+    def __repr__(self):
+        return f"<{API_NAME} {self.__class__.__name__} object>"
+
+    def __str__(self):
+        return str(self.batch)
+
+    def __bool__(self):
+        if self.batch:
+            return True
 
 # endregion
