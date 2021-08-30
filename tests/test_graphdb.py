@@ -390,6 +390,23 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def detach(self, node, properties: dict = None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = node.split(':', 1)
+        cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
+        cypher += f'DETACH DELETE {obj}'
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"detached": true}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
@@ -621,6 +638,11 @@ class GraphSessionTest(unittest.TestCase):
     def test_link(self):
         ret = self.mysess.link('matteo:Person', 'open_source:JOB', ':WORK_IN')
         self.assertEqual(ret.data, {'linked': True})
+
+    def test_detach_node(self):
+        # Detach relationship for node
+        ret = self.mysess.detach(':Person', properties={'name': 'Matteo'})
+        self.assertEqual(ret.data, {'detached': True})
 
 
 if __name__ == '__main__':

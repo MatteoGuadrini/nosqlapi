@@ -66,6 +66,15 @@ class GraphSession(Session, ABC):
 
         pass
 
+    @abstractmethod
+    def detach(self, *args, **kwargs):
+        """Detach node
+
+        :return: Response
+        """
+
+        pass
+
 
 class GraphSelector(Selector, ABC):
     """Graph NOSQL database Selector class"""
