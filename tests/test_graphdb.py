@@ -374,6 +374,22 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def link(self, node, linking_node, rel):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = node.split(':', 1)
+        cypher = f"CREATE ({obj}:{label})-[{rel}]->({linking_node})"
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"linked": true}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
@@ -601,6 +617,10 @@ class GraphSessionTest(unittest.TestCase):
         batch = MyDBBatch(self.mysess, b)
         resp = batch.execute()
         self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
+
+    def test_link(self):
+        ret = self.mysess.link('matteo:Person', 'open_source:JOB', ':WORK_IN')
+        self.assertEqual(ret.data, {'linked': True})
 
 
 if __name__ == '__main__':
