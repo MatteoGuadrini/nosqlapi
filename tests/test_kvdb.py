@@ -225,6 +225,15 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.session.recv(2048)}')
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
+    def new_user(self, user, password, super_user=False):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"NEW={user}:PASSWORD={password}:ADMIN={super_user}")
+        self.session.recv = mock.MagicMock(return_value="CREATION_OK")
+        if self.session.recv(2048) != "CREATION_OK":
+            raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.kvdb.KVResponse):
     pass
@@ -420,6 +429,11 @@ class KVSessionTest(unittest.TestCase):
         self.mysess.close()
         self.assertEqual(self.mysess.session, None)
         KVSessionTest.mysess = KVSessionTest.myconn.connect()
+
+    def test_new_user(self):
+        resp = self.mysess.new_user('myuser', 'mypassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'CREATION_OK')
 
 
 if __name__ == '__main__':
