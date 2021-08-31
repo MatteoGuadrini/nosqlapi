@@ -275,6 +275,25 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    def new_user(self, user, password, roles: list = None, options: dict = None):
+        if not self.session:
+            raise ConnectError('connect to a database before some request')
+        doc = {'user': user,
+               'pwd': password}
+        if roles:
+            doc['roles'] = roles
+        if options:
+            doc['customData'] = options
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"user": "{user}"}}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.post(f"{self.session}/createUser", json.dumps(doc))
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
@@ -443,6 +462,12 @@ class DocSessionTest(unittest.TestCase):
         self.mysess.close()
         self.assertEqual(self.mysess.session, None)
         DocSessionTest.mysess = DocSessionTest.myconn.connect()
+
+    def test_new_user(self):
+        resp = self.mysess.new_user('myuser', 'mypassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.data['user'], 'myuser')
 
 
 if __name__ == '__main__':
