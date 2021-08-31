@@ -374,6 +374,20 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def new_user(self, user, password, password_change=True):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        cypher = f"CALL dbms.security.createUser({user}, {password}, {password_change})"
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
     def link(self, node, linking_node, rel):
         if not self.session:
             raise ConnectError('connect to a server before some request')
@@ -619,6 +633,11 @@ class GraphSessionTest(unittest.TestCase):
 
     def test_revoke_user_connection(self):
         resp = self.mysess.revoke(user='test', role='read_users')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_new_user(self):
+        resp = self.mysess.new_user('myuser', 'mypassword')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
