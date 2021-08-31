@@ -63,7 +63,6 @@ class GraphSession(Session, ABC):
 
         :return: Response
         """
-
         pass
 
     @abstractmethod
@@ -72,7 +71,6 @@ class GraphSession(Session, ABC):
 
         :return: Response
         """
-
         pass
 
 
