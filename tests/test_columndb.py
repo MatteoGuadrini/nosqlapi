@@ -281,6 +281,15 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
         return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
 
+    def set_user(self, role, password):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"ALTER ROLE {role} WITH PASSWORD = {password}")
+        self.session.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
+        if self.session.recv(2048) != "PASSWORD_CHANGED":
+            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -570,6 +579,11 @@ class ColumnSessionTest(unittest.TestCase):
         resp = self.mysess.new_user('myrole', 'mypassword')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'CREATION_OK')
+
+    def test_modify_password_user(self):
+        resp = self.mysess.set_user('myrole', 'newpassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'PASSWORD_CHANGED')
 
 
 if __name__ == '__main__':
