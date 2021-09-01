@@ -485,7 +485,7 @@ class DocSessionTest(unittest.TestCase):
         self.assertEqual(resp.data['user'], 'myuser')
 
     def test_modify_password_user(self):
-        resp = self.mysess.new_user('myuser', 'newpassword')
+        resp = self.mysess.set_user('myuser', 'newpassword')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.code, 200)
         self.assertEqual(resp.data['user'], 'myuser')
