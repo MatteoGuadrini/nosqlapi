@@ -234,6 +234,15 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
         return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
 
+    def set_user(self, user, password, super_user=False):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"USER={user}:PASSWORD={password}:ADMIN={super_user}")
+        self.session.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
+        if self.session.recv(2048) != "PASSWORD_CHANGED":
+            raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.kvdb.KVResponse):
     pass
@@ -434,6 +443,11 @@ class KVSessionTest(unittest.TestCase):
         resp = self.mysess.new_user('myuser', 'mypassword')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'CREATION_OK')
+
+    def test_modify_password_user(self):
+        resp = self.mysess.set_user('myuser', 'newpassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'PASSWORD_CHANGED')
 
 
 if __name__ == '__main__':
