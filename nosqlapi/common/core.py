@@ -307,6 +307,14 @@ class Session(ABC):
         """
         pass
 
+    @abstractmethod
+    def set_user(self, *args, **kwargs):
+        """Modify exist user
+
+        :return: Response
+        """
+        pass
+
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
