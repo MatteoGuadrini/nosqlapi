@@ -290,6 +290,15 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
         return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
 
+    def delete_user(self, role):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"DROP ROLE {role}")
+        self.session.recv = mock.MagicMock(return_value="ROLE_DELETED")
+        if self.session.recv(2048) != "ROLE_DELETED":
+            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -584,6 +593,11 @@ class ColumnSessionTest(unittest.TestCase):
         resp = self.mysess.set_user('myrole', 'newpassword')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'PASSWORD_CHANGED')
+
+    def test_delete_user(self):
+        resp = self.mysess.delete_user('myrole')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'ROLE_DELETED')
 
 
 if __name__ == '__main__':
