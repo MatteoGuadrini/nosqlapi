@@ -243,6 +243,15 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
         return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
 
+    def delete_user(self, user):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"DELETE_USER={user}")
+        self.session.recv = mock.MagicMock(return_value="USER_DELETED")
+        if self.session.recv(2048) != "USER_DELETED":
+            raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.kvdb.KVResponse):
     pass
@@ -448,6 +457,11 @@ class KVSessionTest(unittest.TestCase):
         resp = self.mysess.set_user('myuser', 'newpassword')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'PASSWORD_CHANGED')
+
+    def test_delete_user(self):
+        resp = self.mysess.delete_user('myuser')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'USER_DELETED')
 
 
 if __name__ == '__main__':
