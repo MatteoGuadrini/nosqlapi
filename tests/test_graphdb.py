@@ -391,7 +391,21 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     def set_user(self, user, password):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        cypher = f"ALTER USER {user} SET PASSWORD '{password}')"
+        cypher = f"ALTER USER {user} SET PASSWORD '{password}'"
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
+    def delete_user(self, user):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        cypher = f"DROP USER {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
@@ -657,6 +671,11 @@ class GraphSessionTest(unittest.TestCase):
 
     def test_modify_password_user(self):
         resp = self.mysess.set_user('myuser', 'newpassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_delete_user(self):
+        resp = self.mysess.delete_user('myuser')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
