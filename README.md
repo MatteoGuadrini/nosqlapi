@@ -241,6 +241,18 @@ Granting ACL on specific database with position and keyword arguments.
 
 Revoking ACL on specific database with position and keyword arguments.
 
+`.new_user(parameters...)`
+
+Creating new normal or admin user. 
+
+`.set_user(parameters...)`
+
+Modifying exists user or reset password.
+
+`.delete_user(parameters...)`
+
+Deleting exists user.
+
 ### Selector Objects
 
 `Selector` objects should respond to the following methods.

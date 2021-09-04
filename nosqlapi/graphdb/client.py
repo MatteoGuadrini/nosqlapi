@@ -22,7 +22,7 @@
 
 """Client module for graph NOSQL database."""
 # region imports
-from abc import ABC
+from abc import ABC, abstractmethod
 from ..common.core import Connection, Session, Selector, Response, Batch
 
 # endregion
@@ -57,7 +57,21 @@ class GraphConnection(Connection, ABC):
 class GraphSession(Session, ABC):
     """Graph NOSQL database Session class"""
 
-    pass
+    @abstractmethod
+    def link(self, *args, **kwargs):
+        """Link node to another
+
+        :return: Response
+        """
+        pass
+
+    @abstractmethod
+    def detach(self, *args, **kwargs):
+        """Detach node
+
+        :return: Response
+        """
+        pass
 
 
 class GraphSelector(Selector, ABC):

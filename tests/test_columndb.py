@@ -271,6 +271,34 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.session.recv(2048)}')
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
+    def new_user(self, role, password, login=True, super_user=False):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"CREATE ROLE {role} WITH PASSWORD = {password} "
+                          f"AND SUPERUSER = {super_user} AND LOGIN = {login};")
+        self.session.recv = mock.MagicMock(return_value="CREATION_OK")
+        if self.session.recv(2048) != "CREATION_OK":
+            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+
+    def set_user(self, role, password):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"ALTER ROLE {role} WITH PASSWORD = {password}")
+        self.session.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
+        if self.session.recv(2048) != "PASSWORD_CHANGED":
+            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+
+    def delete_user(self, role):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        self.session.send(f"DROP ROLE {role}")
+        self.session.recv = mock.MagicMock(return_value="ROLE_DELETED")
+        if self.session.recv(2048) != "ROLE_DELETED":
+            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -555,6 +583,21 @@ class ColumnSessionTest(unittest.TestCase):
         """
         batch = MyDBBatch(self.mysess, query)
         batch.execute()
+
+    def test_new_user(self):
+        resp = self.mysess.new_user('myrole', 'mypassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'CREATION_OK')
+
+    def test_modify_password_user(self):
+        resp = self.mysess.set_user('myrole', 'newpassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'PASSWORD_CHANGED')
+
+    def test_delete_user(self):
+        resp = self.mysess.delete_user('myrole')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'ROLE_DELETED')
 
 
 if __name__ == '__main__':

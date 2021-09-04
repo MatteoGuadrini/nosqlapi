@@ -374,6 +374,81 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def new_user(self, user, password, password_change=True):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        cypher = f"CALL dbms.security.createUser({user}, {password}, {password_change})"
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
+    def set_user(self, user, password):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        cypher = f"ALTER USER {user} SET PASSWORD '{password}'"
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
+    def delete_user(self, user):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        cypher = f"DROP USER {user}"
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
+    def link(self, node, linking_node, rel):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = node.split(':', 1)
+        cypher = f"CREATE ({obj}:{label})-[{rel}]->({linking_node})"
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"linked": true}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def detach(self, node, properties: dict = None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        obj, label = node.split(':', 1)
+        cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
+        cypher += f'DETACH DELETE {obj}'
+        stm = {'statements': cypher}
+        self.req.post = mock.MagicMock(return_value={'body': '{"detached": true}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
@@ -589,6 +664,21 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
+    def test_new_user(self):
+        resp = self.mysess.new_user('myuser', 'mypassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_modify_password_user(self):
+        resp = self.mysess.set_user('myuser', 'newpassword')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_delete_user(self):
+        resp = self.mysess.delete_user('myuser')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
     def test_close_session(self):
         self.mysess.close()
         self.assertEqual(self.mysess.session, None)
@@ -601,6 +691,15 @@ class GraphSessionTest(unittest.TestCase):
         batch = MyDBBatch(self.mysess, b)
         resp = batch.execute()
         self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
+
+    def test_link(self):
+        ret = self.mysess.link('matteo:Person', 'open_source:JOB', ':WORK_IN')
+        self.assertEqual(ret.data, {'linked': True})
+
+    def test_detach_node(self):
+        # Detach relationship for node
+        ret = self.mysess.detach(':Person', properties={'name': 'Matteo'})
+        self.assertEqual(ret.data, {'detached': True})
 
 
 if __name__ == '__main__':
