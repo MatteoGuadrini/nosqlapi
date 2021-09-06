@@ -39,6 +39,9 @@ class Item:
     def get(self):
         return self.__dict
 
+    def set(self, key, value=None):
+        self[key] = value
+
     def __getitem__(self, item):
         return self.__dict.get(item)
 
