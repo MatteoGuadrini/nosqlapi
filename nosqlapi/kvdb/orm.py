@@ -49,5 +49,11 @@ class Item:
     def __delitem__(self, key):
         del self.__dict[key]
 
+    def __repr__(self):
+        return f'<{self.__class__.__name__} object, key={self.key} value={self.value}>'
+
+    def __str__(self):
+        return f'{self.__dict}'
+
 
 # endregion
