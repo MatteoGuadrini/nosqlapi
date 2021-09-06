@@ -36,6 +36,9 @@ class Item:
     def value(self):
         return self._value
 
+    def get(self):
+        return self.__dict
+
     def __getitem__(self, item):
         return self.__dict.get(item)
 
