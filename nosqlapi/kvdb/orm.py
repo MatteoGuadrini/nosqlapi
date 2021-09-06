@@ -21,12 +21,23 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # region Classes
-class Item(dict):
+class Item:
 
     def __init__(self, key, value=None):
-        super().__init__()
         self._key = key
         self._value = value
+
+    @property
+    def key(self):
+        return self._key
+
+    @key.setter
+    def key(self, value):
+        self._key = value
+
+    @key.deleter
+    def key(self):
+        self._key = None
 
 
 # endregion
