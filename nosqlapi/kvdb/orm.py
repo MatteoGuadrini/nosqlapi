@@ -26,6 +26,7 @@ class Item:
     def __init__(self, key, value=None):
         self._key = key
         self._value = value
+        self.__dict = {}
 
     @property
     def key(self):
@@ -50,6 +51,16 @@ class Item:
     @value.deleter
     def value(self):
         self._value = None
+
+    def __getitem__(self, item):
+        return self.__dict.get(item, default=None)
+
+    def __setitem__(self, key, value):
+        tmp = self.__dict.copy()
+        tmp[key] = value
+        if len(tmp) > 1:
+            raise KeyError('Item object must be on key-value')
+        self[key] = value
 
 
 # endregion
