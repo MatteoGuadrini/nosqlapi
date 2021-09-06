@@ -39,5 +39,17 @@ class Item:
     def key(self):
         self._key = None
 
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+    @value.deleter
+    def value(self):
+        self._value = None
+
 
 # endregion
