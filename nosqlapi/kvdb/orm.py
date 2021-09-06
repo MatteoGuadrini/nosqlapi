@@ -32,35 +32,22 @@ class Item:
     def key(self):
         return self._key
 
-    @key.setter
-    def key(self, value):
-        self._key = value
-
-    @key.deleter
-    def key(self):
-        self._key = None
-
     @property
     def value(self):
         return self._value
 
-    @value.setter
-    def value(self, value):
-        self._value = value
-
-    @value.deleter
-    def value(self):
-        self._value = None
-
     def __getitem__(self, item):
-        return self.__dict.get(item, default=None)
+        return self.__dict.get(item)
 
     def __setitem__(self, key, value):
-        tmp = self.__dict.copy()
-        tmp[key] = value
-        if len(tmp) > 1:
-            raise KeyError('Item object must be on key-value')
+        if not self.__dict.get(key):
+            self.__dict.clear()
         self[key] = value
+        self._key = value
+        self._value = value
+
+    def __delitem__(self, key):
+        del self.__dict[key]
 
 
 # endregion
