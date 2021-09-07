@@ -69,4 +69,16 @@ class ExpiredItem(Item):
         super().__init__(key, value)
         self._ttl = ttl
 
+    def __setitem__(self, key, value):
+        if key == 'ttl':
+            self._ttl = value
+            self['ttl'] = self._ttl
+        else:
+            if not self.__dict.get(key):
+                self.__dict.clear()
+            self[key] = value
+            self._key = key
+            self._value = value
+            self['ttl'] = self._ttl
+
 # endregion
