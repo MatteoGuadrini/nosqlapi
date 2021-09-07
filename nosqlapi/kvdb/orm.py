@@ -68,6 +68,7 @@ class ExpiredItem(Item):
     def __init__(self, key, value=None, ttl=None):
         super().__init__(key, value)
         self._ttl = ttl
+        self['ttl'] = self._ttl
 
     @property
     def ttl(self):
@@ -84,5 +85,8 @@ class ExpiredItem(Item):
             self._key = key
             self._value = value
             self['ttl'] = self._ttl
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} object, key={self.key} value={self.value} ttl={self.ttl}>'
 
 # endregion
