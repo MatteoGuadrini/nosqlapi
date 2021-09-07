@@ -69,6 +69,10 @@ class ExpiredItem(Item):
         super().__init__(key, value)
         self._ttl = ttl
 
+    @property
+    def ttl(self):
+        return self._ttl
+
     def __setitem__(self, key, value):
         if key == 'ttl':
             self._ttl = value
