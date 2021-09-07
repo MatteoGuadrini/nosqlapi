@@ -27,6 +27,7 @@ class Item:
         self._key = key
         self._value = value
         self.__dict = {}
+        self.set(key, value)
 
     @property
     def key(self):
@@ -49,7 +50,7 @@ class Item:
         if not self.__dict.get(key):
             self.__dict.clear()
         self[key] = value
-        self._key = value
+        self._key = key
         self._value = value
 
     def __delitem__(self, key):
@@ -61,5 +62,11 @@ class Item:
     def __str__(self):
         return f'{self.__dict}'
 
+
+class ExpiredItem(Item):
+
+    def __init__(self, key, value=None, ttl=None):
+        super().__init__(key, value)
+        self._ttl = ttl
 
 # endregion
