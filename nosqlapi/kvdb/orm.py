@@ -45,6 +45,9 @@ class Keyspace:
     def store(self):
         return self._store
 
+    def __getitem__(self, item):
+        return self.store[item]
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, name={self.name}>'
 
