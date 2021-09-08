@@ -21,6 +21,12 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # region Classes
+class Keyspace:
+
+    def __init__(self, name):
+        self._name = name
+
+
 class Item:
 
     def __init__(self, key, value=None):
