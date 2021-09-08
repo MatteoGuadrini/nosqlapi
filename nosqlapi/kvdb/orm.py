@@ -25,6 +25,7 @@ class Keyspace:
 
     def __init__(self, name):
         self._name = name
+        self.store = []
 
     @property
     def name(self):
@@ -33,6 +34,12 @@ class Keyspace:
     @name.setter
     def name(self, value):
         self._name = value
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} object, name={self.name}>'
+
+    def __str__(self):
+        return f'{self.store}'
 
 
 class Item:
