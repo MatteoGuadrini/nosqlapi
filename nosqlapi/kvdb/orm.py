@@ -48,6 +48,9 @@ class Keyspace:
     def append(self, item):
         self._store.append(item)
 
+    def pop(self, item=-1):
+        self._store.pop(item)
+
     def __getitem__(self, item):
         return self.store[item]
 
