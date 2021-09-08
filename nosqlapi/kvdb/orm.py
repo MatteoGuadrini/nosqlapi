@@ -20,12 +20,18 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# region Imports
+from typing import List
+
+
+# endregion
+
 # region Classes
 class Keyspace:
 
     def __init__(self, name):
         self._name = name
-        self.store = []
+        self._store = List[Item]
 
     @property
     def name(self):
@@ -34,6 +40,10 @@ class Keyspace:
     @name.setter
     def name(self, value):
         self._name = value
+
+    @property
+    def store(self):
+        return self._store
 
     def __repr__(self):
         return f'<{self.__class__.__name__} object, name={self.name}>'
