@@ -38,6 +38,12 @@ class Transaction:
     def delete(self, index=-1):
         self._commands.pop(index)
 
+    def __repr__(self):
+        return f'<{self.__class__.__name__} object>'
+
+    def __str__(self):
+        return f'{self._commands}'
+
 
 class Keyspace:
 
