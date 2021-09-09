@@ -64,6 +64,14 @@ class Keyspace:
         return f'{self.store}'
 
 
+class Subspace(Keyspace):
+
+    def __init__(self, name, sub=None):
+        super().__init__(name)
+        if sub:
+            self.name += sub
+
+
 class Item:
 
     def __init__(self, key, value=None):
@@ -92,7 +100,7 @@ class Item:
     def __setitem__(self, key, value):
         if not self.__dict.get(key):
             self.__dict.clear()
-        self[key] = value
+        self.__dict[key] = value
         self._key = key
         self._value = value
 
