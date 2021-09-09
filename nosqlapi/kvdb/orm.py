@@ -35,6 +35,9 @@ class Transaction:
     def add(self, command):
         self._commands.append(command)
 
+    def delete(self, index=-1):
+        self._commands.pop(index)
+
 
 class Keyspace:
 
