@@ -20,18 +20,12 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# region Imports
-from typing import List
-
-
-# endregion
-
 # region Classes
 class Keyspace:
 
     def __init__(self, name):
         self._name = name
-        self._store: List[Item] = []
+        self._store = []
 
     @property
     def name(self):
@@ -132,10 +126,10 @@ class ExpiredItem(Item):
         else:
             if not self.__dict.get(key):
                 self.__dict.clear()
-            self[key] = value
+            self.__dict[key] = value
             self._key = key
             self._value = value
-            self['ttl'] = self._ttl
+            self.__dict['ttl'] = self._ttl
 
     def __repr__(self):
         return f'<{self.__class__.__name__} object, key={self.key} value={self.value} ttl={self.ttl}>'
