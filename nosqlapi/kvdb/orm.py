@@ -30,7 +30,10 @@ class Transaction:
 
     @property
     def commands(self):
-        return self._commands
+        return list(enumerate(self._commands))
+
+    def add(self, command):
+        self._commands.append(command)
 
 
 class Keyspace:
