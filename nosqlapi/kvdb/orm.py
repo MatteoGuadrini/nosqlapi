@@ -21,6 +21,14 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # region Classes
+class Transaction:
+
+    def __init__(self, commands=None):
+        if commands is None:
+            commands = []
+        self._commands = commands
+
+
 class Keyspace:
 
     def __init__(self, name):
