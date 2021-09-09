@@ -28,6 +28,10 @@ class Transaction:
             commands = []
         self._commands = commands
 
+    @property
+    def commands(self):
+        return self._commands
+
 
 class Keyspace:
 
