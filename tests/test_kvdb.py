@@ -415,6 +415,18 @@ class KVConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.databases)
 
+    def test_columndb_show_database_with_keyspace(self):
+        ks = Keyspace('test_db')
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        dbs = myconn.show_database(ks)
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, 'name=test_db, size=0.4GB')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.databases)
+
 
 class KVSessionTest(unittest.TestCase):
     myconn = MyDBConnection('mykvdb.local', 12345, 'test_db')
