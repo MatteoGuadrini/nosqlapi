@@ -357,6 +357,19 @@ class KVConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
+    def test_kvdb_exists_database_with_keyspace(self):
+        ks = Keyspace('test_db')
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.has_database(ks)
+        self.assertEqual(myconn.return_data, 'DB_EXISTS')
+        if myconn.return_data == 'DB_EXISTS':
+            ks._exists = True
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.has_database, 'test_db')
+
     def test_kvdb_delete_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
