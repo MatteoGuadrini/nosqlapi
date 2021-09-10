@@ -49,6 +49,7 @@ class Keyspace:
 
     def __init__(self, name):
         self._name = name
+        self._exists = False
         self._store = []
 
     @property
@@ -58,6 +59,10 @@ class Keyspace:
     @name.setter
     def name(self, value):
         self._name = value
+
+    @property
+    def exists(self):
+        return self._exists
 
     @property
     def store(self):
