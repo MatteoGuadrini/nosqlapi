@@ -1,5 +1,7 @@
 import unittest
+from typing import Union
 import nosqlapi.kvdb
+from nosqlapi.kvdb.orm import Keyspace
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
@@ -46,8 +48,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         self.connection = self.t
         return MyDBSession(self.connection, self.database)
 
-    def create_database(self, name):
+    def create_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"CREATE_DB='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
@@ -57,8 +60,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def has_database(self, name):
+    def has_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"DB_EXISTS='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_EXISTS')
@@ -70,8 +74,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def delete_database(self, name):
+    def delete_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"DELETE_DB='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
@@ -93,8 +98,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def show_database(self, name):
+    def show_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"GET_DB={name}")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='name=test_db, size=0.4GB')
@@ -151,7 +157,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             raise SessionInsertingError(f'insert key {key} with value {value} failure')
         self._item_count = 1
 
-    def insert_many(self, dict_: dict):
+    def insert_many(self, dict_: Union[dict, Keyspace]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
         self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
@@ -170,7 +176,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
                 raise SessionUpdatingError(f'update key {key} with value {value} failure')
         self._item_count = 1
 
-    def update_many(self, dict_):
+    def update_many(self, dict_: Union[dict, Keyspace]):
         # For this type of database, not implement many updates
         raise NotImplementedError('update_many not implemented for this module')
 
