@@ -86,6 +86,9 @@ class Keyspace:
     def __str__(self):
         return f'{self.store}'
 
+    def __len__(self):
+        return len(self.store)
+
 
 class Subspace(Keyspace):
 
