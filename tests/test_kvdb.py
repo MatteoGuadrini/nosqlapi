@@ -1,7 +1,7 @@
 import unittest
-from typing import Union
+from typing import Union, Any
 import nosqlapi.kvdb
-from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.kvdb.orm import Keyspace, Item
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
@@ -134,9 +134,10 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
                   for item in self.session.recv(2048).split(';')}
         )
 
-    def get(self, key):
+    def get(self, key: Union[Any, Item]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
+        key = key.key if isinstance(key, Item) else key
         self.session.send(f"GET={key}")
         self.session.recv = mock.MagicMock(return_value=f"{key}=value")
         if self.session.recv != 'KEY_NOT_FOUND':
@@ -151,7 +152,8 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
     def insert(self, key, value):
         if not self.database:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"INSERT={key},{value}")
+        i = Item(key, value)
+        self.session.send(f"INSERT={i.key},{i.value}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
         if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert key {key} with value {value} failure')
@@ -160,7 +162,10 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
     def insert_many(self, dict_: Union[dict, Keyspace]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
+        if isinstance(dict_, Keyspace):
+            self.session.send(f"INSERT_MANY={';'.join(','.join((item.key, item.value)) for item in dict_.store)}")
+        else:
+            self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
         if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert many values failure: {self.session.recv}')
@@ -170,7 +175,8 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         if not self.database:
             raise ConnectError('connect to a database before some request')
         if self.get(key):
-            self.session.send(f"UPDATE={key},{value}")
+            i = Item(key, value)
+            self.session.send(f"UPDATE={i.key},{i.value}")
             self.session.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
             if self.session.recv(2048) != "UPDATE_KEY_OK":
                 raise SessionUpdatingError(f'update key {key} with value {value} failure')
@@ -180,9 +186,10 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         # For this type of database, not implement many updates
         raise NotImplementedError('update_many not implemented for this module')
 
-    def delete(self, key):
+    def delete(self, key: Union[Any, Item]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
+        key = key.key if isinstance(key, Item) else key
         self.session.send(f"DELETE={key}")
         self.session.recv = mock.MagicMock(return_value="DELETE_OK")
         if self.session.recv(2048) != 'DELETE_OK':
