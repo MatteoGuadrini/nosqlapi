@@ -84,10 +84,10 @@ class Keyspace:
 
 class Subspace(Keyspace):
 
-    def __init__(self, name, sub=None):
+    def __init__(self, name, sub=None, sep='.'):
         super().__init__(name)
         if sub:
-            self.name += sub
+            self.name += sep + sub
 
 
 class Item:
