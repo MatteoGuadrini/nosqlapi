@@ -297,19 +297,23 @@ class MyDBSelector(nosqlapi.kvdb.KVSelector):
             limit=self.limit
         )
 
-    def first_greater_or_equal(self, key):
+    def first_greater_or_equal(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$ge:*{key}'
         return self.build()
 
-    def first_greater_than(self, key):
+    def first_greater_than(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$gt:*{key}'
         return self.build()
 
-    def last_less_or_equal(self, key):
+    def last_less_or_equal(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$le:*{key}'
         return self.build()
 
-    def last_less_than(self, key):
+    def last_less_than(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$lt:*{key}'
         return self.build()
 
@@ -320,6 +324,10 @@ class KVConnectionTest(unittest.TestCase):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
+        with MyDBConnection('mykvdb.local', 12345) as myconn:
+            myconn.connect()
+            self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertEqual(myconn.return_data, 'CLOSED')
 
     def test_kvdb_connect_with_user_passw(self):
         myconn = MyDBConnection('mykvdb.local', 12345, username='admin', password='admin000')
@@ -449,6 +457,10 @@ class KVSessionTest(unittest.TestCase):
         d = self.mysess.get('key')
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn('key', d)
+        i = Item('key')
+        d = self.mysess.get(i)
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('key', d)
 
     def test_insert_key(self):
         self.mysess.insert('key', 'value')
@@ -456,6 +468,13 @@ class KVSessionTest(unittest.TestCase):
 
     def test_insert_many_keys(self):
         self.mysess.insert_many({'key': 'value', 'key1': 'value1'})
+        self.assertEqual(self.mysess.item_count, 2)
+        item = Item('key', 'value')
+        item1 = Item('key1', 'value1')
+        ks = Keyspace(None)
+        ks.append(item)
+        ks.append(item1)
+        self.mysess.insert_many(ks)
         self.assertEqual(self.mysess.item_count, 2)
 
     def test_update_key(self):
@@ -467,6 +486,9 @@ class KVSessionTest(unittest.TestCase):
 
     def test_delete_key(self):
         self.mysess.delete('key')
+        self.assertEqual(self.mysess.item_count, 0)
+        i = Item('key')
+        self.mysess.delete(i)
         self.assertEqual(self.mysess.item_count, 0)
 
     def test_find_string_keys(self):
@@ -487,6 +509,10 @@ class KVSessionTest(unittest.TestCase):
         sel = MyDBSelector()
         self.assertIsInstance(sel, MyDBSelector)
         data = self.mysess.find(sel.first_greater_or_equal('key'))
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 2)
+        i = Item('key', 'value')
+        data = self.mysess.find(sel.first_greater_or_equal(i))
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
 
