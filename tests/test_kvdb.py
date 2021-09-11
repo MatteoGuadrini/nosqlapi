@@ -1,12 +1,13 @@
 import unittest
 from typing import Union, Any
 import nosqlapi.kvdb
-from nosqlapi.kvdb.orm import Keyspace, Item
+from nosqlapi.kvdb.orm import Keyspace, Item, Transaction
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
 from unittest import mock
 from string import Template
+
 
 # Below classes is a emulation of FoundationDB like database
 
@@ -316,6 +317,21 @@ class MyDBSelector(nosqlapi.kvdb.KVSelector):
         key = key.key if isinstance(key, Item) else key
         self.selector = f'$lt:*{key}'
         return self.build()
+
+
+class MyDBBatch(nosqlapi.kvdb.KVBatch):
+
+    def execute(self):
+        if isinstance(self.batch, Transaction):
+            if self.batch.commands[0][1] != 'begin':
+                self.batch.add('begin', 0)
+            if self.batch.commands[-1][1] != 'end':
+                self.batch.add('end')
+            self.batch = f"{self.batch}"
+        self.session.session.send(self.batch)
+        self.session.session.recv = mock.MagicMock(return_value="BATCH_OK")
+        if self.session.session.recv(2048) != "BATCH_OK":
+            raise SessionError(f'batch error: {self.session.session.recv(2048)}')
 
 
 class KVConnectionTest(unittest.TestCase):
