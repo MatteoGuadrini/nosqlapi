@@ -32,17 +32,20 @@ class Transaction:
     def commands(self):
         return list(enumerate(self._commands))
 
-    def add(self, command):
-        self._commands.append(command)
+    def add(self, command, index=-1):
+        if index == -1:
+            self._commands.append(command)
+        else:
+            self._commands.insert(index, command)
 
     def delete(self, index=-1):
         self._commands.pop(index)
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} object>'
+        return f'<{self.__class__.__name__} object, commands={len(self.commands)}>'
 
     def __str__(self):
-        return f'{self._commands}'
+        return '\n'.join(command for command in self._commands)
 
 
 class Keyspace:
