@@ -1,10 +1,13 @@
 import unittest
+from typing import Union, Any
 import nosqlapi.kvdb
+from nosqlapi.kvdb.orm import Keyspace, Item, Transaction
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
 from unittest import mock
 from string import Template
+
 
 # Below classes is a emulation of FoundationDB like database
 
@@ -46,8 +49,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         self.connection = self.t
         return MyDBSession(self.connection, self.database)
 
-    def create_database(self, name):
+    def create_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"CREATE_DB='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
@@ -57,8 +61,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def has_database(self, name):
+    def has_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"DB_EXISTS='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_EXISTS')
@@ -70,8 +75,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def delete_database(self, name):
+    def delete_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"DELETE_DB='{name}'")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
@@ -93,8 +99,9 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def show_database(self, name):
+    def show_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            name = name.name if isinstance(name, Keyspace) else name
             self.connection.send(f"GET_DB={name}")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='name=test_db, size=0.4GB')
@@ -128,9 +135,10 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
                   for item in self.session.recv(2048).split(';')}
         )
 
-    def get(self, key):
+    def get(self, key: Union[Any, Item]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
+        key = key.key if isinstance(key, Item) else key
         self.session.send(f"GET={key}")
         self.session.recv = mock.MagicMock(return_value=f"{key}=value")
         if self.session.recv != 'KEY_NOT_FOUND':
@@ -145,16 +153,20 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
     def insert(self, key, value):
         if not self.database:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"INSERT={key},{value}")
+        i = Item(key, value)
+        self.session.send(f"INSERT={i.key},{i.value}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
         if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert key {key} with value {value} failure')
         self._item_count = 1
 
-    def insert_many(self, dict_: dict):
+    def insert_many(self, dict_: Union[dict, Keyspace]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
+        if isinstance(dict_, Keyspace):
+            self.session.send(f"INSERT_MANY={';'.join(','.join((item.key, item.value)) for item in dict_.store)}")
+        else:
+            self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
         self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
         if self.session.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert many values failure: {self.session.recv}')
@@ -164,19 +176,21 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         if not self.database:
             raise ConnectError('connect to a database before some request')
         if self.get(key):
-            self.session.send(f"UPDATE={key},{value}")
+            i = Item(key, value)
+            self.session.send(f"UPDATE={i.key},{i.value}")
             self.session.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
             if self.session.recv(2048) != "UPDATE_KEY_OK":
                 raise SessionUpdatingError(f'update key {key} with value {value} failure')
         self._item_count = 1
 
-    def update_many(self, dict_):
+    def update_many(self, dict_: Union[dict, Keyspace]):
         # For this type of database, not implement many updates
         raise NotImplementedError('update_many not implemented for this module')
 
-    def delete(self, key):
+    def delete(self, key: Union[Any, Item]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
+        key = key.key if isinstance(key, Item) else key
         self.session.send(f"DELETE={key}")
         self.session.recv = mock.MagicMock(return_value="DELETE_OK")
         if self.session.recv(2048) != 'DELETE_OK':
@@ -284,21 +298,40 @@ class MyDBSelector(nosqlapi.kvdb.KVSelector):
             limit=self.limit
         )
 
-    def first_greater_or_equal(self, key):
+    def first_greater_or_equal(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$ge:*{key}'
         return self.build()
 
-    def first_greater_than(self, key):
+    def first_greater_than(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$gt:*{key}'
         return self.build()
 
-    def last_less_or_equal(self, key):
+    def last_less_or_equal(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$le:*{key}'
         return self.build()
 
-    def last_less_than(self, key):
+    def last_less_than(self, key: Union[Any, Item]):
+        key = key.key if isinstance(key, Item) else key
         self.selector = f'$lt:*{key}'
         return self.build()
+
+
+class MyDBBatch(nosqlapi.kvdb.KVBatch):
+
+    def execute(self):
+        if isinstance(self.batch, Transaction):
+            if self.batch.commands[0][1] != 'begin':
+                self.batch.add('begin', 0)
+            if self.batch.commands[-1][1] != 'end':
+                self.batch.add('end')
+            self.batch = f"{self.batch}"
+        self.session.session.send(self.batch)
+        self.session.session.recv = mock.MagicMock(return_value="BATCH_OK")
+        if self.session.session.recv(2048) != "BATCH_OK":
+            raise SessionError(f'batch error: {self.session.session.recv(2048)}')
 
 
 class KVConnectionTest(unittest.TestCase):
@@ -307,6 +340,10 @@ class KVConnectionTest(unittest.TestCase):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
+        with MyDBConnection('mykvdb.local', 12345) as myconn:
+            myconn.connect()
+            self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertEqual(myconn.return_data, 'CLOSED')
 
     def test_kvdb_connect_with_user_passw(self):
         myconn = MyDBConnection('mykvdb.local', 12345, username='admin', password='admin000')
@@ -330,6 +367,17 @@ class KVConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
+    def test_kvdb_create_database_with_keyspace(self):
+        ks = Keyspace('test_db')
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.create_database(ks)
+        self.assertEqual(myconn.return_data, 'DB_CREATED')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
+
     def test_kvdb_exists_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
@@ -340,12 +388,38 @@ class KVConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
+    def test_kvdb_exists_database_with_keyspace(self):
+        ks = Keyspace('test_db')
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.has_database(ks)
+        self.assertEqual(myconn.return_data, 'DB_EXISTS')
+        if myconn.return_data == 'DB_EXISTS':
+            ks._exists = True
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.has_database, 'test_db')
+
     def test_kvdb_delete_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         myconn.delete_database('test_db')
         self.assertEqual(myconn.return_data, 'DB_DELETED')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
+
+    def test_kvdb_delete_database_with_keyspace(self):
+        ks = Keyspace('test_db')
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        myconn.delete_database(ks)
+        self.assertEqual(myconn.return_data, 'DB_DELETED')
+        if myconn.return_data == 'DB_DELETED':
+            ks._exists = False
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
@@ -372,6 +446,18 @@ class KVConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.databases)
 
+    def test_columndb_show_database_with_keyspace(self):
+        ks = Keyspace('test_db')
+        myconn = MyDBConnection('mykvdb.local', 12345)
+        myconn.connect()
+        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        dbs = myconn.show_database(ks)
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, 'name=test_db, size=0.4GB')
+        myconn.close()
+        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertRaises(ConnectError, myconn.databases)
+
 
 class KVSessionTest(unittest.TestCase):
     myconn = MyDBConnection('mykvdb.local', 12345, 'test_db')
@@ -387,6 +473,10 @@ class KVSessionTest(unittest.TestCase):
         d = self.mysess.get('key')
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn('key', d)
+        i = Item('key')
+        d = self.mysess.get(i)
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('key', d)
 
     def test_insert_key(self):
         self.mysess.insert('key', 'value')
@@ -394,6 +484,13 @@ class KVSessionTest(unittest.TestCase):
 
     def test_insert_many_keys(self):
         self.mysess.insert_many({'key': 'value', 'key1': 'value1'})
+        self.assertEqual(self.mysess.item_count, 2)
+        item = Item('key', 'value')
+        item1 = Item('key1', 'value1')
+        ks = Keyspace(None)
+        ks.append(item)
+        ks.append(item1)
+        self.mysess.insert_many(ks)
         self.assertEqual(self.mysess.item_count, 2)
 
     def test_update_key(self):
@@ -405,6 +502,9 @@ class KVSessionTest(unittest.TestCase):
 
     def test_delete_key(self):
         self.mysess.delete('key')
+        self.assertEqual(self.mysess.item_count, 0)
+        i = Item('key')
+        self.mysess.delete(i)
         self.assertEqual(self.mysess.item_count, 0)
 
     def test_find_string_keys(self):
@@ -427,6 +527,27 @@ class KVSessionTest(unittest.TestCase):
         data = self.mysess.find(sel.first_greater_or_equal('key'))
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 2)
+        i = Item('key', 'value')
+        data = self.mysess.find(sel.first_greater_or_equal(i))
+        self.assertIsInstance(data, MyDBResponse)
+        self.assertEqual(self.mysess.item_count, 2)
+
+    def test_batch(self):
+        query = """
+        begin
+        UPDATE=key1,value1;
+        UPDATE=key2,value3;
+        UPDATE=key3,value3;
+        end ;
+        """
+        batch = MyDBBatch(self.mysess, query)
+        batch.execute()
+        tr = Transaction()
+        tr.add('UPDATE=key1,value1;')
+        tr.add('UPDATE=key2,value2;')
+        tr.add('UPDATE=key3,value3;')
+        batch = MyDBBatch(self.mysess, tr)
+        batch.execute()
 
     def test_get_acl_connection(self):
         self.assertIn('root', self.mysess.acl)
