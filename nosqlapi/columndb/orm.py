@@ -61,6 +61,9 @@ class Table:
     def __getitem__(self, item):
         return self._columns[item]
 
+    def __setitem__(self, key, value):
+        self._columns[key] = value
+
     def __repr__(self):
         return f'{self.__class__.__name__} object, name={self.name}>'
 
