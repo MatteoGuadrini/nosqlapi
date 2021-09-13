@@ -36,4 +36,12 @@ class Table:
         self._columns = [column for column in columns]
         self._options = {k: v for k, v in options.items()}
 
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
 # endregion
