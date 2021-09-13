@@ -44,4 +44,12 @@ class Table:
     def name(self, value):
         self._name = value
 
+    @property
+    def columns(self):
+        return self._columns
+
+    @property
+    def options(self):
+        return self._options
+
 # endregion
