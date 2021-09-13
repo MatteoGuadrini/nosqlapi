@@ -58,4 +58,10 @@ class Table:
     def set_option(self, option):
         self._options.update(option)
 
+    def __repr__(self):
+        return f'{self.__class__.__name__} object, name={self.name}>'
+
+    def __str__(self):
+        return f'{self.columns}'
+
 # endregion
