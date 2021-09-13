@@ -55,4 +55,7 @@ class Table:
     def add_column(self, column):
         self._columns.append(column)
 
+    def set_option(self, option):
+        self._options.update(option)
+
 # endregion
