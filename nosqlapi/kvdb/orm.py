@@ -47,6 +47,9 @@ class Transaction:
     def __str__(self):
         return '\n'.join(command for command in self._commands)
 
+    def __iter__(self):
+        return (row for row in self._commands)
+
 
 class Keyspace:
 
