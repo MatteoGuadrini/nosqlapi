@@ -58,6 +58,9 @@ class Table:
     def set_option(self, option):
         self._options.update(option)
 
+    def __getitem__(self, item):
+        return self._columns[item]
+
     def __repr__(self):
         return f'{self.__class__.__name__} object, name={self.name}>'
 
