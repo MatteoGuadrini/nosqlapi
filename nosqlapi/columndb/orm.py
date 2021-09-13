@@ -28,4 +28,12 @@ from nosqlapi.kvdb.orm import Keyspace
 # region Classes
 Keyspace = Keyspace
 
+
+class Table:
+
+    def __init__(self, name, *columns, **options):
+        self._name = name
+        self._columns = [column for column in columns]
+        self._options = {k: v for k, v in options.items()}
+
 # endregion
