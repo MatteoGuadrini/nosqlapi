@@ -90,9 +90,13 @@ class Column:
     def of_type(self):
         return self._of_type
 
+    @property
+    def data(self):
+        return self._data
+
     def append(self, data):
         if self.max_len and len(self._data) >= self.max_len:
-            raise ValueError(f'maximum number of satisfied data: {self.max_len}')
+            raise IndexError(f'maximum number of satisfied data: {self.max_len}')
         if data is not self._of_type:
             raise TypeError(f'the data must be of the type {self.of_type}')
         self._data.append(data)
