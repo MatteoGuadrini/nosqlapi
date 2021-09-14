@@ -114,4 +114,13 @@ class Column:
     def pop(self, index=-1):
         self._data.pop(index)
 
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    def __delitem__(self, key=-1):
+        self.pop(key)
+
 # endregion
