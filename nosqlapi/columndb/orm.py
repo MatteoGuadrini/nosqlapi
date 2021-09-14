@@ -56,7 +56,7 @@ class Table:
         self._columns.append(column)
 
     def delete_column(self, index=-1):
-        self._columns.pop(index)
+        del self[index]
 
     def set_option(self, option):
         self._options.update(option)
@@ -66,6 +66,9 @@ class Table:
 
     def __setitem__(self, key, value):
         self._columns[key] = value
+
+    def __delitem__(self, key=-1):
+        self._columns.pop(key)
 
     def __repr__(self):
         return f'{self.__class__.__name__} object, name={self.name}>'
