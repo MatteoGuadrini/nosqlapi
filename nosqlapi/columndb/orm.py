@@ -111,4 +111,7 @@ class Column:
             raise TypeError(f'the data must be of the type {self.of_type}')
         self._data.append(data)
 
+    def pop(self, index=-1):
+        self._data.pop(index)
+
 # endregion
