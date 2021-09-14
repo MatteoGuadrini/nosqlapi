@@ -94,6 +94,16 @@ class Column:
     def data(self):
         return self._data
 
+    @property
+    def auto_increment(self):
+        return self._auto_increment
+
+    @auto_increment.setter
+    def auto_increment(self, value: bool):
+        if value is not bool:
+            raise TypeError('auto_increment must be a bool value')
+        self._auto_increment = value
+
     def append(self, data):
         if self.max_len and len(self._data) >= self.max_len:
             raise IndexError(f'maximum number of satisfied data: {self.max_len}')
