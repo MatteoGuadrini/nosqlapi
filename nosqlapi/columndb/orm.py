@@ -34,7 +34,7 @@ class Table:
     def __init__(self, name, *columns, **options):
         self._name = name
         self._columns = [column for column in columns]
-        self._options = {k: v for k, v in options.items()}
+        self._options = options
 
     @property
     def name(self):
@@ -83,9 +83,18 @@ class Column:
         self.name = name
         self._of_type = of_type
         self.max_len = max_len
+        self._data = []
+        self._auto_increment = False
 
     @property
     def of_type(self):
         return self._of_type
+
+    def append(self, data):
+        if self.max_len and len(self._data) >= self.max_len:
+            raise ValueError(f'maximum number of satisfied data: {self.max_len}')
+        if data is not self._of_type:
+            raise TypeError(f'the data must be of the type {self.of_type}')
+        self._data.append(data)
 
 # endregion
