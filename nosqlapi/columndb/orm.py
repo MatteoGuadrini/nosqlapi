@@ -76,4 +76,16 @@ class Table:
     def __str__(self):
         return f'{self.columns}'
 
+
+class Column:
+
+    def __init__(self, name, of_type=None, max_len=None):
+        self.name = name
+        self._of_type = of_type
+        self.max_len = max_len
+
+    @property
+    def of_type(self):
+        return self._of_type
+
 # endregion
