@@ -55,6 +55,9 @@ class Table:
     def add_column(self, column):
         self._columns.append(column)
 
+    def delete_column(self, index=-1):
+        self._columns.pop(index)
+
     def set_option(self, option):
         self._options.update(option)
 
