@@ -61,6 +61,10 @@ class Table:
     def set_option(self, option):
         self._options.update(option)
 
+    def get_rows(self):
+        return [tuple([col[i] for col in self.columns])
+                for i in range(len(self.columns))]
+
     def __getitem__(self, item):
         return self._columns[item]
 
