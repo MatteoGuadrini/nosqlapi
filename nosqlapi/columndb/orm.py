@@ -35,6 +35,10 @@ class Ascii(String):
     pass
 
 
+class Blob(bytes):
+    pass
+
+
 Keyspace = Ks
 
 
