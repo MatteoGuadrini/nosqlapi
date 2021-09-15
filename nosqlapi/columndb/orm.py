@@ -21,12 +21,12 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # region Imports
-from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.kvdb.orm import Keyspace as Ks
 
 # endregion
 
 # region Classes
-Keyspace = Keyspace
+Keyspace = Ks
 
 
 class Table:
@@ -108,12 +108,20 @@ class Column:
             raise TypeError('auto_increment must be a bool value')
         self._auto_increment = value
 
-    def append(self, data):
+    def append(self, data=None):
         if self.max_len and len(self._data) >= self.max_len:
             raise IndexError(f'maximum number of satisfied data: {self.max_len}')
-        if data is not self._of_type:
+        if data is not self.of_type and self.of_type is not None:
             raise TypeError(f'the data must be of the type {self.of_type}')
-        self._data.append(data)
+        if self.auto_increment:
+            if isinstance(self.of_type, (int, float)):
+                try:
+                    last = self.data[-1]
+                    self._data.append(last + 1)
+                except IndexError:
+                    self._data.append(1)
+        else:
+            self._data.append(data)
 
     def pop(self, index=-1):
         self._data.pop(index)
