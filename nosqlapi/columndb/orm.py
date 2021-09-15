@@ -31,6 +31,10 @@ class String(str):
     pass
 
 
+class Ascii(String):
+    pass
+
+
 Keyspace = Ks
 
 
