@@ -39,6 +39,19 @@ class Blob(bytes):
     pass
 
 
+class Boolean:
+
+    def __init__(self, value):
+        self.value = bool(value)
+
+    def __repr__(self):
+        return self.value.__repr__()
+
+    def __bool__(self):
+        return self.value
+
+
+
 Keyspace = Ks
 
 
