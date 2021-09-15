@@ -51,6 +51,26 @@ class Boolean:
         return self.value
 
 
+class Counter:
+
+    def __init__(self, value=0):
+        self.value = int(value)
+
+    def increment(self, value=1):
+        self.value += value
+
+    def decrement(self, value=1):
+        self.value -= value
+
+    def __add__(self, other):
+        self.increment(other)
+
+    def __sub__(self, other):
+        self.decrement(other)
+
+    def __repr__(self):
+        return self.value.__repr__()
+
 
 Keyspace = Ks
 
