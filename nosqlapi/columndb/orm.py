@@ -23,9 +23,14 @@
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace as Ks
 
+
 # endregion
 
 # region Classes
+class String(str):
+    pass
+
+
 Keyspace = Ks
 
 
