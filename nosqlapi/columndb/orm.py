@@ -24,6 +24,7 @@
 from nosqlapi.kvdb.orm import Keyspace as Ks
 from decimal import Decimal as Dc
 from datetime import date
+from datetime import timedelta
 
 
 # endregion
@@ -84,6 +85,17 @@ class Decimal(Dc):
 
 class Double(float):
     pass
+
+
+class Duration(timedelta):
+
+    def string_format(self):
+        hours, minutes = self.seconds // 3600, self.seconds // 60 % 60
+        seconds = self.seconds - (hours * 3600 + minutes * 60)
+        return f'{self.days}d{hours}h{minutes}m{seconds}s'
+
+    def __repr__(self):
+        return self.string_format()
 
 
 Keyspace = Ks
