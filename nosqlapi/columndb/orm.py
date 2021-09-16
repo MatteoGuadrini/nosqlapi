@@ -82,6 +82,10 @@ class Decimal(Dc):
     pass
 
 
+class Double(float):
+    pass
+
+
 Keyspace = Ks
 
 
