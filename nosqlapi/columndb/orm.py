@@ -22,6 +22,7 @@
 
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace as Ks
+from decimal import Decimal as Dc
 from datetime import date
 
 
@@ -74,6 +75,10 @@ class Counter:
 
 
 class Date(date):
+    pass
+
+
+class Decimal(Dc):
     pass
 
 
