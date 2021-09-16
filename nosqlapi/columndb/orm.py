@@ -22,6 +22,7 @@
 
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace as Ks
+from datetime import date
 
 
 # endregion
@@ -70,6 +71,10 @@ class Counter:
 
     def __repr__(self):
         return self.value.__repr__()
+
+
+class Date(date):
+    pass
 
 
 Keyspace = Ks
