@@ -76,7 +76,9 @@ class Counter:
 
 
 class Date(date):
-    pass
+
+    def __repr__(self):
+        return self.strftime('%Y-%m-%d')
 
 
 class Decimal(Dc):
@@ -96,6 +98,10 @@ class Duration(timedelta):
 
     def __repr__(self):
         return self.string_format()
+
+
+class Float(float):
+    pass
 
 
 Keyspace = Ks
