@@ -114,7 +114,22 @@ class Inet:
 
 
 class Int(int):
-    pass
+
+    def __init__(self, number):
+        self.number = number
+
+    def __repr__(self):
+        return str(self.number)
+
+
+class SmallInt(Int):
+
+    def __init__(self, number):
+        if number > 32767 or number < -32767:
+            raise ValueError('the number must be between 32767 and -32767')
+        super().__init__(number)
+
+
 
 
 Keyspace = Ks
