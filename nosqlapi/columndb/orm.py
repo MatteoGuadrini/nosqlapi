@@ -113,6 +113,10 @@ class Inet:
         return self.ip
 
 
+class Int(int):
+    pass
+
+
 Keyspace = Ks
 
 
