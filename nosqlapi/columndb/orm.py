@@ -241,8 +241,8 @@ class Column:
     def append(self, data=None):
         if self.max_len and len(self._data) >= self.max_len:
             raise IndexError(f'maximum number of satisfied data: {self.max_len}')
-        if data is not self.of_type and self.of_type is not None:
-            raise TypeError(f'the data must be of the type {self.of_type}')
+        if not isinstance(data, self.of_type) and self.of_type is not None:
+            raise TypeError(f'the data must be of the type {self.of_type} or NoneType')
         if self.auto_increment:
             if isinstance(self.of_type, (int, float)):
                 try:
