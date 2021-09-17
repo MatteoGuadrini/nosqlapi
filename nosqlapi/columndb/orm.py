@@ -25,6 +25,7 @@ from nosqlapi.kvdb.orm import Keyspace as Ks
 from decimal import Decimal as Dc
 from datetime import date
 from datetime import timedelta
+from datetime import time
 
 
 # endregion
@@ -130,6 +131,10 @@ class SmallInt(Int):
         super().__init__(number)
 
 
+class Time(time):
+
+    def __repr__(self):
+        return self.strftime('%H:%M:%S')
 
 
 Keyspace = Ks
