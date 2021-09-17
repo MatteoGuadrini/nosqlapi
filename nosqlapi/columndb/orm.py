@@ -27,15 +27,12 @@ from datetime import date
 from datetime import timedelta
 from datetime import time
 from datetime import datetime
+from uuid import uuid1
 
 
 # endregion
 
 # region Classes
-class Text(str):
-    pass
-
-
 class Ascii(str):
     pass
 
@@ -132,6 +129,10 @@ class SmallInt(Int):
         super().__init__(number)
 
 
+class Text(str):
+    pass
+
+
 class Time(time):
 
     def __repr__(self):
@@ -142,6 +143,15 @@ class Timestamp(datetime):
 
     def __repr__(self):
         return self.timestamp().__repr__()
+
+
+class Uuid:
+
+    def __init__(self):
+        self.uuid = uuid1()
+
+    def __repr__(self):
+        return self.uuid.__str__()
 
 
 Keyspace = Ks
