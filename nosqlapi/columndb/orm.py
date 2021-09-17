@@ -30,11 +30,11 @@ from datetime import timedelta
 # endregion
 
 # region Classes
-class String(str):
+class Text(str):
     pass
 
 
-class Ascii(String):
+class Ascii(str):
     pass
 
 
@@ -102,6 +102,15 @@ class Duration(timedelta):
 
 class Float(float):
     pass
+
+
+class Inet:
+
+    def __init__(self, ip):
+        self.ip = ip
+
+    def __repr__(self):
+        return self.ip
 
 
 Keyspace = Ks
