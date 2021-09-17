@@ -154,6 +154,8 @@ class Uuid:
         return self.uuid.__str__()
 
 
+Varchar = Text
+Varint = Int
 Keyspace = Ks
 
 
