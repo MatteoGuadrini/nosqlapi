@@ -26,6 +26,7 @@ from decimal import Decimal as Dc
 from datetime import date
 from datetime import timedelta
 from datetime import time
+from datetime import datetime
 
 
 # endregion
@@ -135,6 +136,12 @@ class Time(time):
 
     def __repr__(self):
         return self.strftime('%H:%M:%S')
+
+
+class Timestamp(datetime):
+
+    def __repr__(self):
+        return self.timestamp().__repr__()
 
 
 Keyspace = Ks
