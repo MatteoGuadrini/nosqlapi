@@ -23,3 +23,4 @@
 """Package key-value NOSQL database."""
 
 from nosqlapi.kvdb.client import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
+from nosqlapi.kvdb.orm import Keyspace, Subspace, Transaction, Item, ExpiredItem

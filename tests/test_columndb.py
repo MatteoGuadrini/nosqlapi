@@ -1,5 +1,7 @@
 import unittest
 import nosqlapi.columndb
+from typing import Union
+from nosqlapi.columndb.orm import Keyspace, Table, Column, Varchar, Varint, Timestamp
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
@@ -47,8 +49,11 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
         self.connection = self.t
         return MyDBSession(self.connection, self.database)
 
-    def create_database(self, name, not_exists: bool = False, replication=None, durable_writes=None):
+    def create_database(self, name: Union[str, Keyspace], not_exists: bool = False, replication=None,
+                        durable_writes=None):
         if self.connection:
+            if isinstance(name, Keyspace):
+                name = name.name
             query = f"CREATE  KEYSPACE '{name}'"
             if not_exists:
                 query += " IF NOT EXISTS"
@@ -65,8 +70,10 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def has_database(self, name):
+    def has_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            if isinstance(name, Keyspace):
+                name = name.name
             if name not in self.databases():
                 return False
             else:
@@ -74,8 +81,10 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def delete_database(self, name, exists=False):
+    def delete_database(self, name: Union[str, Keyspace], exists=False):
         if self.connection:
+            if isinstance(name, Keyspace):
+                name = name.name
             query = f'DROP KEYSPACE'
             if exists:
                 query += ' IF EXISTS'
@@ -101,8 +110,10 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
         else:
             raise ConnectError(f"Server isn't connected")
 
-    def show_database(self, name):
+    def show_database(self, name: Union[str, Keyspace]):
         if self.connection:
+            if isinstance(name, Keyspace):
+                name = name.name
             self.connection.send(f"DESCRIBE KEYSPACE {name};")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='table1 table2 table3')
@@ -137,10 +148,18 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                   for item in self.session.recv(2048).split(';')}
         )
 
-    def get(self, table, *columns):
+    def get(self, table: Union[str, Table], *columns: Union[str, Column]):
         if not self.database:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"SELECT {','.join(col for col in columns)} FROM {table}")
+        if isinstance(table, Table):
+            table = table.name
+        cols = []
+        for column in columns:
+            if isinstance(column, Column):
+                cols.append(column.name)
+            else:
+                cols.append(column)
+        self.session.send(f"SELECT {','.join(col for col in cols)} FROM {table}")
         self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
         if self.session.recv != 'NOT_FOUND':
             out = [tuple(row.split(','))
@@ -151,16 +170,23 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionError(f'columns or table not found')
 
     def insert(self,
-               table,
+               table: Union[str, Table],
                columns: tuple,
                values: tuple,
                ttl=None,
-               timestamp=None,
+               timestamp: Union[int, Timestamp] = None,
                not_exists: bool = False):
         if not self.database:
             raise ConnectError('connect to a database before some request')
-        if not isinstance(columns, tuple):
-            columns = tuple(columns)
+        if isinstance(table, Table):
+            table = table.name
+        cols = []
+        for column in columns:
+            if isinstance(column, Column):
+                cols.append(column.name)
+            else:
+                cols.append(column)
+        columns = tuple(cols)
         if not isinstance(values, tuple):
             values = tuple(values)
         query = f"INSERT INTO {table} {columns} VALUES {values}"
@@ -178,18 +204,25 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         self._item_count = 1
 
     def insert_many(self,
-                    table,
+                    table: Union[str, Table],
                     columns: tuple,
                     values: List[tuple],
                     ttl=None,
-                    timestamp=None,
+                    timestamp: Union[int, Timestamp] = None,
                     not_exists: bool = False):
         if not self.database:
             raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
         query = "BEGIN BATCH\n"
         for value in values:
-            if not isinstance(columns, tuple):
-                columns = tuple(columns)
+            cols = []
+            for column in columns:
+                if isinstance(column, Column):
+                    cols.append(column.name)
+                else:
+                    cols.append(column)
+            columns = tuple(cols)
             query += f"INSERT INTO {table} {columns} VALUES {value}"
             if ttl and isinstance(ttl, int):
                 query += f'\nUSING TTL {ttl}'
@@ -204,26 +237,28 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         self._item_count = len(values)
 
     def update(self,
-               table,
+               table: Union[str, Table],
                columns: tuple,
                values: tuple,
                ttl=None,
-               timestamp=None):
+               timestamp: Union[int, Timestamp] = None):
         # For this operation only for this test, use Batch object
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
     def update_many(self,
-                    table,
+                    table: Union[str, Table],
                     columns: tuple,
                     values: List[tuple],
                     ttl=None,
-                    timestamp=None):
+                    timestamp: Union[int, Timestamp] = None):
         # For this operation only for this test, use Batch object
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
-    def delete(self, table, conditions: list, exists: bool = False):
+    def delete(self, table: Union[str, Table], conditions: list, exists: bool = False):
         if not self.database:
             raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
         query = f"DELETE FROM {table} WHERE {' AND '.join(condition for condition in conditions)}"
         if bool(exists):
             query += f'\nIF EXISTS'
@@ -391,6 +426,8 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         myconn.create_database('test_db')
         self.assertEqual(myconn.return_data, 'DB_CREATED')
+        myconn.create_database(Keyspace('test_db'))
+        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
@@ -400,6 +437,7 @@ class ColumnConnectionTest(unittest.TestCase):
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         self.assertTrue(myconn.has_database('test_db'))
+        self.assertTrue(myconn.has_database(Keyspace('test_db')))
         self.assertFalse(myconn.has_database('casual'))
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
@@ -410,6 +448,8 @@ class ColumnConnectionTest(unittest.TestCase):
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         myconn.delete_database('test_db')
+        self.assertEqual(myconn.return_data, 'DB_DELETED')
+        myconn.delete_database(Keyspace('test_db'))
         self.assertEqual(myconn.return_data, 'DB_DELETED')
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
@@ -433,6 +473,9 @@ class ColumnConnectionTest(unittest.TestCase):
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['table1', 'table2', 'table3'])
+        dbs = myconn.show_database(Keyspace('test_db'))
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, ['table1', 'table2', 'table3'])
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
         self.assertRaises(ConnectError, myconn.databases)
@@ -450,12 +493,19 @@ class ColumnSessionTest(unittest.TestCase):
                                                    'server': 'mycolumndb.local', 'username': 'admin'})
 
     def test_get_column(self):
-        d = self.mysess.get('table', 'col1', 'col2')
+        d = self.mysess.get('table', 'name', 'age')
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn(('name', 'age'), d)
+        d = self.mysess.get(Table('table'), Column('name'), Column('age'))
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn(('name', 'age'), d)
 
     def test_insert_data(self):
         self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'))
+        self.assertEqual(self.mysess.item_count, 1)
+        name = Column('name', of_type=Varchar)
+        age = Column('age', of_type=Varint)
+        self.mysess.insert('table', columns=(name, age), values=(Varchar('Matteo'), Varint(35)))
         self.assertEqual(self.mysess.item_count, 1)
 
     def test_insert_data_with_ttl(self):
@@ -464,6 +514,11 @@ class ColumnSessionTest(unittest.TestCase):
 
     def test_insert_data_with_timestamp(self):
         self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'), ttl=123456, timestamp=1626681089)
+        self.assertEqual(self.mysess.item_count, 1)
+        name = Column('name', of_type=Varchar)
+        age = Column('age', of_type=Varint)
+        self.mysess.insert('table', columns=(name, age), values=(Varchar('Matteo'), Varint(35)),
+                           timestamp=Timestamp(2021, 8, 15))
         self.assertEqual(self.mysess.item_count, 1)
 
     def test_insert_data_with_if_not_exists(self):
@@ -475,6 +530,11 @@ class ColumnSessionTest(unittest.TestCase):
         values = [('Matteo', '35'), ('Arthur', '42')]
         self.mysess.insert_many('table', columns=('name', 'age'), values=values)
         self.assertEqual(self.mysess.item_count, 2)
+        values = [(Varchar('Matteo'), Varint(35)), (Varchar('Arthur'), Varint(42))]
+        name = Column('name', of_type=Varchar)
+        age = Column('age', of_type=Varint)
+        self.mysess.insert_many('table', columns=(name, age), values=values)
+        self.assertEqual(self.mysess.item_count, 2)
 
     def test_insert_many_data_with_ttl(self):
         values = [('Matteo', '35'), ('Arthur', '42')]
@@ -484,6 +544,12 @@ class ColumnSessionTest(unittest.TestCase):
     def test_insert_many_data_with_timestamp(self):
         values = [('Matteo', '35'), ('Arthur', '42')]
         self.mysess.insert_many('table', columns=('name', 'age'), values=values, ttl=123456, timestamp=1626681089)
+        self.assertEqual(self.mysess.item_count, 2)
+        values = [(Varchar('Matteo'), Varint(35)), (Varchar('Arthur'), Varint(42))]
+        name = Column('name', of_type=Varchar)
+        age = Column('age', of_type=Varint)
+        self.mysess.insert_many('table', columns=(name, age), values=values, ttl=123456,
+                                timestamp=Timestamp(2021, 8, 15))
         self.assertEqual(self.mysess.item_count, 2)
 
     def test_insert_many_data_with_if_not_exists(self):
@@ -501,6 +567,8 @@ class ColumnSessionTest(unittest.TestCase):
 
     def test_delete_data(self):
         self.mysess.delete('table', ['name=Matteo'])
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.delete(Table('table'), ['name=Matteo'])
         self.assertEqual(self.mysess.item_count, 1)
 
     def test_delete_data_with_more_conditions(self):
