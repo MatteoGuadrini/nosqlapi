@@ -30,4 +30,17 @@ from nosqlapi.kvdb.orm import Keyspace
 class Database(Keyspace):
     pass
 
+
+class Collection:
+
+    def __init__(self, name, *docs):
+        self.name = name
+        self._docs = []
+        if docs:
+            self._docs.extend(list(docs))
+
+    @property
+    def docs(self):
+        return self._docs
+
 # endregion
