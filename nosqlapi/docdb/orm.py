@@ -46,5 +46,8 @@ class Collection:
     def append(self, doc):
         self._docs.append(doc)
 
+    def pop(self, doc=-1):
+        self._docs.pop(doc)
+
 
 # endregion
