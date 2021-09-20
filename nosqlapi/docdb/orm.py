@@ -23,9 +23,11 @@
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace
 
+
 # endregion
 
 # region Classes
-Database = Keyspace
+class Database(Keyspace):
+    pass
 
 # endregion
