@@ -43,4 +43,8 @@ class Collection:
     def docs(self):
         return self._docs
 
+    def append(self, doc):
+        self._docs.append(doc)
+
+
 # endregion
