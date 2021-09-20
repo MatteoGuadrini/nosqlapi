@@ -49,5 +49,14 @@ class Collection:
     def pop(self, doc=-1):
         self._docs.pop(doc)
 
+    def __getitem__(self, item):
+        return self.docs[item]
+
+    def __setitem__(self, key, value):
+        self._docs[key] = value
+
+    def __delitem__(self, key):
+        del self._docs[key]
+
 
 # endregion
