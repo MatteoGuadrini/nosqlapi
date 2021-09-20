@@ -64,5 +64,8 @@ class Collection:
     def __str__(self):
         return f'{self.docs}'
 
+    def __len__(self):
+        return len(self.docs)
+
 
 # endregion
