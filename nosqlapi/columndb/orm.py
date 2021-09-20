@@ -244,7 +244,7 @@ class Column:
         if not isinstance(data, self.of_type) and self.of_type is not None:
             raise TypeError(f'the data must be of the type {self.of_type} or NoneType')
         if self.auto_increment:
-            if isinstance(self.of_type, (int, float)):
+            if isinstance(self.of_type, (int, float, Counter)):
                 try:
                     last = self.data[-1]
                     self._data.append(last + 1)
