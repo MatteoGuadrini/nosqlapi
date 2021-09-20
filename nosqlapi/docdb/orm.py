@@ -67,5 +67,8 @@ class Collection:
     def __len__(self):
         return len(self.docs)
 
+    def __iter__(self):
+        return (doc for doc in self.docs)
+
 
 # endregion
