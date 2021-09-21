@@ -71,15 +71,30 @@ class Collection:
         return (doc for doc in self.docs)
 
 
-class Document:
+class Document(dict):
 
     def __init__(self, value=None, **values):
+        super().__init__()
         self._body = {}
-        if value is not None:
+        if value is not None and isinstance(value, dict):
             self._body.update(value)
+        else:
+            raise ValueError('value must be a dict')
         self._body = {}
         if values:
             self._body.update(values)
+
+    @property
+    def body(self):
+        return self._body
+
+    @body.setter
+    def body(self, value):
+        if isinstance(value, dict):
+            self._body = value
+        else:
+            raise ValueError('value must be a dict')
+
 
 
 # endregion
