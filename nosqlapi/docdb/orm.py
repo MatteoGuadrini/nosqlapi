@@ -71,16 +71,12 @@ class Collection:
         return (doc for doc in self.docs)
 
 
-class Document(dict):
+class Document:
 
     def __init__(self, value=None, **values):
-        super().__init__()
         self._body = {}
-        if value is not None and isinstance(value, dict):
+        if value is not None or isinstance(value, dict):
             self._body.update(value)
-        else:
-            raise ValueError('value must be a dict')
-        self._body = {}
         if values:
             self._body.update(values)
 
@@ -97,5 +93,8 @@ class Document(dict):
 
     def __repr__(self):
         return f'<{self.__class__.__name__} object>'
+
+    def __str__(self):
+        return f'{self.body}'
 
 # endregion
