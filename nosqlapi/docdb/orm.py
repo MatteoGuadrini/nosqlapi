@@ -97,4 +97,7 @@ class Document:
     def __str__(self):
         return f'{self.body}'
 
+    def __len__(self):
+        return len(self.body)
+
 # endregion
