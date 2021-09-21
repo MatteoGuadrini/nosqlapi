@@ -71,4 +71,15 @@ class Collection:
         return (doc for doc in self.docs)
 
 
+class Document:
+
+    def __init__(self, value=None, **values):
+        self._body = {}
+        if value is not None:
+            self._body.update(value)
+        self._body = {}
+        if values:
+            self._body.update(values)
+
+
 # endregion
