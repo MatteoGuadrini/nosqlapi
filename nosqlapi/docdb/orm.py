@@ -100,4 +100,7 @@ class Document:
     def __len__(self):
         return len(self.body)
 
+    def __iter__(self):
+        return (key for key in self.body)
+
 # endregion
