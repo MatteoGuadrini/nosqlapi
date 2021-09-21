@@ -91,6 +91,15 @@ class Document:
         else:
             raise ValueError('value must be a dict')
 
+    def __getitem__(self, item):
+        return self.body[item]
+
+    def __setitem__(self, key, value):
+        self._body[key] = value
+
+    def __delitem__(self, key):
+        del self._body[key]
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object>'
 
