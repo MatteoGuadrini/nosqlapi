@@ -95,6 +95,7 @@ class Document(dict):
         else:
             raise ValueError('value must be a dict')
 
-
+    def __repr__(self):
+        return f'<{self.__class__.__name__} object>'
 
 # endregion
