@@ -23,5 +23,4 @@
 """Package column NOSQL database."""
 
 from nosqlapi.columndb.client import ColumnConnection, ColumnSelector, ColumnSession, ColumnResponse, ColumnBatch
-from nosqlapi.columndb.orm import (Keyspace, Table, Column, Ascii, Time, Int, Varint, Varchar, Timestamp, Counter, Date,
-    SmallInt, Decimal, Inet, Duration, Blob, Boolean, Double, Float, Text, Uuid)
+from nosqlapi.columndb.orm import Keyspace, Table, Column
