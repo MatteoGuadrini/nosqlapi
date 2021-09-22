@@ -1,7 +1,8 @@
 import unittest
 import nosqlapi.columndb
 from typing import Union
-from nosqlapi.columndb.orm import Keyspace, Table, Column, Varchar, Varint, Timestamp
+from nosqlapi.columndb.orm import Keyspace, Table, Column
+from nosqlapi.common.orm import Varchar, Varint, Timestamp
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
