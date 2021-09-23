@@ -23,6 +23,7 @@
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace
 from nosqlapi.common.orm import Uuid
+from json import dumps
 
 
 # endregion
@@ -98,6 +99,9 @@ class Document:
             self._body = value
         else:
             raise ValueError('value must be a dict')
+
+    def to_json(self, indent=2):
+        return dumps(self.body, indent=indent)
 
     def __getitem__(self, item):
         return self.body[item]
