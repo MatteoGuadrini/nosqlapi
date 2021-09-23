@@ -38,6 +38,10 @@ class Null(None):
         return 'null'
 
 
+class List(list):
+    pass
+
+
 class Ascii(str):
     pass
 
@@ -161,5 +165,6 @@ class Uuid:
 
 Varchar = Text
 Varint = Int
+Array = List
 
 # endregion
