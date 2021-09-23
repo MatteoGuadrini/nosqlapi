@@ -22,6 +22,7 @@
 
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.common.orm import Uuid
 
 
 # endregion
@@ -73,12 +74,19 @@ class Collection:
 
 class Document:
 
-    def __init__(self, value=None, **values):
+    def __init__(self, value=None, oid=None, **values):
         self._body = {}
+        if not oid:
+            self._id = Uuid()
+            self['_id'] = self.id.__str__()
         if value is not None or isinstance(value, dict):
             self._body.update(value)
         if values:
             self._body.update(values)
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def body(self):
@@ -101,7 +109,7 @@ class Document:
         del self._body[key]
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} object>'
+        return f'<{self.__class__.__name__} object, id={self.id}>'
 
     def __str__(self):
         return f'{self.body}'

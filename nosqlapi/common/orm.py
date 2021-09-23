@@ -32,7 +32,7 @@ from uuid import uuid1
 # endregion
 
 # region Classes
-class Null(None):
+class Null:
 
     def __repr__(self):
         return 'null'
