@@ -32,6 +32,12 @@ from uuid import uuid1
 # endregion
 
 # region Classes
+class Null(None):
+
+    def __repr__(self):
+        return 'null'
+
+
 class Ascii(str):
     pass
 
