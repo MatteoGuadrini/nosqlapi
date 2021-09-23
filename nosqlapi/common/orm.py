@@ -42,6 +42,10 @@ class List(list):
     pass
 
 
+class Map(dict):
+    pass
+
+
 class Ascii(str):
     pass
 
