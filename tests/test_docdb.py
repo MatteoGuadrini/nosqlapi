@@ -1,5 +1,6 @@
 import unittest
 import nosqlapi.docdb
+from nosqlapi.docdb.orm import Database
 import json
 from unittest import mock
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
@@ -35,11 +36,13 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         self.connection = url
         return MyDBSession(self.connection)
 
-    def create_database(self, name):
+    def create_database(self, name: Database):
         self.req.put = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
+            if isinstance(name, Database):
+                name = Database.name
             ret = self.req.put(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
@@ -49,8 +52,10 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def has_database(self, name):
+    def has_database(self, name: Database):
         if self.connection:
+            if isinstance(name, Database):
+                name = Database.name
             if name in self.databases():
                 return True
             else:
@@ -58,11 +63,13 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def delete_database(self, name):
+    def delete_database(self, name: Database):
         self.req.delete = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                        'status': 200,
                                                        'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
+            if isinstance(name, Database):
+                name = Database.name
             ret = self.req.delete(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
@@ -88,11 +95,13 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def show_database(self, name):
+    def show_database(self, name: Database):
         self.req.get = mock.MagicMock(return_value={'body': '{"result": {"name": "test_db", "size": "0.4GB"}}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
+            if isinstance(name, Database):
+                name = Database.name
             ret = self.req.get(f"{self.connection}/databases?name={name}")
             dbs = json.loads(ret.get('body'))
             if dbs['result']:
