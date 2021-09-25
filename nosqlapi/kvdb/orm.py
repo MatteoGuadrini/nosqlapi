@@ -86,6 +86,9 @@ class Keyspace:
     def __setitem__(self, key, value):
         self._store[key] = value
 
+    def __delitem__(self, key):
+        del self._store[key]
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, name={self.name}>'
 

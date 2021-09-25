@@ -1,5 +1,7 @@
 import unittest
 import nosqlapi.docdb
+from nosqlapi.docdb.orm import Database, Document
+from typing import Union
 import json
 from unittest import mock
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
@@ -35,11 +37,13 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         self.connection = url
         return MyDBSession(self.connection)
 
-    def create_database(self, name):
+    def create_database(self, name: Union[str, Database]):
         self.req.put = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             ret = self.req.put(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
@@ -49,8 +53,10 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def has_database(self, name):
+    def has_database(self, name: Union[str, Database]):
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if name in self.databases():
                 return True
             else:
@@ -58,11 +64,13 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def delete_database(self, name):
+    def delete_database(self, name: Union[str, Database]):
         self.req.delete = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                        'status': 200,
                                                        'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             ret = self.req.delete(f"{self.connection}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
@@ -88,11 +96,13 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def show_database(self, name):
+    def show_database(self, name: Union[str, Database]):
         self.req.get = mock.MagicMock(return_value={'body': '{"result": {"name": "test_db", "size": "0.4GB"}}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             ret = self.req.get(f"{self.connection}/databases?name={name}")
             dbs = json.loads(ret.get('body'))
             if dbs['result']:
@@ -147,9 +157,11 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
-    def insert(self, path, doc):
+    def insert(self, path, doc: Union[str, Document]):
         if not self.session:
             raise ConnectError('connect to a server before some request')
+        if isinstance(doc, Document):
+            doc = doc.to_json()
         self.req.post = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391",'
                                                              '"revision": 1}',
                                                      'status': 200,
@@ -161,7 +173,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
-    def insert_many(self, path, *docs):
+    def insert_many(self, path, *docs: Union[str, Document]):
         if not self.session:
             raise ConnectError('connect to a server before some request')
         self.req.post = mock.MagicMock(return_value={'body': '{"insertedIds": [ "5099803df3f4948bd2f98391", '
@@ -176,23 +188,28 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
-    def update(self, path, doc, rev):
+    def update(self, path, doc: Union[str, Document], rev):
         if not self.session:
             raise ConnectError('connect to a server before some request')
         self.req.post = mock.MagicMock(return_value={'body': '{"_id": "5099803df3f4948bd2f98391",'
                                                              '"revision": 2}',
                                                      'status': 200,
                                                      'header': '"Content-Type": [ "application/json" ]'})
-        doc_with_rev = json.loads(doc)
-        doc_with_rev['revision'] = 2
-        ret = self.req.post(f"{self.session}/{path}", json.dumps(doc_with_rev))
+        if isinstance(doc, Document):
+            doc['revision'] = 2
+            doc = doc.to_json()
+        else:
+            doc = json.loads(doc)
+            doc['revision'] = 2
+            doc = json.dumps(doc)
+        ret = self.req.post(f"{self.session}/{path}", doc)
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
 
-    def update_many(self, path, query, *docs):
+    def update_many(self, path, query, *docs: Union[str, Document]):
         if not self.session:
             raise ConnectError('connect to a server before some request')
         self.req.post = mock.MagicMock(return_value={'body': '{"insertedIds": [ "5099803df3f4948bd2f98391", '
@@ -245,9 +262,11 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
-    def grant(self, database, user, role):
+    def grant(self, database: Union[str, Database], user, role):
         if not self.session:
             raise ConnectError('connect to a server before some request')
+        if isinstance(database, Database):
+            database = database.name
         self.req.post = mock.MagicMock(return_value={'body': f'{{"user": "{user}",'
                                                              f'"role": "{role}"}}',
                                                      'status': 200,
@@ -261,9 +280,11 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
-    def revoke(self, database, role):
+    def revoke(self, database: Union[str, Database], role):
         if not self.session:
             raise ConnectError('connect to a server before some request')
+        if isinstance(database, Database):
+            database = database.name
         self.req.post = mock.MagicMock(return_value={'body': f'{{"role": "{role}"}}',
                                                      'status': 200,
                                                      'header': '"Content-Type": [ "application/json" ]'})
@@ -367,6 +388,9 @@ class DocConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         resp = myconn.create_database('test_db')
         self.assertEqual(resp.data['result'], 'ok')
+        db = Database('test_db')
+        resp = myconn.create_database(db)
+        self.assertEqual(resp.data['result'], 'ok')
         myconn.close()
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
@@ -376,6 +400,8 @@ class DocConnectionTest(unittest.TestCase):
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         self.assertTrue(myconn.has_database('test_db'))
+        db = Database('test_db')
+        self.assertTrue(myconn.has_database(db))
         myconn.close()
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
@@ -385,6 +411,9 @@ class DocConnectionTest(unittest.TestCase):
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         resp = myconn.delete_database('test_db')
+        self.assertEqual(resp.data['result'], 'ok')
+        db = Database('test_db')
+        resp = myconn.delete_database(db)
         self.assertEqual(resp.data['result'], 'ok')
         myconn.close()
         self.assertEqual(myconn.connection, None)
@@ -406,6 +435,9 @@ class DocConnectionTest(unittest.TestCase):
         myconn.connect()
         self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
         dbs = myconn.show_database('test_db')
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, {'name': 'test_db', 'size': '0.4GB'})
+        db = Database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, {'name': 'test_db', 'size': '0.4GB'})
         myconn.close()
@@ -432,6 +464,8 @@ class DocSessionTest(unittest.TestCase):
     def test_insert_data(self):
         ret = self.mysess.insert('db/doc1', '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}')
         self.assertEqual(ret.data['revision'], 1)
+        ret = self.mysess.insert('db/doc1', Document({"name": "Matteo", "age": 35}))
+        self.assertEqual(ret.data['revision'], 1)
 
     def test_insert_many_data(self):
         ret = self.mysess.insert_many('db',
@@ -441,17 +475,26 @@ class DocSessionTest(unittest.TestCase):
         self.assertEqual(ret.data['insertedIds'], ["5099803df3f4948bd2f98391",
                                                    "5099803df3f4948bd2f98392",
                                                    "5099803df3f4948bd2f98393"])
+        ret = self.mysess.insert_many('db',
+                                      Document({"name": "Matteo", "age": 35}, oid="5099803df3f4948bd2f98391"),
+                                      Document({"name": "Matteo", "age": 35}, oid="5099803df3f4948bd2f98392"),
+                                      Document({"name": "Matteo", "age": 35}, oid="5099803df3f4948bd2f98393"))
+        self.assertEqual(ret.data['insertedIds'], ["5099803df3f4948bd2f98391",
+                                                   "5099803df3f4948bd2f98392",
+                                                   "5099803df3f4948bd2f98393"])
 
     def test_update_data(self):
         ret = self.mysess.update('db/doc1', '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}', rev=1)
+        self.assertEqual(ret.data['revision'], 2)
+        ret = self.mysess.update('db/doc1', Document({"name": "Matteo", "age": 35}), rev=1)
         self.assertEqual(ret.data['revision'], 2)
 
     def test_update_many_data(self):
         ret = self.mysess.update_many('db',
                                       'name="Matteo"',
-                                      '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}',
-                                      '{"_id": "5099803df3f4948bd2f98392", "name": "Matteo", "age": 35}',
-                                      '{"_id": "5099803df3f4948bd2f98393", "name": "Matteo", "age": 35}')
+                                      Document({"name": "Matteo", "age": 35}, oid="5099803df3f4948bd2f98391"),
+                                      Document({"name": "Matteo", "age": 35}, oid="5099803df3f4948bd2f98392"),
+                                      Document({"name": "Matteo", "age": 35}, oid="5099803df3f4948bd2f98393"))
         self.assertEqual(ret.data['insertedIds'], ["5099803df3f4948bd2f98391",
                                                    "5099803df3f4948bd2f98392",
                                                    "5099803df3f4948bd2f98393"])
