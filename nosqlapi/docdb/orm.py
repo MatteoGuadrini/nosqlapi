@@ -80,6 +80,8 @@ class Document:
         if not oid:
             self._id = Uuid()
             self['_id'] = self.id.__str__()
+        else:
+            self._id = self['_id'] = oid
         if value is not None or isinstance(value, dict):
             self._body.update(value)
         if values:
