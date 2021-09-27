@@ -31,6 +31,10 @@ class Label(str):
     pass
 
 
+class Property(dict):
+    pass
+
+
 class Database(Keyspace):
 
     def __init__(self, name, address=None, role=None, status=None, default=False):
