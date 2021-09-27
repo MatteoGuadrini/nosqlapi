@@ -36,4 +36,11 @@ class Database(Keyspace):
         self.status = status
         self.default = default
 
+    @property
+    def online(self):
+        if self.status == 'online':
+            return True
+        else:
+            return False
+
 # endregion
