@@ -27,6 +27,10 @@ from nosqlapi.kvdb.orm import Keyspace
 
 
 # region Classes
+class Label(str):
+    pass
+
+
 class Database(Keyspace):
 
     def __init__(self, name, address=None, role=None, status=None, default=False):
