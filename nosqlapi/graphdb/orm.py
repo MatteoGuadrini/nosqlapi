@@ -23,6 +23,7 @@
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace
 
+
 # endregion
 
 
@@ -32,6 +33,10 @@ class Label(str):
 
 
 class Property(dict):
+    pass
+
+
+class RelationshipType(Label):
     pass
 
 
