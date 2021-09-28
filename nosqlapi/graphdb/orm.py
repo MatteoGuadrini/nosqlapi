@@ -56,4 +56,15 @@ class Database(Keyspace):
         else:
             return False
 
+
+class Node:
+
+    def __init__(self, labels, properties=None):
+        self.labels = []
+        self.labels.extend(labels)
+        self.properties = {}
+        if properties:
+            self.properties.update(properties)
+
+
 # endregion
