@@ -69,5 +69,8 @@ class Node:
     def add_label(self, label):
         self.labels.append(label)
 
+    def remove_label(self, index=-1):
+        self.labels.pop(index)
+
 
 # endregion
