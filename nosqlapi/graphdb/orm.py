@@ -66,5 +66,8 @@ class Node:
         if properties:
             self.properties.update(properties)
 
+    def add_label(self, label):
+        self.labels.append(label)
+
 
 # endregion
