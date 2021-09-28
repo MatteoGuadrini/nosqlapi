@@ -75,5 +75,8 @@ class Node:
     def __getitem__(self, item):
         return self.properties[item]
 
+    def __setitem__(self, key, value):
+        self.properties[key] = value
+
 
 # endregion
