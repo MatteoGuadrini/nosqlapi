@@ -78,5 +78,8 @@ class Node:
     def __setitem__(self, key, value):
         self.properties[key] = value
 
+    def __delitem__(self, key):
+        del self.properties[key]
+
 
 # endregion
