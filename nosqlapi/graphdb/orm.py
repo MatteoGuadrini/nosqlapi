@@ -72,5 +72,8 @@ class Node:
     def remove_label(self, index=-1):
         self.labels.pop(index)
 
+    def __getitem__(self, item):
+        return self.properties[item]
+
 
 # endregion
