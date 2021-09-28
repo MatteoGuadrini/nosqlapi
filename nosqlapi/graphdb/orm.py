@@ -81,5 +81,11 @@ class Node:
     def __delitem__(self, key):
         del self.properties[key]
 
+    def __str__(self):
+        return self.properties.__str__()
+
+    def __repr__(self):
+        return f'{self.__class__.__name__} object, labels={self.labels}>'
+
 
 # endregion
