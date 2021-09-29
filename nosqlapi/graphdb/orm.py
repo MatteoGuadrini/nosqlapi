@@ -89,17 +89,13 @@ class Node:
         return f'{self.__class__.__name__} object, labels={self.labels}>'
 
 
-class Relationship:
-
-    def __init__(self, rel_type, var=''):
-        self.var = var
-        self.rel_type = rel_type
+class Relationship(Node):
 
     def __str__(self):
-        return f'[{self.var}:{self.rel_type}]'
+        return f'[{self.var}:{":".join(self.labels)} {self.properties}]'
 
     def __repr__(self):
-        return f'{self.__class__.__name__} object, type={self.rel_type}>'
+        return f'{self.__class__.__name__} object, type={self.labels}>'
 
 
 # endregion
