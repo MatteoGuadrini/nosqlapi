@@ -33,7 +33,17 @@ class Label(str):
 
 
 class Property(dict):
-    pass
+
+    def __repr__(self):
+        out = []
+        for key, value in self.items():
+            pair = f'{key}: '
+            if isinstance(value, str):
+                pair += f"'{value}'"
+            else:
+                pair += f'{value}'
+            out.append(pair)
+        return '{{{pairs}}}'.format(pairs=', '.join(out))
 
 
 class RelationshipType(Label):
