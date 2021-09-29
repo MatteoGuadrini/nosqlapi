@@ -59,10 +59,11 @@ class Database(Keyspace):
 
 class Node:
 
-    def __init__(self, labels, properties=None):
+    def __init__(self, labels, properties=None, var=''):
         self.labels = []
         self.labels.extend(labels)
         self.properties = {}
+        self.var = var
         if properties:
             self.properties.update(properties)
 
@@ -82,7 +83,7 @@ class Node:
         del self.properties[key]
 
     def __str__(self):
-        return self.properties.__str__()
+        return f'({self.var}:{":".join(self.labels)} {self.properties})'
 
     def __repr__(self):
         return f'{self.__class__.__name__} object, labels={self.labels}>'
@@ -90,9 +91,15 @@ class Node:
 
 class Relationship:
 
-    def __init__(self, rel_type, var=None):
+    def __init__(self, rel_type, var=''):
         self.var = var
         self.rel_type = rel_type
+
+    def __str__(self):
+        return f'[{self.var}:{self.rel_type}]'
+
+    def __repr__(self):
+        return f'{self.__class__.__name__} object, type={self.rel_type}>'
 
 
 # endregion
