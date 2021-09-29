@@ -88,4 +88,11 @@ class Node:
         return f'{self.__class__.__name__} object, labels={self.labels}>'
 
 
+class Relationship:
+
+    def __init__(self, rel_type, var=None):
+        self.var = var
+        self.rel_type = rel_type
+
+
 # endregion
