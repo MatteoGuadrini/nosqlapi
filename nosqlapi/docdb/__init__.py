@@ -23,3 +23,4 @@
 """Package document NOSQL database."""
 
 from nosqlapi.docdb.client import DocConnection, DocSelector, DocSession, DocResponse, DocBatch
+from nosqlapi.docdb.orm import Database, Document, Collection
