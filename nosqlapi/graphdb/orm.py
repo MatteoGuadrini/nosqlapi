@@ -72,7 +72,7 @@ class Node:
     def __init__(self, labels, properties=None, var=''):
         self.labels = []
         self.labels.extend(labels)
-        self.properties = {}
+        self.properties = Property()
         self.var = var
         if properties:
             self.properties.update(properties)
