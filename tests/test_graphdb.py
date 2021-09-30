@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi.graphdb import Database
+from nosqlapi.graphdb import Database, Node
 from typing import List, Union
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                       SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
@@ -208,14 +208,17 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def get(self,
-            node,
+            node: Union[str, Node],
             return_properties: list = None,
             properties: dict = None,
             relationship_label=None,
             relationship_object=None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = 'MATCH '
         if properties:
             match_block = f'(:{label} {properties})' if not obj else f'({obj}:{label} {properties})'
@@ -242,10 +245,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def insert(self, node, properties: dict = None, return_properties: list = None):
+    def insert(self, node: Union[str, Node], properties: dict = None, return_properties: list = None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"CREATE ({obj}:{label} {properties if properties else ''})"
         if return_properties:
             cypher += '\nRETURN ' + ','.join([f'{obj}.{prop}' for prop in return_properties])
@@ -270,7 +276,10 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         cypher = 'CREATE '
         ns = list()
         for node, prop in nodes:
-            obj, label = node.split(':', 1)
+            if isinstance(node, Node):
+                obj, label = node.var, ':'.join(node.labels)
+            else:
+                obj, label = node.split(':', 1)
             ns.append(f"({obj}:{label} {prop if prop else ''})")
         cypher += ','.join(ns)
         stm = {'statements': cypher}
@@ -287,10 +296,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def update(self, node, values: dict, return_properties: list = None):
+    def update(self, node: Union[str, Node], values: dict, return_properties: list = None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label})\n"
         for prop, value in values.items():
             cypher += f"SET ({obj}.{prop} = {value}\n)"
@@ -313,10 +325,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     def update_many(self):
         raise NotImplementedError('for this operation use batch object')
 
-    def delete(self, node, properties: dict = None, with_rel=False):
+    def delete(self, node: Union[str, Node], properties: dict = None, with_rel=False):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
         if not with_rel:
             cypher += f'DELETE {obj}'
@@ -425,10 +440,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def link(self, node, linking_node, rel):
+    def link(self, node: Union[str, Node], linking_node, rel):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"CREATE ({obj}:{label})-[{rel}]->({linking_node})"
         stm = {'statements': cypher}
         self.req.post = mock.MagicMock(return_value={'body': '{"linked": true}',
@@ -441,10 +459,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def detach(self, node, properties: dict = None):
+    def detach(self, node: Union[str, Node], properties: dict = None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
         cypher += f'DETACH DELETE {obj}'
         stm = {'statements': cypher}
