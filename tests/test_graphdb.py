@@ -2,7 +2,8 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from typing import List
+from nosqlapi.graphdb import Database
+from typing import List, Union
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                       SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
                       SessionACLError, SelectorAttributeError)
@@ -41,10 +42,12 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         self.connection = url
         return MyDBSession(self.connection)
 
-    def create_database(self, name, not_exists=False, replace=False, options=None):
+    def create_database(self, name: Union[str, Database], not_exists=False, replace=False, options=None):
         if not_exists and replace:
             raise DatabaseCreationError('IF NOT EXISTS and OR REPLACE parts of this command cannot be used together')
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if not self.port:
                 self.port = 7474
             scheme = 'bolt://'
@@ -72,8 +75,10 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def has_database(self, name):
+    def has_database(self, name: Union[str, Database]):
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if name in self.databases():
                 return True
             else:
@@ -81,8 +86,10 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def delete_database(self, name, exists=False, dump=False, destroy=False):
+    def delete_database(self, name: Union[str, Database], exists=False, dump=False, destroy=False):
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if not self.port:
                 self.port = 7474
             scheme = 'bolt://'
@@ -137,8 +144,10 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def show_database(self, name):
+    def show_database(self, name: Union[str, Database]):
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if not self.port:
                 self.port = 7474
             scheme = 'bolt://'
