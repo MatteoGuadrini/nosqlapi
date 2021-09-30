@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi.graphdb import Database, Node
+from nosqlapi.graphdb import Database, Node, Label, Property, Relationship, RelationshipType
 from typing import List, Union
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                       SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
@@ -270,6 +270,8 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def insert_many(self, nodes: list, properties: List[dict] = None):
+        if properties is None:
+            properties = []
         if not self.session:
             raise ConnectError('connect to a server before some request')
         nodes = list(zip(nodes, properties))
@@ -278,6 +280,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         for node, prop in nodes:
             if isinstance(node, Node):
                 obj, label = node.var, ':'.join(node.labels)
+                prop = node.properties
             else:
                 obj, label = node.split(':', 1)
             ns.append(f"({obj}:{label} {prop if prop else ''})")
@@ -296,7 +299,9 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def update(self, node: Union[str, Node], values: dict, return_properties: list = None):
+    def update(self, node: Union[str, Node], values=None, return_properties: list = None):
+        if values is None:
+            values = {}
         if not self.session:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
@@ -330,6 +335,8 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
+            if properties is None:
+                properties = node.properties
         else:
             obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
@@ -464,6 +471,8 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
+            if properties is None:
+                properties = node.properties
         else:
             obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
@@ -632,6 +641,10 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn('n.name', d)
         self.assertEqual(d.data['n.name'], ['Matteo', 'Arthur'])
+        d = self.mysess.get(Node(var='n', labels=[Label('Person')]))
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('n.name', d)
+        self.assertEqual(d.data['n.name'], ['Matteo', 'Arthur'])
         # Get all nodes with Person label with returned properties
         d = self.mysess.get('n:Person', return_properties=['name', 'age'])
         self.assertIsInstance(d, MyDBResponse)
@@ -650,15 +663,26 @@ class GraphSessionTest(unittest.TestCase):
     def test_insert_data(self):
         ret = self.mysess.insert('n:Person', {'name': 'Matteo', 'age': 35}, return_properties=['name', 'age'])
         self.assertEqual(ret.data, {'n.name': ['Matteo'], 'n.age': [35]})
+        n = Node(var='n', labels=[Label('Person')], properties=Property({'name': 'Matteo', 'age': 35}))
+        ret = self.mysess.insert(n, return_properties=['name', 'age'])
+        self.assertEqual(ret.data, {'n.name': ['Matteo'], 'n.age': [35]})
 
     def test_insert_many_data(self):
         ret = self.mysess.insert_many(['matteo:Person', 'arthur:Person'],
                                       [{'name': 'Matteo', 'age': 35}, {'name': 'Arthur', 'age': 42}])
         self.assertEqual(ret.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
                                     {'arthur.name': 'Arthur', 'arthur.age': 42}])
+        nodes = [Node(['Person'], {'name': 'Matteo', 'age': 35}, 'matteo'),
+                 Node(['Person'], {'name': 'Arthur', 'age': 42}, 'arthur')]
+        ret = self.mysess.insert_many(nodes)
+        self.assertEqual(ret.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
+                                    {'arthur.name': 'Arthur', 'arthur.age': 42}])
 
     def test_update_data(self):
         ret = self.mysess.update('matteo:Person', {'name': 'Matteo', 'age': 42}, return_properties=['name', 'age'])
+        self.assertEqual(ret.data, {'matteo.name': 'Matteo', 'matteo.age': 42})
+        n = Node(var='n', labels=[Label('Person')], properties=Property({'name': 'Matteo', 'age': 42}))
+        ret = self.mysess.update(n, return_properties=['name', 'age'])
         self.assertEqual(ret.data, {'matteo.name': 'Matteo', 'matteo.age': 42})
 
     def test_update_many_data(self):
@@ -668,11 +692,17 @@ class GraphSessionTest(unittest.TestCase):
         # Delete all person
         ret = self.mysess.delete(':Person')
         self.assertEqual(ret.data, {})
+        ret = self.mysess.delete(Node(['Person']))
+        self.assertEqual(ret.data, {})
         # Delete all person with name "Matteo"
         ret = self.mysess.delete(':Person', properties={'name': 'Matteo'})
         self.assertEqual(ret.data, {})
+        ret = self.mysess.delete(Node(['Person'], {'name': 'Matteo'}))
+        self.assertEqual(ret.data, {})
         # Delete all person and with name "Matteo" and his relationships
         ret = self.mysess.delete(':Person', properties={'name': 'Matteo'}, with_rel=True)
+        self.assertEqual(ret.data, {})
+        ret = self.mysess.delete(Node(['Person'], {'name': 'Matteo'}), with_rel=True)
         self.assertEqual(ret.data, {})
 
     def test_find_selector(self):
@@ -732,10 +762,18 @@ class GraphSessionTest(unittest.TestCase):
     def test_link(self):
         ret = self.mysess.link('matteo:Person', 'open_source:JOB', ':WORK_IN')
         self.assertEqual(ret.data, {'linked': True})
+        person = Node(['Person'], var='matteo')
+        job = Node(['JOB'], var='open_source')
+        rel = Relationship([RelationshipType('WORK_IN')])
+        ret = self.mysess.link(person, job, rel)
+        self.assertEqual(ret.data, {'linked': True})
 
     def test_detach_node(self):
         # Detach relationship for node
         ret = self.mysess.detach(':Person', properties={'name': 'Matteo'})
+        self.assertEqual(ret.data, {'detached': True})
+        person = Node(['Person'], {'name': 'Matteo'})
+        ret = self.mysess.detach(person)
         self.assertEqual(ret.data, {'detached': True})
 
 
