@@ -389,8 +389,9 @@ R = sess.get('key')                     # Read
 U = sess.update('key', 'new_value')     # Update
 D = sess.delete('key')                  # Delete
 
-print(R)            # {'key': 'value'}
-print(type(R))      # <class 'RedisResponse'>
+print(R)                                    # {'key': 'value'}
+print(type(R))                              # <class 'RedisResponse'>
+print(isinstance(R, nosqlapi.Response))     # True
 
 # Extended CRUD operations
 sess.insert_many({'key1': 'value1', 'Key2': 'value2'})
@@ -404,8 +405,63 @@ sess.find(sel)
 op = 'SET hello "Hello"\nSET mykey "new"\nGET mykey\nSET anotherkey "will expire in a minute" EX 60'
 batch = RedisBatch(batch=op, session=sess)
 resp = batch.execute()
-print(R)            # ('OK', 'OK', {'mykey': 'new'}, 'OK')
-print(type(R))      # <class 'RedisResponse'>
+print(resp)            # ('OK', 'OK', {'mykey': 'new'}, 'OK')
+print(type(resp))      # <class 'RedisResponse'>
+
+```
+
+### Column database
+A column-oriented DBMS or columnar DBMS is a database management system (DBMS) that stores data tables by column rather than by row. 
+Practical use of a column store versus a row store differs little in the relational DBMS world. Both columnar and row databases 
+can use traditional database query languages like SQL to load data and perform queries. Both row and columnar databases can 
+become the backbone in a system to serve data for common extract, transform, load (ETL) and data visualization tools. 
+However, by storing data in columns rather than rows, the database can more precisely access the data it needs to answer 
+a query rather than scanning and discarding unwanted data in rows.
+
+```python
+import nosqlapi.columndb
+
+# Redis like database
+class CassandraConnection(nosqlapi.columndb.ColumnConnection):...
+class CassandraSession(nosqlapi.columndb.ColumnSession):...
+class CassandraResponse(nosqlapi.columndb.ColumnResponse):...
+class CassandraBatch(nosqlapi.columndb.ColumnBatch):...
+class CassandraSelector(nosqlapi.columndb.ColumnSelector):...
+
+# Use Redis library
+conn = CassandraConnection(host='server.local', username='admin', password='pass', database='db')
+sess = conn.connect()       # return CassandraSession object
+# Create a new database
+conn.create_database('new_db')
+
+# CRUD operation
+C = sess.insert(table='hitchhikers', columns=('id', 'name', 'age'), values=(1, 'Arthur', 42))            # Create
+R = sess.get(table='hitchhikers', columns=('id', 'name', 'age'))                                         # Read
+U = sess.update(table='hitchhikers', columns=('id', 'name', 'age'), values=(1, 'Arthur', 43))            # Update
+D = sess.delete(table='hitchhikers', conditions=["name='Arthur'", 'age=43'])                             # Delete
+
+print(R)                                    # [(1, 'Arthur', 42)]
+print(type(R))                              # <class 'CassandraResponse'>
+print(isinstance(R, nosqlapi.Response))     # True
+
+# Extended CRUD operations
+sess.insert_many(table='hitchhikers', columns=('id', 'name', 'age'), values=[(1, 'Arthur', 42), (2, 'Arthur', 43)])
+sess.update_many(table='hitchhikers', columns=('id', 'name', 'age'), values=[(1, 'Arthur', 44), (2, 'Arthur', 45)])
+
+# Complex select operation
+sel = CassandraSelector()
+# Table
+sel.selector = 'hitchhikers'
+# Columns
+sel.fields = ['id', 'name', 'age']
+sess.find(sel)
+
+# Batch operations
+op = "BEGIN BATCH\nINSERT INTO hitchhikers (id, name, age)\n VALUES (1, 'Arthur', 42)\nIF NOT EXISTS;\nAPPLY BATCH;"
+batch = CassandraBatch(batch=op, session=sess)
+resp = batch.execute()
+print(resp)            # [(1, 'Arthur', 42)]
+print(type(resp))      # <class 'CassandraResponse'>
 
 ```
 
