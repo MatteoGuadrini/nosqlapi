@@ -361,6 +361,19 @@ tests/test_graphdb.py:class MyDBSession(nosqlapi.graphdb.GraphSession):
 tests/test_kvdb.py:class MyDBSession(nosqlapi.kvdb.KVSession):
 ```
 
+### ORM (Object-relational mapping)
+For each type of NOSQL database there is an _ORM (Object-relational mapping)_ module that contains classes and functions relating to the mapping of 
+objects and/or operations concerning the specific database _CRUD operation_.
+
+In the `nosqlapi.common.orm` module there are also classes that represent the data types of databases.
+
+```pycon
+>>> import nosqlapi.common.orm
+>>> [t for t in dir(nosqlapi.common.orm) if not t.startswith('__')]
+['Array', 'Ascii', 'Blob', 'Boolean', 'Counter', 'Date', 'Dc', 'Decimal', 'Double', 'Duration', 'Float', 'Inet', 'Int', 
+'List', 'Map', 'Null', 'SmallInt', 'Text', 'Time', 'Timestamp', 'Uuid', 'Varchar']
+```
+
 ## Open source
 _nosqlapi_ is an open source project. Any contribute, It's welcome.
 
