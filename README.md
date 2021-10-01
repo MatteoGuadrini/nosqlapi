@@ -361,6 +361,54 @@ tests/test_graphdb.py:class MyDBSession(nosqlapi.graphdb.GraphSession):
 tests/test_kvdb.py:class MyDBSession(nosqlapi.kvdb.KVSession):
 ```
 
+### Key-Value database
+A key–value database, or key–value store, is a data storage paradigm designed for storing, retrieving, and managing associative arrays, 
+and a data structure more commonly known today as a dictionary or hash table. Dictionaries contain a collection of objects, or records, 
+which in turn have many different fields within them, each containing data. These records are stored and retrieved using a key that 
+uniquely identifies the record, and is used to find the data within the database.
+
+```python
+import nosqlapi.kvdb
+
+# Redis like database
+class RedisConnection(nosqlapi.kvdb.KVConnection):...
+class RedisSession(nosqlapi.kvdb.KVSession):...
+class RedisResponse(nosqlapi.kvdb.KVResponse):...
+class RedisBatch(nosqlapi.kvdb.KVBatch):...
+class RedisSelector(nosqlapi.kvdb.KVSelector):...
+
+# Use Redis library
+conn = RedisConnection(host='server.local', username='admin', password='pass', database='db')
+sess = conn.connect()       # return RedisSession object
+# Create a new database
+conn.create_database('new_db')
+
+# CRUD operation
+C = sess.insert('key', 'value')         # Create
+R = sess.get('key')                     # Read
+U = sess.update('key', 'new_value')     # Update
+D = sess.delete('key')                  # Delete
+
+print(R)            # {'key': 'value'}
+print(type(R))      # <class 'RedisResponse'>
+
+# Extended CRUD operations
+sess.insert_many({'key1': 'value1', 'Key2': 'value2'})
+sess.update_many({'key1': 'new_value1', 'Key2': 'new_value2'})
+
+# Complex select operation
+sel = RedisSelector(selector='key:value id:1 ttl:300', limit=2)
+sess.find(sel)
+
+# Batch operations
+op = 'SET hello "Hello"\nSET mykey "new"\nGET mykey\nSET anotherkey "will expire in a minute" EX 60'
+batch = RedisBatch(batch=op, session=sess)
+resp = batch.execute()
+print(R)            # ('OK', 'OK', {'mykey': 'new'}, 'OK')
+print(type(R))      # <class 'RedisResponse'>
+
+```
+
 ### ORM (Object-relational mapping)
 For each type of NOSQL database there is an _ORM (Object-relational mapping)_ module that contains classes and functions relating to the mapping of 
 objects and/or operations concerning the specific database _CRUD operation_.
