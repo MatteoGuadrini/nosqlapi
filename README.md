@@ -421,14 +421,14 @@ a query rather than scanning and discarding unwanted data in rows.
 ```python
 import nosqlapi.columndb
 
-# Redis like database
+# Cassandra like database
 class CassandraConnection(nosqlapi.columndb.ColumnConnection):...
 class CassandraSession(nosqlapi.columndb.ColumnSession):...
 class CassandraResponse(nosqlapi.columndb.ColumnResponse):...
 class CassandraBatch(nosqlapi.columndb.ColumnBatch):...
 class CassandraSelector(nosqlapi.columndb.ColumnSelector):...
 
-# Use Redis library
+# Use Cassandra library
 conn = CassandraConnection(host='server.local', username='admin', password='pass', database='db')
 sess = conn.connect()       # return CassandraSession object
 # Create a new database
@@ -461,6 +461,59 @@ op = "BEGIN BATCH\nINSERT INTO hitchhikers (id, name, age)\n VALUES (1, 'Arthur'
 batch = CassandraBatch(batch=op, session=sess)
 resp = batch.execute()
 print(resp)            # [(1, 'Arthur', 42)]
+print(type(resp))      # <class 'CassandraResponse'>
+
+```
+
+### Document database
+A document-oriented database, or document store, is a computer program and data storage system designed for storing, 
+retrieving and managing document-oriented information, also known as semi-structured data.
+
+Document-oriented databases are one of the main categories of NoSQL databases, and the popularity of the term 
+_"document-oriented database"_ has grown with the use of the term NoSQL itself. Graph databases are similar, but add another 
+layer, the relationship, which allows them to link documents for rapid traversal.
+
+```python
+import nosqlapi.docdb
+
+# MongoDB like database
+class MongoConnection(nosqlapi.docdb.DocConnection):...
+class MongoSession(nosqlapi.docdb.DocSession):...
+class MongoResponse(nosqlapi.docdb.DocResponse):...
+class MongoBatch(nosqlapi.docdb.DocBatch):...
+class MongoSelector(nosqlapi.docdb.DocSelector):...
+
+# Use MongoDB library
+conn = MongoConnection(host='server.local', username='admin', password='pass')
+sess = conn.connect()       # return CassandraSession object
+# Create a new database
+conn.create_database('new_db')
+
+# CRUD operation
+C = sess.insert(path='db/doc1', doc={"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 42})           # Create
+R = sess.get(path='db/doc1')                                                                                    # Read
+U = sess.update(path='db/doc1', doc={"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 43}, rev=2)    # Update
+D = sess.delete(path='db/doc1', rev=2)                                                                          # Delete
+
+print(R)                                    # {"_id": "5099803df3f4948bd2f98391", "rev"= 2, "name": "Arthur", "age": 42}
+print(type(R))                              # <class 'MongoResponse'>
+print(isinstance(R, nosqlapi.Response))     # True
+
+# Extended CRUD operations
+sess.insert_many(database='db', docs=[{"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 42}, 
+                 {"_id": "5099803df3f4948bd2f98392", "name": "Arthur", "age": 43}])
+sess.update_many(database='db', docs=[{"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 42, "rev": 2}, 
+                 {"_id": "5099803df3f4948bd2f98392", "name": "Arthur", "age": 43, "rev": 2}])
+
+# Complex select operation
+sel = MongoSelector(selector={"name": "Arthur"}, fields=['_id', 'name', 'age'], limit=2)
+sess.find(sel)
+
+# Batch operations
+op = [{"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 42}, {"_id": "5099803df3f4948bd2f98392", "name": "Arthur", "age": 43}]
+batch = MongoBatch(batch=op, session=sess)
+resp = batch.execute(crud='insert')
+print(resp)            # [{"_id": "5099803df3f4948bd2f98391", "rev"= 2, "name": "Arthur", "age": 42}, {"_id": "5099803df3f4948bd2f98392", "rev"= 2, "name": "Arthur", "age": 43}]
 print(type(resp))      # <class 'CassandraResponse'>
 
 ```
