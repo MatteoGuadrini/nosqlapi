@@ -2,7 +2,8 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from typing import List
+from nosqlapi.graphdb import Database, Node, Label, Property, Relationship, RelationshipType
+from typing import List, Union
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                       SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
                       SessionACLError, SelectorAttributeError)
@@ -41,10 +42,12 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         self.connection = url
         return MyDBSession(self.connection)
 
-    def create_database(self, name, not_exists=False, replace=False, options=None):
+    def create_database(self, name: Union[str, Database], not_exists=False, replace=False, options=None):
         if not_exists and replace:
             raise DatabaseCreationError('IF NOT EXISTS and OR REPLACE parts of this command cannot be used together')
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if not self.port:
                 self.port = 7474
             scheme = 'bolt://'
@@ -72,8 +75,10 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def has_database(self, name):
+    def has_database(self, name: Union[str, Database]):
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if name in self.databases():
                 return True
             else:
@@ -81,8 +86,10 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def delete_database(self, name, exists=False, dump=False, destroy=False):
+    def delete_database(self, name: Union[str, Database], exists=False, dump=False, destroy=False):
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if not self.port:
                 self.port = 7474
             scheme = 'bolt://'
@@ -137,8 +144,10 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         else:
             raise ConnectError("server isn't connected")
 
-    def show_database(self, name):
+    def show_database(self, name: Union[str, Database]):
         if self.connection:
+            if isinstance(name, Database):
+                name = name.name
             if not self.port:
                 self.port = 7474
             scheme = 'bolt://'
@@ -199,14 +208,17 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def get(self,
-            node,
+            node: Union[str, Node],
             return_properties: list = None,
             properties: dict = None,
             relationship_label=None,
             relationship_object=None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = 'MATCH '
         if properties:
             match_block = f'(:{label} {properties})' if not obj else f'({obj}:{label} {properties})'
@@ -233,10 +245,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def insert(self, node, properties: dict = None, return_properties: list = None):
+    def insert(self, node: Union[str, Node], properties: dict = None, return_properties: list = None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"CREATE ({obj}:{label} {properties if properties else ''})"
         if return_properties:
             cypher += '\nRETURN ' + ','.join([f'{obj}.{prop}' for prop in return_properties])
@@ -255,13 +270,19 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def insert_many(self, nodes: list, properties: List[dict] = None):
+        if properties is None:
+            properties = []
         if not self.session:
             raise ConnectError('connect to a server before some request')
         nodes = list(zip(nodes, properties))
         cypher = 'CREATE '
         ns = list()
         for node, prop in nodes:
-            obj, label = node.split(':', 1)
+            if isinstance(node, Node):
+                obj, label = node.var, ':'.join(node.labels)
+                prop = node.properties
+            else:
+                obj, label = node.split(':', 1)
             ns.append(f"({obj}:{label} {prop if prop else ''})")
         cypher += ','.join(ns)
         stm = {'statements': cypher}
@@ -278,10 +299,15 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def update(self, node, values: dict, return_properties: list = None):
+    def update(self, node: Union[str, Node], values=None, return_properties: list = None):
+        if values is None:
+            values = {}
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label})\n"
         for prop, value in values.items():
             cypher += f"SET ({obj}.{prop} = {value}\n)"
@@ -304,10 +330,15 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     def update_many(self):
         raise NotImplementedError('for this operation use batch object')
 
-    def delete(self, node, properties: dict = None, with_rel=False):
+    def delete(self, node: Union[str, Node], properties: dict = None, with_rel=False):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+            if properties is None:
+                properties = node.properties
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
         if not with_rel:
             cypher += f'DELETE {obj}'
@@ -416,10 +447,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def link(self, node, linking_node, rel):
+    def link(self, node: Union[str, Node], linking_node, rel):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"CREATE ({obj}:{label})-[{rel}]->({linking_node})"
         stm = {'statements': cypher}
         self.req.post = mock.MagicMock(return_value={'body': '{"linked": true}',
@@ -432,10 +466,15 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def detach(self, node, properties: dict = None):
+    def detach(self, node: Union[str, Node], properties: dict = None):
         if not self.session:
             raise ConnectError('connect to a server before some request')
-        obj, label = node.split(':', 1)
+        if isinstance(node, Node):
+            obj, label = node.var, ':'.join(node.labels)
+            if properties is None:
+                properties = node.properties
+        else:
+            obj, label = node.split(':', 1)
         cypher = f"MATCH ({obj}:{label} {properties})\n" if properties else f"MATCH ({obj}:{label})\n"
         cypher += f'DETACH DELETE {obj}'
         stm = {'statements': cypher}
@@ -511,6 +550,8 @@ class GraphConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
         resp = myconn.create_database('test_db')
         self.assertEqual(resp.data, '0 rows, System updates: 1')
+        resp = myconn.create_database(Database('test_db'))
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
         myconn.close()
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
@@ -533,6 +574,7 @@ class GraphConnectionTest(unittest.TestCase):
         myconn.connect()
         self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
         self.assertTrue(myconn.has_database('test_db'))
+        self.assertTrue(myconn.has_database(Database('test_db')))
         myconn.close()
         self.assertEqual(myconn.connection, None)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
@@ -541,6 +583,8 @@ class GraphConnectionTest(unittest.TestCase):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
         self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        resp = myconn.delete_database(Database('test_db'))
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
         resp = myconn.delete_database('test_db')
         self.assertEqual(resp.data, '0 rows, System updates: 1')
         resp = myconn.delete_database('test_db', exists=True)
@@ -571,6 +615,8 @@ class GraphConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
+        dbs = myconn.show_database(Database('test_db'))
+        self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, {'nodes': ['matteo:Person'], 'relationships': [':WORK_IN']})
         myconn.close()
         self.assertEqual(myconn.connection, None)
@@ -595,6 +641,10 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn('n.name', d)
         self.assertEqual(d.data['n.name'], ['Matteo', 'Arthur'])
+        d = self.mysess.get(Node(var='n', labels=[Label('Person')]))
+        self.assertIsInstance(d, MyDBResponse)
+        self.assertIn('n.name', d)
+        self.assertEqual(d.data['n.name'], ['Matteo', 'Arthur'])
         # Get all nodes with Person label with returned properties
         d = self.mysess.get('n:Person', return_properties=['name', 'age'])
         self.assertIsInstance(d, MyDBResponse)
@@ -613,15 +663,26 @@ class GraphSessionTest(unittest.TestCase):
     def test_insert_data(self):
         ret = self.mysess.insert('n:Person', {'name': 'Matteo', 'age': 35}, return_properties=['name', 'age'])
         self.assertEqual(ret.data, {'n.name': ['Matteo'], 'n.age': [35]})
+        n = Node(var='n', labels=[Label('Person')], properties=Property({'name': 'Matteo', 'age': 35}))
+        ret = self.mysess.insert(n, return_properties=['name', 'age'])
+        self.assertEqual(ret.data, {'n.name': ['Matteo'], 'n.age': [35]})
 
     def test_insert_many_data(self):
         ret = self.mysess.insert_many(['matteo:Person', 'arthur:Person'],
                                       [{'name': 'Matteo', 'age': 35}, {'name': 'Arthur', 'age': 42}])
         self.assertEqual(ret.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
                                     {'arthur.name': 'Arthur', 'arthur.age': 42}])
+        nodes = [Node(['Person'], {'name': 'Matteo', 'age': 35}, 'matteo'),
+                 Node(['Person'], {'name': 'Arthur', 'age': 42}, 'arthur')]
+        ret = self.mysess.insert_many(nodes)
+        self.assertEqual(ret.data, [{'matteo.name': 'Matteo', 'matteo.age': 35},
+                                    {'arthur.name': 'Arthur', 'arthur.age': 42}])
 
     def test_update_data(self):
         ret = self.mysess.update('matteo:Person', {'name': 'Matteo', 'age': 42}, return_properties=['name', 'age'])
+        self.assertEqual(ret.data, {'matteo.name': 'Matteo', 'matteo.age': 42})
+        n = Node(var='n', labels=[Label('Person')], properties=Property({'name': 'Matteo', 'age': 42}))
+        ret = self.mysess.update(n, return_properties=['name', 'age'])
         self.assertEqual(ret.data, {'matteo.name': 'Matteo', 'matteo.age': 42})
 
     def test_update_many_data(self):
@@ -631,11 +692,17 @@ class GraphSessionTest(unittest.TestCase):
         # Delete all person
         ret = self.mysess.delete(':Person')
         self.assertEqual(ret.data, {})
+        ret = self.mysess.delete(Node(['Person']))
+        self.assertEqual(ret.data, {})
         # Delete all person with name "Matteo"
         ret = self.mysess.delete(':Person', properties={'name': 'Matteo'})
         self.assertEqual(ret.data, {})
+        ret = self.mysess.delete(Node(['Person'], {'name': 'Matteo'}))
+        self.assertEqual(ret.data, {})
         # Delete all person and with name "Matteo" and his relationships
         ret = self.mysess.delete(':Person', properties={'name': 'Matteo'}, with_rel=True)
+        self.assertEqual(ret.data, {})
+        ret = self.mysess.delete(Node(['Person'], {'name': 'Matteo'}), with_rel=True)
         self.assertEqual(ret.data, {})
 
     def test_find_selector(self):
@@ -695,10 +762,18 @@ class GraphSessionTest(unittest.TestCase):
     def test_link(self):
         ret = self.mysess.link('matteo:Person', 'open_source:JOB', ':WORK_IN')
         self.assertEqual(ret.data, {'linked': True})
+        person = Node(['Person'], var='matteo')
+        job = Node(['JOB'], var='open_source')
+        rel = Relationship([RelationshipType('WORK_IN')])
+        ret = self.mysess.link(person, job, rel)
+        self.assertEqual(ret.data, {'linked': True})
 
     def test_detach_node(self):
         # Detach relationship for node
         ret = self.mysess.detach(':Person', properties={'name': 'Matteo'})
+        self.assertEqual(ret.data, {'detached': True})
+        person = Node(['Person'], {'name': 'Matteo'})
+        ret = self.mysess.detach(person)
         self.assertEqual(ret.data, {'detached': True})
 
 
