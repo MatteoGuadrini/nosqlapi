@@ -485,7 +485,7 @@ class MongoSelector(nosqlapi.docdb.DocSelector):...
 
 # Use MongoDB library
 conn = MongoConnection(host='server.local', username='admin', password='pass')
-sess = conn.connect()       # return CassandraSession object
+sess = conn.connect()       # return MongoSession object
 # Create a new database
 conn.create_database('new_db')
 
@@ -514,7 +514,63 @@ op = [{"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 42}, {"_id": 
 batch = MongoBatch(batch=op, session=sess)
 resp = batch.execute(crud='insert')
 print(resp)            # [{"_id": "5099803df3f4948bd2f98391", "rev"= 2, "name": "Arthur", "age": 42}, {"_id": "5099803df3f4948bd2f98392", "rev"= 2, "name": "Arthur", "age": 43}]
-print(type(resp))      # <class 'CassandraResponse'>
+print(type(resp))      # <class 'MongoResponse'>
+
+```
+
+### Graph database
+Graph databases are a type of NoSQL database, created to address the limitations of relational databases. 
+While the graph model explicitly lays out the dependencies between nodes of data, the relational model and other 
+NoSQL database models link the data by implicit connections. In other words, relationships are a first-class citizen 
+in a graph database and can be labelled, directed, and given properties. This is compared to relational approaches where 
+these relationships are implied and must be reified at run-time. Graph databases are similar to 1970s network model 
+databases in that both represent general graphs, but network-model databases operate at a lower level of abstraction 
+and lack easy traversal over a chain of edges.
+
+```python
+import nosqlapi.graphdb
+
+# Neo4j like database
+class Neo4jConnection(nosqlapi.graphdb.GraphConnection):...
+class Neo4jSession(nosqlapi.graphdb.GraphSession):...
+class Neo4jResponse(nosqlapi.graphdb.GraphResponse):...
+class Neo4jBatch(nosqlapi.graphdb.GraphBatch):...
+class Neo4jSelector(nosqlapi.graphdb.GraphSelector):...
+
+# Use Neo4j library
+conn = Neo4jConnection(host='server.local', username='admin', password='pass', database='db')
+sess = conn.connect()       # return Neo4jSession object
+# Create a new database
+conn.create_database('new_db')
+
+# CRUD operation
+C = sess.insert(node='n:Person', properties={'name': 'Arthur', 'age': 42})           # Create
+R = sess.get(node='n:Person')                                                        # Read
+U = sess.update(node='n:Person', properties={'name': 'Arthur', 'age': 42})           # Update
+D = sess.delete(node='n:Person')                                                     # Delete
+
+print(R)                                    # {'n.name': 'Arthur', 'n.age': 42}
+print(type(R))                              # <class 'Neo4jResponse'>
+print(isinstance(R, nosqlapi.Response))     # True
+
+# Extended CRUD operations
+sess.insert_many(nodes=['matteo:Person', 'arthur:Person'], properties=[{'name': 'Matteo', 'age': 35}, 
+                                                                       {'name': 'Arthur', 'age': 42}])
+sess.update_many(nodes=['matteo:Person', 'arthur:Person'], properties=[{'name': 'Matteo', 'age': 35}, 
+                                                                       {'name': 'Arthur', 'age': 42}])
+sess.link(node='arthur:Person{name: "Arthur"}', to_link='book:hitchhikers', relationship=':ACT_IN')
+sess.detach(node='arthur:Person{name: "Arthur"}')
+
+# Complex select operation
+sel = Neo4jSelector(selector='people:Person', fields=['name', 'age'], condition='people.age>=35', order='age', limit=2)
+sess.find(sel)
+
+# Batch operations
+op = "MATCH (p:Person {name: 'Arhur'})-[rel:ACT_IN]-(:Book {name: 'hitchhikers'})\nSET rel.startYear = date({year: 2018})\nRETURN p"
+batch = Neo4jBatch(batch=op, session=sess)
+resp = batch.execute()
+print(resp)            # {'p.name': 'Arhur', 'p.age': 42}
+print(type(resp))      # <class 'Neo4jResponse'>
 
 ```
 
