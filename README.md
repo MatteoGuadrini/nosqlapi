@@ -337,6 +337,25 @@ Executing a _batch_ operation with position and keyword arguments.
 
 The package _nosqlapi_ is a collection of interface and utility class and functions for build your own NOSQL python package.
 
+### Test and installation
+To test this package.
+
+```console
+$ git clone https://github.com/MatteoGuadrini/nosqlapi.git
+$ cd nosqlapi
+$ python -m unittest discover tests
+```
+
+Instead, to install package.
+
+```console
+$ pip install nosqlapi #from pypi
+
+$ git clone https://github.com/MatteoGuadrini/nosqlapi.git #from official repo
+$ cd nosqlapi
+$ python setup.py install
+```
+
 ### Type of NoSql Database
 
 NoSql databases are of four types:
