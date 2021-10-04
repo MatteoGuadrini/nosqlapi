@@ -28,7 +28,8 @@ from nosqlapi.common import Counter
 # endregion
 
 # region Classes
-Keyspace = Ks
+class Keyspace(Ks):
+    pass
 
 
 class Table:
