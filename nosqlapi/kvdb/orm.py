@@ -188,6 +188,6 @@ class ExpiredItem(Item):
 # endregion
 
 # region Other objects
-Index = namedtuple('Index', ['name', 'column'])
+Index = namedtuple('Index', ['name', 'key'])
 
 # endregion

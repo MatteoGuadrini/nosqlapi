@@ -126,4 +126,13 @@ class Document:
     def __iter__(self):
         return (key for key in self.body)
 
+
+class Index:
+
+    def __init__(self, name, data):
+        self.name = name
+        self.data = {}
+        self.data.update(data)
+
+
 # endregion
