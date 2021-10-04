@@ -39,6 +39,7 @@ class Table:
         self._name = name
         self._columns = [column for column in columns]
         self._options = options
+        self._index = []
 
     @property
     def name(self):
@@ -56,6 +57,10 @@ class Table:
     def options(self):
         return self._options
 
+    @property
+    def index(self):
+        return self._index
+
     def add_column(self, column):
         self._columns.append(column)
 
@@ -68,6 +73,12 @@ class Table:
     def get_rows(self):
         return [tuple([col[i] for col in self.columns])
                 for i in range(len(self.columns))]
+
+    def add_index(self, index):
+        self._index.append(index)
+
+    def delete_index(self, index=-1):
+        self._index.pop(index)
 
     def __getitem__(self, item):
         return self._columns[item]
