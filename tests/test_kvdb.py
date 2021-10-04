@@ -1,7 +1,7 @@
 import unittest
 from typing import Union, Any
 import nosqlapi.kvdb
-from nosqlapi.kvdb.orm import Keyspace, Item, Transaction
+from nosqlapi.kvdb.orm import Keyspace, Item, Transaction, Index
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
@@ -265,6 +265,20 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         if self.session.recv(2048) != "USER_DELETED":
             raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
         return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+
+    def add_index(self, name: Union[str, Index], key=None):
+        if not self.database:
+            raise DatabaseError('database is not set')
+        if isinstance(name, Index):
+            key = name.key
+            name = name.name
+        self.session.send(f"NEW_INDEX={name} WITH_KEY={key}")
+        self.session.recv = mock.MagicMock(return_value=f"INDEX_OK={name}")
+        if self.session.recv != 'KO':
+            self._item_count = 1
+            return MyDBResponse(self.session.recv(2048).split('=')[1])
+        else:
+            raise SessionError(f'key {key} not exists')
 
 
 class MyDBResponse(nosqlapi.kvdb.KVResponse):
@@ -583,6 +597,15 @@ class KVSessionTest(unittest.TestCase):
         resp = self.mysess.delete_user('myuser')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'USER_DELETED')
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('test_index', 'key')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
+        index = Index('test_index', 'key')
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
 
 
 if __name__ == '__main__':
