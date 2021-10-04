@@ -143,5 +143,11 @@ class Index:
     def __delitem__(self, key):
         del self.data[key]
 
+    def __str__(self):
+        return self.data.__str__()
+
+    def __repr__(self):
+        return f"Index({', '.join(f'{key}={value}' for key, value in self.data.items())})"
+
 
 # endregion
