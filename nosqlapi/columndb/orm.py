@@ -76,6 +76,9 @@ class Table:
     def __delitem__(self, key=-1):
         self._columns.pop(key)
 
+    def __iter__(self):
+        return (column for column in self.columns)
+
     def __repr__(self):
         return f'{self.__class__.__name__} object, name={self.name}>'
 
