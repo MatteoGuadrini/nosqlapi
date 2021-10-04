@@ -23,6 +23,7 @@
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace as Ks
 from nosqlapi.common import Counter
+from collections import namedtuple
 
 
 # endregion
@@ -149,5 +150,11 @@ class Column:
 
     def __str__(self):
         return f'{self.data}'
+
+
+# endregion
+
+# region Other objects
+Index = namedtuple('Index', ['name', 'column'])
 
 # endregion
