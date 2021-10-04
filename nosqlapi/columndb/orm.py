@@ -140,6 +140,9 @@ class Column:
     def __delitem__(self, key=-1):
         self.pop(key)
 
+    def __iter__(self):
+        return (item for item in self.data)
+
     def __repr__(self):
         return f'{self.__class__.__name__} object, name={self.name} type={self.of_type.__class__.__name__}>'
 
