@@ -1,6 +1,6 @@
 import unittest
 import nosqlapi.docdb
-from nosqlapi.docdb.orm import Database, Document
+from nosqlapi.docdb.orm import Database, Document, Index
 from typing import Union
 import json
 from unittest import mock
@@ -344,6 +344,25 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    def add_index(self, name: Union[str, Index], data: dict = None):
+        if not self.session:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(name, Index):
+            data = name.data
+            name = name.name
+        else:
+            data = data
+        doc = [data, {'name': name}]
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"result": "ok"}}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.post(f"{self.session}/createIndex", json.dumps(doc))
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
@@ -552,6 +571,17 @@ class DocSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.code, 200)
         self.assertEqual(resp.data['user'], 'myuser')
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('index_name', {'orderDate': 1, 'category': 1})
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.data['result'], 'ok')
+        index = Index(name='index_name', data={'orderDate': 1, 'category': 1})
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.data['result'], 'ok')
 
 
 if __name__ == '__main__':
