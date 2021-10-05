@@ -1,7 +1,7 @@
 import unittest
 import nosqlapi.columndb
 from typing import Union
-from nosqlapi.columndb.orm import Keyspace, Table, Column
+from nosqlapi.columndb.orm import Keyspace, Table, Column, Index
 from nosqlapi.common.orm import Varchar, Varint, Timestamp
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError,
@@ -335,6 +335,21 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
         return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
 
+    def add_index(self, name: Union[str, Index], table=None, column=None):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(name, Index):
+            column = name.column
+            table = name.table
+            name = name.name
+        if table is None and column is None:
+            raise SessionInsertingError('table name and column name is mandatory to create an index.')
+        self.session.send(f"CREATE INDEX {name} ON {table} ({column});")
+        self.session.recv = mock.MagicMock(return_value="INDEX_CREATED")
+        if self.session.recv(2048) != "INDEX_CREATED":
+            raise SessionACLError(f'create index {name} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'index': name, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -667,6 +682,15 @@ class ColumnSessionTest(unittest.TestCase):
         resp = self.mysess.delete_user('myrole')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'ROLE_DELETED')
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('index_name', 'table', 'column')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_CREATED')
+        index = Index(name='index_name', table='table', column='column')
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_CREATED')
 
 
 if __name__ == '__main__':
