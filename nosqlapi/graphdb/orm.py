@@ -112,6 +112,6 @@ class Relationship(Node):
 # endregion
 
 # region Other objects
-Index = namedtuple('Index', ['name', 'node', 'properties', 'options'])
+Index = namedtuple('Index', ['name', 'node', 'properties', 'options'], defaults=(None,))
 
 # endregion
