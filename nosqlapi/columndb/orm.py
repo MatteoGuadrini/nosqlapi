@@ -166,6 +166,6 @@ class Column:
 # endregion
 
 # region Other objects
-Index = namedtuple('Index', ['name', 'column'])
+Index = namedtuple('Index', ['name', 'table', 'column'])
 
 # endregion
