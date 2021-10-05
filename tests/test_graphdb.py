@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi.graphdb import Database, Node, Label, Property, Relationship, RelationshipType
+from nosqlapi.graphdb import Database, Node, Label, Property, Relationship, RelationshipType, Index
 from typing import List, Union
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                       SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
@@ -488,6 +488,29 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def add_index(self, name: Union[str, Index], node: str = None, properties: list = None, options: dict = None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        if isinstance(name, Index):
+            node = name.node
+            properties = name.properties
+            options = name.options
+            name = name.name
+        if node is None or properties is None:
+            raise SessionInsertingError('node and properties are mandatory.')
+        cypher = f'CREATE BTREE INDEX {name} IF NOT EXISTS FOR ({node}) ON ({",".join(prop for prop in properties)}) '
+        if options:
+            cypher += f'OPTIONS "{{" {",".join(f"{key}:{value}" for key, value in options.items())} "}}"'
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
@@ -775,6 +798,15 @@ class GraphSessionTest(unittest.TestCase):
         person = Node(['Person'], {'name': 'Matteo'})
         ret = self.mysess.detach(person)
         self.assertEqual(ret.data, {'detached': True})
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('index_name', 'n:node', ['n.properties_1', 'n.properties_2'], {'option': 'value'})
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+        index = Index('index_name', 'n:node', ['n.properties_1', 'n.properties_2'], {'option': 'value'})
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
 
 
 if __name__ == '__main__':
