@@ -278,7 +278,20 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             self._item_count = 1
             return MyDBResponse(self.session.recv(2048).split('=')[1])
         else:
-            raise SessionError(f'key {key} not exists')
+            raise SessionError(f'index not created: {name}')
+
+    def delete_index(self, name: Union[str, Index]):
+        if not self.database:
+            raise DatabaseError('database is not set')
+        if isinstance(name, Index):
+            name = name.name
+        self.session.send(f"DELETE_INDEX={name}")
+        self.session.recv = mock.MagicMock(return_value=f"INDEX_REMOVED={name}")
+        if self.session.recv != 'KO':
+            self._item_count = 1
+            return MyDBResponse(self.session.recv(2048).split('=')[1])
+        else:
+            raise SessionError(f'index not removed: {name}')
 
 
 class MyDBResponse(nosqlapi.kvdb.KVResponse):
@@ -604,6 +617,15 @@ class KVSessionTest(unittest.TestCase):
         self.assertEqual(resp.data, 'test_index')
         index = Index('test_index', 'key')
         resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
+
+    def test_delete_index(self):
+        resp = self.mysess.delete_index('test_index')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
+        index = Index('test_index', 'key')
+        resp = self.mysess.delete_index(index)
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, 'test_index')
 
