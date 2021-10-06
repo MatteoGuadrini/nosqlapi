@@ -129,10 +129,20 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
         self.session.send(f"GET_ACL={self.description.get('database')}")
-        self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
+        self.session.recv = mock.MagicMock(return_value="test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
                   for item in self.session.recv(2048).split(';')}
+        )
+
+    @property
+    def indexes(self):
+        if not self.database:
+            raise ConnectError('connect to a database before request indexes.')
+        self.session.send(f"GET_INDEX={self.description.get('database')}")
+        self.session.recv = mock.MagicMock(return_value="index1,index2")
+        return MyDBResponse(
+            data=[item for item in self.session.recv(2048).split(',')]
         )
 
     def get(self, key: Union[Any, Item]):
@@ -628,6 +638,10 @@ class KVSessionTest(unittest.TestCase):
         resp = self.mysess.delete_index(index)
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, 'test_index')
+
+    def test_get_indexes(self):
+        self.assertIn('index1', self.mysess.indexes)
+        self.assertIn('index2', self.mysess.indexes)
 
 
 if __name__ == '__main__':
