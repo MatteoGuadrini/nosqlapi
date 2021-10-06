@@ -350,6 +350,17 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionACLError(f'create index {name} failed: {self.session.recv(2048)}')
         return MyDBResponse({'index': name, 'status': self.session.recv(2048)})
 
+    def delete_index(self, name: Union[str, Index]):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(name, Index):
+            name = name.name
+        self.session.send(f"DROP INDEX IF EXISTS {self.database}.{name};")
+        self.session.recv = mock.MagicMock(return_value="INDEX_DELETED")
+        if self.session.recv(2048) != "INDEX_DELETED":
+            raise SessionACLError(f'create index {name} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'index': name, 'status': self.session.recv(2048)})
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -691,6 +702,15 @@ class ColumnSessionTest(unittest.TestCase):
         resp = self.mysess.add_index(index)
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'INDEX_CREATED')
+
+    def test_delete_index(self):
+        resp = self.mysess.delete_index('index_name')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_DELETED')
+        index = Index(name='index_name', table='table', column='column')
+        resp = self.mysess.delete_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_DELETED')
 
 
 if __name__ == '__main__':
