@@ -142,11 +142,21 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
     def acl(self):
         if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
-        self.session.send(f"GET_ACL={self.description.get('database')}")
+        self.session.send(f"LIST ALL PERMISSIONS OF {self.description.get('database')};")
         self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
                   for item in self.session.recv(2048).split(';')}
+        )
+
+    @property
+    def indexes(self):
+        if not self.database:
+            raise ConnectError('connect to a database before request indexes')
+        self.session.send('SELECT * FROM "IndexInfo";')
+        self.session.recv = mock.MagicMock(return_value=f"index1,index2")
+        return MyDBResponse(
+            data=[item for item in self.session.recv(2048).split(',')]
         )
 
     def get(self, table: Union[str, Table], *columns: Union[str, Column]):
@@ -711,6 +721,10 @@ class ColumnSessionTest(unittest.TestCase):
         resp = self.mysess.delete_index(index)
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'INDEX_DELETED')
+
+    def test_get_indexes(self):
+        self.assertIn('index1', self.mysess.indexes)
+        self.assertIn('index2', self.mysess.indexes)
 
 
 if __name__ == '__main__':
