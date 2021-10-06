@@ -194,6 +194,10 @@ This read-only attribute contains the number of object returned of an operations
 
 This read-only attribute contains the _Access Control List_ in the current session.
 
+`.indexes`
+
+This read-only attribute contains the name of indexes of the current database.
+
 
 #### Session methods
 
@@ -252,6 +256,14 @@ Modifying exists user or reset password.
 `.delete_user(parameters...)`
 
 Deleting exists user.
+
+`.add_index(parameters...)`
+
+Adding a new index to database.
+
+`.delete_index(parameters...)`
+
+Deleting exists index to database.
 
 ### Selector Objects
 
