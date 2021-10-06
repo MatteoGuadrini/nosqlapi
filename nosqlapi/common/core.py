@@ -219,6 +219,11 @@ class Session(ABC):
     def acl(self):
         pass
 
+    @property
+    @abstractmethod
+    def indexes(self):
+        pass
+
     @abstractmethod
     def get(self, *args, **kwargs):
         """Get one or more value
