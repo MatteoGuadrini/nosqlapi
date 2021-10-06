@@ -511,6 +511,23 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def delete_index(self, node: Union[str, Index], tag=None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        if isinstance(node, Index):
+            tag = node.properties
+            node = node.name
+        cypher = f'DROP INDEX ON:{node}({tag})'
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
@@ -805,6 +822,15 @@ class GraphSessionTest(unittest.TestCase):
         self.assertEqual(resp.data, '0 rows, System updates: 1')
         index = Index('index_name', 'n:node', ['n.properties_1', 'n.properties_2'], {'option': 'value'})
         resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_delete_index(self):
+        resp = self.mysess.delete_index('node', 'properties_1')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+        index = Index('index_name', 'node', 'properties_1', None)
+        resp = self.mysess.delete_index(index)
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
