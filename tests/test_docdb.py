@@ -143,6 +143,19 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    @property
+    def indexes(self):
+        self.req.get = mock.MagicMock(return_value={'body': '[{"v" : 2, "key" : {"orderDate" : 1}, "name" : "index1"}, '
+                                                            '{"v" : 2, "key" : {"category" : 1}, "name" : "index2"}]',
+                                                    'status': 200,
+                                                    'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.get(f"{self.session}/getIndexes")
+        if ret.get('status') != 200:
+            raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
     def get(self, path):
         if not self.session:
             raise ConnectError('connect to a server before some request')
@@ -608,6 +621,11 @@ class DocSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.code, 200)
         self.assertEqual(resp.data['result'], 'ok')
+
+    def test_get_indexes(self):
+        indexes = self.mysess.indexes
+        self.assertIn('index1', indexes.data[0]['name'])
+        self.assertIn('index2', indexes.data[1]['name'])
 
 
 if __name__ == '__main__':
