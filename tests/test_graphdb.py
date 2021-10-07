@@ -207,6 +207,19 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    @property
+    def indexes(self):
+        stm = {'statements': 'SHOW INDEXES'}
+        self.req.post = mock.MagicMock(return_value={'body': '["index1", "index2"]',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
     def get(self,
             node: Union[str, Node],
             return_properties: list = None,
@@ -833,6 +846,10 @@ class GraphSessionTest(unittest.TestCase):
         resp = self.mysess.delete_index(index)
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_get_indexes(self):
+        self.assertIn('index1', self.mysess.indexes)
+        self.assertIn('index2', self.mysess.indexes)
 
 
 if __name__ == '__main__':
