@@ -586,6 +586,14 @@ class KVSessionTest(unittest.TestCase):
         batch = MyDBBatch(self.mysess, tr)
         batch.execute()
 
+    def test_call_batch(self):
+        tr = Transaction()
+        tr.add('UPDATE=key1,value1;')
+        tr.add('UPDATE=key2,value2;')
+        tr.add('UPDATE=key3,value3;')
+        batch = MyDBBatch(self.mysess, tr)
+        self.mysess.call(batch)
+
     def test_get_acl_connection(self):
         self.assertIn('root', self.mysess.acl)
         self.assertIn('admin', self.mysess.acl)
