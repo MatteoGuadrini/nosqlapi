@@ -689,6 +689,15 @@ class ColumnSessionTest(unittest.TestCase):
         batch = MyDBBatch(self.mysess, query)
         batch.execute()
 
+    def test_call_batch(self):
+        query = """
+        BEGIN BATCH
+            UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;
+        APPLY BATCH ;
+        """
+        batch = MyDBBatch(self.mysess, query)
+        self.mysess.call(batch)
+
     def test_new_user(self):
         resp = self.mysess.new_user('myrole', 'mypassword')
         self.assertIsInstance(resp, MyDBResponse)
