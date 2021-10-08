@@ -344,6 +344,14 @@ class Session(ABC):
         """
         pass
 
+    @staticmethod
+    def call(batch, *args, **kwargs):
+        """Delete index to database
+
+        :return: Response
+        """
+        return batch.execute(*args, **kwargs)
+
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
