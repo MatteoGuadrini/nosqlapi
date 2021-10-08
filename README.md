@@ -265,6 +265,10 @@ Adding a new index to database.
 
 Deleting exists index to database.
 
+`.call(batch, parameters...)`
+
+Calling a batch object to execute one or more statement.
+
 ### Selector Objects
 
 `Selector` objects should respond to the following methods.
