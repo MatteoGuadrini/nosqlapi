@@ -812,6 +812,14 @@ class GraphSessionTest(unittest.TestCase):
         resp = batch.execute()
         self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
 
+    def test_call_batch(self):
+        b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
+    SET rel.startYear = date({year: 2018})
+    RETURN p"""
+        batch = MyDBBatch(self.mysess, b)
+        resp = self.mysess.call(batch)
+        self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
+
     def test_link(self):
         ret = self.mysess.link('matteo:Person', 'open_source:JOB', ':WORK_IN')
         self.assertEqual(ret.data, {'linked': True})
