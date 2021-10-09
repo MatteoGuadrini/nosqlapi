@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest import mock
 import nosqlapi.graphdb
-from nosqlapi.graphdb import Database, Node, Label, Property, Relationship, RelationshipType
+from nosqlapi.graphdb import Database, Node, Label, Property, Relationship, RelationshipType, Index
 from typing import List, Union
 from nosqlapi import (ConnectError, DatabaseCreationError, DatabaseDeletionError, DatabaseError, SessionError,
                       SessionInsertingError, SessionUpdatingError, SessionDeletingError, SessionFindingError,
@@ -198,6 +198,19 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self.req.post = mock.MagicMock(return_value={'body': '[["admin","GRANTED","access","database"],'
                                                              '["admin","GRANTED","constraint","database"],'
                                                              '["admin","GRANTED","dbms_actions","database"]]',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.session, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    @property
+    def indexes(self):
+        stm = {'statements': 'SHOW INDEXES'}
+        self.req.post = mock.MagicMock(return_value={'body': '["index1", "index2"]',
                                                      'status': 200,
                                                      'header': stm['statements']})
         ret = self.req.post(self.session, json.dumps(stm))
@@ -488,6 +501,46 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
+    def add_index(self, name: Union[str, Index], node: str = None, properties: list = None, options: dict = None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        if isinstance(name, Index):
+            node = name.node
+            properties = name.properties
+            options = name.options
+            name = name.name
+        if node is None or properties is None:
+            raise SessionInsertingError('node and properties are mandatory.')
+        cypher = f'CREATE BTREE INDEX {name} IF NOT EXISTS FOR ({node}) ON ({",".join(prop for prop in properties)}) '
+        if options:
+            cypher += f'OPTIONS "{{" {",".join(f"{key}:{value}" for key, value in options.items())} "}}"'
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
+    def delete_index(self, node: Union[str, Index], tag=None):
+        if not self.session:
+            raise ConnectError('connect to a server before some request')
+        if isinstance(node, Index):
+            tag = node.properties
+            node = node.name
+        cypher = f'DROP INDEX ON:{node}({tag})'
+        self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
+                                                     'status': 200,
+                                                     'header': cypher})
+        ret = self.req.post(self.session, cypher)
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(ret.get('body'),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.graphdb.GraphResponse):
     pass
@@ -759,6 +812,14 @@ class GraphSessionTest(unittest.TestCase):
         resp = batch.execute()
         self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
 
+    def test_call_batch(self):
+        b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
+    SET rel.startYear = date({year: 2018})
+    RETURN p"""
+        batch = MyDBBatch(self.mysess, b)
+        resp = self.mysess.call(batch)
+        self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
+
     def test_link(self):
         ret = self.mysess.link('matteo:Person', 'open_source:JOB', ':WORK_IN')
         self.assertEqual(ret.data, {'linked': True})
@@ -775,6 +836,28 @@ class GraphSessionTest(unittest.TestCase):
         person = Node(['Person'], {'name': 'Matteo'})
         ret = self.mysess.detach(person)
         self.assertEqual(ret.data, {'detached': True})
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('index_name', 'n:node', ['n.properties_1', 'n.properties_2'], {'option': 'value'})
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+        index = Index('index_name', 'n:node', ['n.properties_1', 'n.properties_2'], {'option': 'value'})
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_delete_index(self):
+        resp = self.mysess.delete_index('node', 'properties_1')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+        index = Index('index_name', 'node', 'properties_1', None)
+        resp = self.mysess.delete_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, '0 rows, System updates: 1')
+
+    def test_get_indexes(self):
+        self.assertIn('index1', self.mysess.indexes)
+        self.assertIn('index2', self.mysess.indexes)
 
 
 if __name__ == '__main__':

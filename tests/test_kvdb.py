@@ -1,7 +1,7 @@
 import unittest
 from typing import Union, Any
 import nosqlapi.kvdb
-from nosqlapi.kvdb.orm import Keyspace, Item, Transaction
+from nosqlapi.kvdb.orm import Keyspace, Item, Transaction, Index
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
@@ -129,10 +129,20 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
         self.session.send(f"GET_ACL={self.description.get('database')}")
-        self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
+        self.session.recv = mock.MagicMock(return_value="test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
                   for item in self.session.recv(2048).split(';')}
+        )
+
+    @property
+    def indexes(self):
+        if not self.database:
+            raise ConnectError('connect to a database before request indexes.')
+        self.session.send(f"GET_INDEX={self.description.get('database')}")
+        self.session.recv = mock.MagicMock(return_value="index1,index2")
+        return MyDBResponse(
+            data=[item for item in self.session.recv(2048).split(',')]
         )
 
     def get(self, key: Union[Any, Item]):
@@ -265,6 +275,33 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         if self.session.recv(2048) != "USER_DELETED":
             raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
         return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+
+    def add_index(self, name: Union[str, Index], key=None):
+        if not self.database:
+            raise DatabaseError('database is not set')
+        if isinstance(name, Index):
+            key = name.key
+            name = name.name
+        self.session.send(f"NEW_INDEX={name} WITH_KEY={key}")
+        self.session.recv = mock.MagicMock(return_value=f"INDEX_OK={name}")
+        if self.session.recv != 'KO':
+            self._item_count = 1
+            return MyDBResponse(self.session.recv(2048).split('=')[1])
+        else:
+            raise SessionError(f'index not created: {name}')
+
+    def delete_index(self, name: Union[str, Index]):
+        if not self.database:
+            raise DatabaseError('database is not set')
+        if isinstance(name, Index):
+            name = name.name
+        self.session.send(f"DELETE_INDEX={name}")
+        self.session.recv = mock.MagicMock(return_value=f"INDEX_REMOVED={name}")
+        if self.session.recv != 'KO':
+            self._item_count = 1
+            return MyDBResponse(self.session.recv(2048).split('=')[1])
+        else:
+            raise SessionError(f'index not removed: {name}')
 
 
 class MyDBResponse(nosqlapi.kvdb.KVResponse):
@@ -549,6 +586,14 @@ class KVSessionTest(unittest.TestCase):
         batch = MyDBBatch(self.mysess, tr)
         batch.execute()
 
+    def test_call_batch(self):
+        tr = Transaction()
+        tr.add('UPDATE=key1,value1;')
+        tr.add('UPDATE=key2,value2;')
+        tr.add('UPDATE=key3,value3;')
+        batch = MyDBBatch(self.mysess, tr)
+        self.mysess.call(batch)
+
     def test_get_acl_connection(self):
         self.assertIn('root', self.mysess.acl)
         self.assertIn('admin', self.mysess.acl)
@@ -583,6 +628,28 @@ class KVSessionTest(unittest.TestCase):
         resp = self.mysess.delete_user('myuser')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'USER_DELETED')
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('test_index', 'key')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
+        index = Index('test_index', 'key')
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
+
+    def test_delete_index(self):
+        resp = self.mysess.delete_index('test_index')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
+        index = Index('test_index', 'key')
+        resp = self.mysess.delete_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data, 'test_index')
+
+    def test_get_indexes(self):
+        self.assertIn('index1', self.mysess.indexes)
+        self.assertIn('index2', self.mysess.indexes)
 
 
 if __name__ == '__main__':

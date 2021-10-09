@@ -219,6 +219,11 @@ class Session(ABC):
     def acl(self):
         pass
 
+    @property
+    @abstractmethod
+    def indexes(self):
+        pass
+
     @abstractmethod
     def get(self, *args, **kwargs):
         """Get one or more value
@@ -322,6 +327,30 @@ class Session(ABC):
         :return: Response
         """
         pass
+
+    @abstractmethod
+    def add_index(self, *args, **kwargs):
+        """Add index to database
+
+        :return: Response
+        """
+        pass
+
+    @abstractmethod
+    def delete_index(self, *args, **kwargs):
+        """Delete index to database
+
+        :return: Response
+        """
+        pass
+
+    @staticmethod
+    def call(batch, *args, **kwargs):
+        """Delete index to database
+
+        :return: Response
+        """
+        return batch.execute(*args, **kwargs)
 
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"

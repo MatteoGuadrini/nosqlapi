@@ -20,6 +20,12 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# region Imports
+from collections import namedtuple
+
+
+# endregion
+
 # region Classes
 class Transaction:
 
@@ -177,5 +183,11 @@ class ExpiredItem(Item):
 
     def __repr__(self):
         return f'<{self.__class__.__name__} object, key={self.key} value={self.value} ttl={self.ttl}>'
+
+
+# endregion
+
+# region Other objects
+Index = namedtuple('Index', ['name', 'key'])
 
 # endregion

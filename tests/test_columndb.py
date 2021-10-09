@@ -1,7 +1,7 @@
 import unittest
 import nosqlapi.columndb
 from typing import Union
-from nosqlapi.columndb.orm import Keyspace, Table, Column
+from nosqlapi.columndb.orm import Keyspace, Table, Column, Index
 from nosqlapi.common.orm import Varchar, Varint, Timestamp
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError,
@@ -142,11 +142,21 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
     def acl(self):
         if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
-        self.session.send(f"GET_ACL={self.description.get('database')}")
+        self.session.send(f"LIST ALL PERMISSIONS OF {self.description.get('database')};")
         self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
                   for item in self.session.recv(2048).split(';')}
+        )
+
+    @property
+    def indexes(self):
+        if not self.database:
+            raise ConnectError('connect to a database before request indexes')
+        self.session.send('SELECT * FROM "IndexInfo";')
+        self.session.recv = mock.MagicMock(return_value=f"index1,index2")
+        return MyDBResponse(
+            data=[item for item in self.session.recv(2048).split(',')]
         )
 
     def get(self, table: Union[str, Table], *columns: Union[str, Column]):
@@ -334,6 +344,32 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         if self.session.recv(2048) != "ROLE_DELETED":
             raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
         return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+
+    def add_index(self, name: Union[str, Index], table=None, column=None):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(name, Index):
+            column = name.column
+            table = name.table
+            name = name.name
+        if table is None and column is None:
+            raise SessionInsertingError('table name and column name is mandatory to create an index.')
+        self.session.send(f"CREATE INDEX {name} ON {table} ({column});")
+        self.session.recv = mock.MagicMock(return_value="INDEX_CREATED")
+        if self.session.recv(2048) != "INDEX_CREATED":
+            raise SessionACLError(f'create index {name} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'index': name, 'status': self.session.recv(2048)})
+
+    def delete_index(self, name: Union[str, Index]):
+        if not self.database:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(name, Index):
+            name = name.name
+        self.session.send(f"DROP INDEX IF EXISTS {self.database}.{name};")
+        self.session.recv = mock.MagicMock(return_value="INDEX_DELETED")
+        if self.session.recv(2048) != "INDEX_DELETED":
+            raise SessionACLError(f'create index {name} failed: {self.session.recv(2048)}')
+        return MyDBResponse({'index': name, 'status': self.session.recv(2048)})
 
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
@@ -653,6 +689,15 @@ class ColumnSessionTest(unittest.TestCase):
         batch = MyDBBatch(self.mysess, query)
         batch.execute()
 
+    def test_call_batch(self):
+        query = """
+        BEGIN BATCH
+            UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;
+        APPLY BATCH ;
+        """
+        batch = MyDBBatch(self.mysess, query)
+        self.mysess.call(batch)
+
     def test_new_user(self):
         resp = self.mysess.new_user('myrole', 'mypassword')
         self.assertIsInstance(resp, MyDBResponse)
@@ -667,6 +712,28 @@ class ColumnSessionTest(unittest.TestCase):
         resp = self.mysess.delete_user('myrole')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'ROLE_DELETED')
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('index_name', 'table', 'column')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_CREATED')
+        index = Index(name='index_name', table='table', column='column')
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_CREATED')
+
+    def test_delete_index(self):
+        resp = self.mysess.delete_index('index_name')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_DELETED')
+        index = Index(name='index_name', table='table', column='column')
+        resp = self.mysess.delete_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.data['status'], 'INDEX_DELETED')
+
+    def test_get_indexes(self):
+        self.assertIn('index1', self.mysess.indexes)
+        self.assertIn('index2', self.mysess.indexes)
 
 
 if __name__ == '__main__':

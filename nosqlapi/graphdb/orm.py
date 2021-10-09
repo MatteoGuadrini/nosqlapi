@@ -21,6 +21,7 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # region Imports
+from collections import namedtuple
 from nosqlapi.kvdb.orm import Keyspace
 
 
@@ -107,5 +108,10 @@ class Relationship(Node):
     def __repr__(self):
         return f'{self.__class__.__name__} object, type={self.labels}>'
 
+
+# endregion
+
+# region Other objects
+Index = namedtuple('Index', ['name', 'node', 'properties', 'options'], defaults=(None,))
 
 # endregion

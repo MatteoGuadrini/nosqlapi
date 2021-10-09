@@ -126,4 +126,28 @@ class Document:
     def __iter__(self):
         return (key for key in self.body)
 
+
+class Index:
+
+    def __init__(self, name, data):
+        self.name = name
+        self.data = {}
+        self.data.update(data)
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __delitem__(self, key):
+        del self.data[key]
+
+    def __str__(self):
+        return self.data.__str__()
+
+    def __repr__(self):
+        return f"Index({', '.join(f'{key}={value}' for key, value in self.data.items())})"
+
+
 # endregion

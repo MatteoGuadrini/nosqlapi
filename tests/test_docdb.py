@@ -1,6 +1,6 @@
 import unittest
 import nosqlapi.docdb
-from nosqlapi.docdb.orm import Database, Document
+from nosqlapi.docdb.orm import Database, Document, Index
 from typing import Union
 import json
 from unittest import mock
@@ -137,6 +137,19 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
         ret = self.req.get(f"{self.session}/privileges")
+        if ret.get('status') != 200:
+            raise ConnectError('server not respond')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    @property
+    def indexes(self):
+        self.req.get = mock.MagicMock(return_value={'body': '[{"v" : 2, "key" : {"orderDate" : 1}, "name" : "index1"}, '
+                                                            '{"v" : 2, "key" : {"category" : 1}, "name" : "index2"}]',
+                                                    'status': 200,
+                                                    'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.get(f"{self.session}/getIndexes")
         if ret.get('status') != 200:
             raise ConnectError('server not respond')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -344,6 +357,41 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    def add_index(self, name: Union[str, Index], data: dict = None):
+        if not self.session:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(name, Index):
+            data = name.data
+            name = name.name
+        else:
+            data = data
+        doc = [data, {'name': name}]
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"result": "ok"}}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.post(f"{self.session}/createIndex", json.dumps(doc))
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
+    def delete_index(self, name: Union[str, Index]):
+        if not self.session:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(name, Index):
+            name = name.name
+        doc = {'name': name}
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"result": "ok"}}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.post(f"{self.session}/dropIndex", json.dumps(doc))
+        if ret.get('status') != 200:
+            raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
@@ -437,7 +485,6 @@ class DocConnectionTest(unittest.TestCase):
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, {'name': 'test_db', 'size': '0.4GB'})
-        db = Database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, {'name': 'test_db', 'size': '0.4GB'})
         myconn.close()
@@ -552,6 +599,33 @@ class DocSessionTest(unittest.TestCase):
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.code, 200)
         self.assertEqual(resp.data['user'], 'myuser')
+
+    def test_add_index(self):
+        resp = self.mysess.add_index('index_name', {'orderDate': 1, 'category': 1})
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.data['result'], 'ok')
+        index = Index(name='index_name', data={'orderDate': 1, 'category': 1})
+        resp = self.mysess.add_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.data['result'], 'ok')
+
+    def test_delete_index(self):
+        resp = self.mysess.delete_index('index_name')
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.data['result'], 'ok')
+        index = Index(name='index_name', data={'orderDate': 1, 'category': 1})
+        resp = self.mysess.delete_index(index)
+        self.assertIsInstance(resp, MyDBResponse)
+        self.assertEqual(resp.code, 200)
+        self.assertEqual(resp.data['result'], 'ok')
+
+    def test_get_indexes(self):
+        indexes = self.mysess.indexes
+        self.assertIn('index1', indexes.data[0]['name'])
+        self.assertIn('index2', indexes.data[1]['name'])
 
 
 if __name__ == '__main__':

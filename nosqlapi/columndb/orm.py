@@ -23,12 +23,14 @@
 # region Imports
 from nosqlapi.kvdb.orm import Keyspace as Ks
 from nosqlapi.common import Counter
+from collections import namedtuple
 
 
 # endregion
 
 # region Classes
-Keyspace = Ks
+class Keyspace(Ks):
+    pass
 
 
 class Table:
@@ -37,6 +39,7 @@ class Table:
         self._name = name
         self._columns = [column for column in columns]
         self._options = options
+        self._index = []
 
     @property
     def name(self):
@@ -54,6 +57,10 @@ class Table:
     def options(self):
         return self._options
 
+    @property
+    def index(self):
+        return self._index
+
     def add_column(self, column):
         self._columns.append(column)
 
@@ -67,6 +74,12 @@ class Table:
         return [tuple([col[i] for col in self.columns])
                 for i in range(len(self.columns))]
 
+    def add_index(self, index):
+        self._index.append(index)
+
+    def delete_index(self, index=-1):
+        self._index.pop(index)
+
     def __getitem__(self, item):
         return self._columns[item]
 
@@ -75,6 +88,9 @@ class Table:
 
     def __delitem__(self, key=-1):
         self._columns.pop(key)
+
+    def __iter__(self):
+        return (column for column in self.columns)
 
     def __repr__(self):
         return f'{self.__class__.__name__} object, name={self.name}>'
@@ -137,10 +153,19 @@ class Column:
     def __delitem__(self, key=-1):
         self.pop(key)
 
+    def __iter__(self):
+        return (item for item in self.data)
+
     def __repr__(self):
         return f'{self.__class__.__name__} object, name={self.name} type={self.of_type.__class__.__name__}>'
 
     def __str__(self):
         return f'{self.data}'
+
+
+# endregion
+
+# region Other objects
+Index = namedtuple('Index', ['name', 'table', 'column'])
 
 # endregion
