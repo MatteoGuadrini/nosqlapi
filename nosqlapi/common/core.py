@@ -346,10 +346,12 @@ class Session(ABC):
 
     @staticmethod
     def call(batch, *args, **kwargs):
-        """Delete index to database
+        """Call a batch
 
         :return: Response
         """
+        if not hasattr(batch, 'execute'):
+            raise SessionError('batch object must implements an "execute" method.')
         return batch.execute(*args, **kwargs)
 
     def __repr__(self):
