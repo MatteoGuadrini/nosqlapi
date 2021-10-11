@@ -442,9 +442,9 @@ class Response(ABC):
 class Batch(ABC):
     """Batch abstract class"""
 
-    def __init__(self, session: Session, batch):
-        self.session = session
-        self.batch = batch
+    def __init__(self, session, batch):
+        self._session = session
+        self._query = batch
 
     @property
     def session(self):
