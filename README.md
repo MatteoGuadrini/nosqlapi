@@ -190,6 +190,10 @@ This read-only attribute contains the session parameters (can be string, list or
 
 This read-only attribute contains the number of object returned of an operations.
 
+`.database`
+
+This read-only attribute contains the name of database in current session.
+
 `.acl`
 
 This read-only attribute contains the _Access Control List_ in the current session.
@@ -309,7 +313,7 @@ Building a _selector_ string in the dialect of a NOSQL language based on various
 
 `Response` objects should respond to the following attributes.
 
-> `Response` objects is a species of an either type, because contains both success and error values
+> `Response` objects is a species of an either-data type, because contains both success and error values
 
 #### Response attributes
 
