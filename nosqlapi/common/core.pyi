@@ -70,7 +70,23 @@ class Connection:
 
 class Selector:
 
+    selector: Union[list, str]
+    fields: list
+    partition: str
+    condition: Union[list, str]
+    order: int
+    limit: int
+
+    def __init__(self, selector: Union[list, str] = None, fields: list = None, partition: str = None,
+                 condition: Union[list, str] = None, order: int = None, limit: int = None): ...
+
     def build(self, *args, **kwargs) -> str: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __bool__(self) -> bool: ...
 
 class Session:
 
