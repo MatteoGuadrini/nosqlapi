@@ -120,15 +120,15 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         self.session = connection
         self.session.send("SHOW_DESC")
         self.session.recv = mock.MagicMock(return_value="server=mykvdb.local\nport=12345\ndatabase=test_db")
-        self._description = {item.split('=')[0]: item.split('=')[1]
-                             for item in self.session.recv(2048).split('\n')}
+        self._description = tuple([item.split('=')[1]
+                                   for item in self.session.recv(2048).split('\n')])
         self._database = database
 
     @property
     def acl(self):
         if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
-        self.session.send(f"GET_ACL={self.description.get('database')}")
+        self.session.send(f"GET_ACL={self.description[1]}")
         self.session.recv = mock.MagicMock(return_value="test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
@@ -139,7 +139,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
     def indexes(self):
         if not self.database:
             raise ConnectError('connect to a database before request indexes.')
-        self.session.send(f"GET_INDEX={self.description.get('database')}")
+        self.session.send(f"GET_INDEX={self.description[1]}")
         self.session.recv = mock.MagicMock(return_value="index1,index2")
         return MyDBResponse(
             data=[item for item in self.session.recv(2048).split(',')]
@@ -209,9 +209,9 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
 
     def close(self):
         self.session.close()
-        if not self.session:
+        if not self.database:
             SessionClosingError('session was not closed')
-        self.session = None
+        self._database = None
 
     def find(self, selector):
         if not self.database:
@@ -357,6 +357,9 @@ class MyDBSelector(nosqlapi.kvdb.KVSelector):
 
 
 class MyDBBatch(nosqlapi.kvdb.KVBatch):
+    # Simulate socket.socket
+    t = mock.Mock('AF_INET', 'SOCK_STREAM')
+    t.send = mock.MagicMock()
 
     def execute(self):
         if isinstance(self.batch, Transaction):
@@ -365,10 +368,10 @@ class MyDBBatch(nosqlapi.kvdb.KVBatch):
             if self.batch.commands[-1][1] != 'end':
                 self.batch.add('end')
             self.batch = f"{self.batch}"
-        self.session.session.send(self.batch)
-        self.session.session.recv = mock.MagicMock(return_value="BATCH_OK")
-        if self.session.session.recv(2048) != "BATCH_OK":
-            raise SessionError(f'batch error: {self.session.session.recv(2048)}')
+        self.t.send(self.batch)
+        self.t.recv = mock.MagicMock(return_value="BATCH_OK")
+        if self.t.recv(2048) != "BATCH_OK":
+            raise SessionError(f'batch error: {self.t.recv(2048)}')
 
 
 class KVConnectionTest(unittest.TestCase):
@@ -504,7 +507,7 @@ class KVSessionTest(unittest.TestCase):
         self.assertIsInstance(self.mysess, MyDBSession)
 
     def test_description_session(self):
-        self.assertEqual(self.mysess.description, {'database': 'test_db', 'port': '12345', 'server': 'mykvdb.local'})
+        self.assertEqual(self.mysess.description, ('mykvdb.local', '12345', 'test_db'))
 
     def test_get_key(self):
         d = self.mysess.get('key')
@@ -611,7 +614,7 @@ class KVSessionTest(unittest.TestCase):
 
     def test_close_session(self):
         self.mysess.close()
-        self.assertEqual(self.mysess.session, None)
+        self.assertEqual(self.mysess.database, None)
         KVSessionTest.mysess = KVSessionTest.myconn.connect()
 
     def test_new_user(self):
