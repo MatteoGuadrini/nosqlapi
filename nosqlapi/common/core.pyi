@@ -24,11 +24,20 @@ from typing import Any, Union
 
 class Batch:
 
+    session: Session
+    batch: str
+
     def __init__(self, session: Session, batch: str):
         self._session: Session
         self._query: str
 
     def execute(self, *args, **kwargs) -> Union[Any, Response]: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __bool__(self) -> bool: ...
 
 class Connection:
 
