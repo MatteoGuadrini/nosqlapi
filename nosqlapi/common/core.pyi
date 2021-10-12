@@ -74,7 +74,7 @@ class Connection:
 class Selector:
 
     selector: Union[list, str]
-    fields: list
+    fields: Union[list, str]
     partition: str
     condition: Union[list, str]
     order: int

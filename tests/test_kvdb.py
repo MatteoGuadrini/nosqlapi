@@ -128,7 +128,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
     def acl(self):
         if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
-        self.session.send(f"GET_ACL={self.description[1]}")
+        self.session.send(f"GET_ACL={self.description[2]}")
         self.session.recv = mock.MagicMock(return_value="test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
@@ -139,7 +139,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
     def indexes(self):
         if not self.database:
             raise ConnectError('connect to a database before request indexes.')
-        self.session.send(f"GET_INDEX={self.description[1]}")
+        self.session.send(f"GET_INDEX={self.description[2]}")
         self.session.recv = mock.MagicMock(return_value="index1,index2")
         return MyDBResponse(
             data=[item for item in self.session.recv(2048).split(',')]

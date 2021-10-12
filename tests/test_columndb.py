@@ -134,15 +134,15 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         self.session.send("SHOW_DESC")
         self.session.recv = mock.MagicMock(return_value="server=mycolumndb.local\nport=12345\ndatabase=test_db"
                                                         "\nusername=admin")
-        self._description = {item.split('=')[0]: item.split('=')[1]
-                             for item in self.session.recv(2048).split('\n')}
+        self._description = tuple([item.split('=')[1]
+                                   for item in self.session.recv(2048).split('\n')])
         self._database = database
 
     @property
     def acl(self):
         if not self.database:
             raise ConnectError('connect to a database before request some ACLs')
-        self.session.send(f"LIST ALL PERMISSIONS OF {self.description.get('database')};")
+        self.session.send(f"LIST ALL PERMISSIONS OF {self.description[2]}")
         self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
@@ -284,7 +284,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         self.session.close()
         if not self.session:
             SessionClosingError('session was not closed')
-        self.session = None
+        self._database = None
 
     def find(self, selector: nosqlapi.columndb.ColumnSelector):
         if not self.database:
@@ -377,12 +377,15 @@ class MyDBResponse(nosqlapi.columndb.ColumnResponse):
 
 
 class MyDBBatch(nosqlapi.columndb.ColumnBatch):
+    # Simulate socket.socket
+    t = mock.Mock('AF_INET', 'SOCK_STREAM')
+    t.send = mock.MagicMock()
 
     def execute(self):
-        self.session.session.send(self.batch)
-        self.session.session.recv = mock.MagicMock(return_value="BATCH_OK")
-        if self.session.session.recv(2048) != "BATCH_OK":
-            raise SessionError(f'batch error: {self.session.session.recv(2048)}')
+        self.t.send(self.batch)
+        self.t.recv = mock.MagicMock(return_value="BATCH_OK")
+        if self.t.recv(2048) != "BATCH_OK":
+            raise SessionError(f'batch error: {self.t.recv(2048)}')
 
 
 class MyDBSelector(nosqlapi.columndb.ColumnSelector):
@@ -526,8 +529,7 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertIsInstance(self.mysess, MyDBSession)
 
     def test_description_session(self):
-        self.assertEqual(self.mysess.description, {'database': 'test_db', 'port': '12345',
-                                                   'server': 'mycolumndb.local', 'username': 'admin'})
+        self.assertEqual(self.mysess.description, ('mycolumndb.local', '12345', 'test_db', 'admin'))
 
     def test_get_column(self):
         d = self.mysess.get('table', 'name', 'age')
@@ -677,7 +679,7 @@ class ColumnSessionTest(unittest.TestCase):
 
     def test_close_session(self):
         self.mysess.close()
-        self.assertEqual(self.mysess.session, None)
+        self.assertEqual(self.mysess.database, None)
         ColumnSessionTest.mysess = ColumnSessionTest.myconn.connect()
 
     def test_batch(self):
