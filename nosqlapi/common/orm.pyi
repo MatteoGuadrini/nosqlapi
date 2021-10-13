@@ -27,11 +27,25 @@ class Null:
 
 class Boolean:
 
-    def __init__(self, value: bool) -> None: ...
+    def __init__(self, value: bool) -> None:
+        self.value: bool = value
 
     def __repr__(self) -> str: ...
 
     def __bool__(self) -> str: ...
 
 
+class Counter:
 
+    def __init__(self, value: int = 0) -> None:
+        self.value: int = int(value)
+
+    def increment(self, value: int = 1) -> None: ...
+
+    def decrement(self, value: int = 1) -> None: ...
+
+    def __add__(self, other: int) -> None: ...
+
+    def __sub__(self, other: int) -> None: ...
+
+    def __repr__(self) -> str: ...
