@@ -21,6 +21,8 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date, timedelta, time, datetime
+from typing import Union
+from uuid import uuid1, UUID
 
 
 class Null:
@@ -88,5 +90,13 @@ class Time(time):
 
 
 class Timestamp(datetime):
+
+    def __repr__(self) -> str: ...
+
+
+class Uuid:
+
+    def __init__(self) -> None:
+        self.uuid: Union[str, UUID] = uuid1()
 
     def __repr__(self) -> str: ...
