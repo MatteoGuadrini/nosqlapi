@@ -72,3 +72,11 @@ class Inet:
         self.ip: str = ip
 
     def __repr__(self) -> str: ...
+
+
+class Int(int):
+
+    def __init__(self, number) -> None:
+        self.number: int = number
+
+    def __repr__(self) -> str: ...
