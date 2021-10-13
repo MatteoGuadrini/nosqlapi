@@ -20,7 +20,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import date, timedelta, time
+from datetime import date, timedelta, time, datetime
 
 
 class Null:
@@ -83,5 +83,10 @@ class Int(int):
 
 
 class Time(time):
+
+    def __repr__(self) -> str: ...
+
+
+class Timestamp(datetime):
 
     def __repr__(self) -> str: ...
