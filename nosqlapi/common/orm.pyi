@@ -64,3 +64,11 @@ class Duration(timedelta):
     def string_format(self) -> str: ...
 
     def __repr__(self) -> str: ...
+
+
+class Inet:
+
+    def __init__(self, ip: str) -> None:
+        self.ip: str = ip
+
+    def __repr__(self) -> str: ...
