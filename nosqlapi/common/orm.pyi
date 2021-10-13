@@ -20,7 +20,8 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import date
+from datetime import date, timedelta
+
 
 class Null:
 
@@ -56,3 +57,10 @@ class Counter:
 class Date(date):
 
     def __repr__(self)-> str: ...
+
+
+class Duration(timedelta):
+
+    def string_format(self) -> str: ...
+
+    def __repr__(self) -> str: ...
