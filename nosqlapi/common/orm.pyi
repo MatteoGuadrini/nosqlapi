@@ -78,7 +78,7 @@ class Inet:
 
 class Int(int):
 
-    def __init__(self, number) -> None:
+    def __init__(self, number: int) -> None:
         self.number: int = number
 
     def __repr__(self) -> str: ...
