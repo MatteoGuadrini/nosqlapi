@@ -20,14 +20,31 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal as Dc
 from datetime import date, timedelta, time, datetime
-from typing import Union
+from typing import Union, Any
 from uuid import uuid1, UUID
 
 
 class Null:
 
     def __repr__(self) -> str: ...
+
+
+class List(list):
+    pass
+
+
+class Map(dict):
+    pass
+
+
+class Ascii(str):
+    pass
+
+
+class Blob(bytes):
+    pass
 
 
 class Boolean:
@@ -61,11 +78,23 @@ class Date(date):
     def __repr__(self)-> str: ...
 
 
+class Decimal(Dc):
+    pass
+
+
+class Double(float):
+    pass
+
+
 class Duration(timedelta):
 
     def string_format(self) -> str: ...
 
     def __repr__(self) -> str: ...
+
+
+class Float(float):
+    pass
 
 
 class Inet:
@@ -84,6 +113,15 @@ class Int(int):
     def __repr__(self) -> str: ...
 
 
+class SmallInt(Int):
+
+    def __init__(self, number: int) -> None: ...
+
+
+class Text(str):
+    pass
+
+
 class Time(time):
 
     def __repr__(self) -> str: ...
@@ -100,3 +138,7 @@ class Uuid:
         self.uuid: Union[str, UUID] = uuid1()
 
     def __repr__(self) -> str: ...
+
+Varchar: Any
+Varint: Any
+Array: Any
