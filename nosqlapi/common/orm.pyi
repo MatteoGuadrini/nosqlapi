@@ -20,6 +20,8 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import date
+
 class Null:
 
     def __repr__(self) -> str: ...
@@ -49,3 +51,8 @@ class Counter:
     def __sub__(self, other: int) -> None: ...
 
     def __repr__(self) -> str: ...
+
+
+class Date(date):
+
+    def __repr__(self)-> str: ...
