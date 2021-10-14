@@ -28,8 +28,9 @@ class KVConnection(Connection):
 
     return_data: Union[str, tuple, Response]
 
-    def __init__(self, host=None, port=None, database=None, username=None, password=None, ssl=None, tls=None, cert=None,
-                 ca_cert=None, ca_bundle=None) -> None:
+    def __init__(self, host: str = None, port: int = None, database: str = None, username: str = None,
+                 password: str = None, ssl: bool = None, tls: bool = None, cert: str = None,
+                 ca_cert: str = None, ca_bundle: str = None) -> None:
         self.host: str = host
         self.port: int = port
         self.database: str = database
