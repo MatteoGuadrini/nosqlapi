@@ -527,7 +527,7 @@ class KVSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.item_count, 2)
         item = Item('key', 'value')
         item1 = Item('key1', 'value1')
-        ks = Keyspace(None)
+        ks = Keyspace('db')
         ks.append(item)
         ks.append(item1)
         self.mysess.insert_many(ks)
