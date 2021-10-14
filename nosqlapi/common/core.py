@@ -26,6 +26,12 @@ from .exception import *
 
 # endregion
 
+# region global variable
+__all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
+
+
+# endregion
+
 # region global variables
 API_NAME = 'nosqlapi'
 
