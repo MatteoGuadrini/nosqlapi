@@ -46,6 +46,15 @@ Exception
       |__SelectorAttributeError
 """
 
+# region global variable
+__all__ = ['Error', 'UnknownError', 'ConnectError', 'CloseError', 'DatabaseError',
+           'DatabaseCreationError', 'DatabaseDeletionError', 'SessionError',
+           'SessionInsertingError', 'SessionUpdatingError', 'SessionClosingError',
+           'SessionFindingError', 'SessionDeletingError', 'SessionACLError', 'SelectorError',
+           'SelectorAttributeError']
+
+
+# endregion
 
 # Generic error
 class Error(Exception):
