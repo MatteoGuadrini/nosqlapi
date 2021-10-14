@@ -20,7 +20,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Iterator, Any
+from typing import Iterator, Any, Union
 
 class Transaction:
 
@@ -55,7 +55,7 @@ class Keyspace:
 
     def pop(self, item: int = -1) -> None: ...
 
-    def __getitem__(self, item: int) -> None: ...
+    def __getitem__(self, item: int) -> Any: ...
 
     def __setitem__(self, key: int, value: Any) -> None: ...
 
@@ -73,3 +73,28 @@ class Keyspace:
 class Subspace(Keyspace):
 
     def __init__(self, name: str, sub: str = None, sep: str = '.') -> None: ...
+
+
+class Item:
+
+    key: Union[str, int, float, tuple]
+    value: Any
+
+    def __init__(self, key: Union[str, int, float, tuple], value: Any = None) -> None:
+        self._key: Union[str, int, float, tuple] = key
+        self._value: Any = value
+        self.__dict: dict = {}
+
+    def get(self) -> Any: ...
+
+    def set(self, key: Union[str, int, float, tuple], value: Any = None) -> None: ...
+
+    def __getitem__(self, item: Union[str, int, float, tuple]) -> Any: ...
+
+    def __setitem__(self, key: Union[str, int, float, tuple], value: Any) -> None: ...
+
+    def __delitem__(self, key: Union[str, int, float, tuple]) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
