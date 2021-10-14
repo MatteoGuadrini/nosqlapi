@@ -30,6 +30,12 @@ from datetime import time
 from datetime import datetime
 from uuid import uuid1
 
+# endregion
+
+# region global variable
+__all__ = ['Null', 'List', 'Map', 'Int', 'Inet', 'Ascii', 'Time', 'SmallInt', 'Decimal', 'Timestamp', 'Counter',
+           'Date', 'Text', 'Blob', 'Boolean', 'Double', 'Uuid', 'Duration', 'Float', 'Varint', 'Varchar', 'Array']
+
 
 # endregion
 
