@@ -34,6 +34,7 @@ __all__ = ['Keyspace', 'Subspace', 'Transaction', 'Item', 'ExpiredItem', 'Index'
 
 # region Classes
 class Transaction:
+    """Represents group of commands in a single step"""
 
     def __init__(self, commands=None):
         if commands is None:
@@ -42,15 +43,27 @@ class Transaction:
 
     @property
     def commands(self):
+        """Command list"""
         return list(enumerate(self._commands))
 
     def add(self, command, index=-1):
+        """Add command to commands list
+
+        :param command: command string
+        :param index: index to append command
+        :return: None
+        """
         if index == -1:
             self._commands.append(command)
         else:
             self._commands.insert(index, command)
 
     def delete(self, index=-1):
+        """Remove command to command list
+
+        :param index: index to remove command
+        :return: None
+        """
         self._commands.pop(index)
 
     def __repr__(self):
@@ -72,24 +85,38 @@ class Keyspace:
 
     @property
     def name(self):
+        """Name of keyspace"""
         return self._name
 
     @name.setter
     def name(self, value):
+        """Name of keyspace"""
         self._name = value
 
     @property
     def exists(self):
+        """Existence of keyspace"""
         return self._exists
 
     @property
     def store(self):
+        """List of object into keyspace"""
         return self._store
 
     def append(self, item):
+        """Append item into store
+
+        :param item: key/value item
+        :return: None
+        """
         self._store.append(item)
 
     def pop(self, item=-1):
+        """Remove item from the store
+
+        :param item: index of item to remove
+        :return: None
+        """
         self._store.pop(item)
 
     def __getitem__(self, item):
@@ -132,16 +159,28 @@ class Item:
 
     @property
     def key(self):
+        """Key of item"""
         return self._key
 
     @property
     def value(self):
+        """Value of the key"""
         return self._value
 
     def get(self):
+        """Get item
+
+        :return: dict
+        """
         return self.__dict
 
     def set(self, key, value=None):
+        """Set item
+
+        :param key: key of item
+        :param value: value of the key
+        :return: None
+        """
         self[key] = value
 
     def __getitem__(self, item):
@@ -173,6 +212,7 @@ class ExpiredItem(Item):
 
     @property
     def ttl(self):
+        """Time to live of item"""
         return self._ttl
 
     def __setitem__(self, key, value):

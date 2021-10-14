@@ -89,9 +89,19 @@ class Counter:
         self.value = int(value)
 
     def increment(self, value=1):
+        """Increment number
+
+        :param value: number. Default 1.
+        :return: None
+        """
         self.value += value
 
     def decrement(self, value=1):
+        """Decrement number
+
+        :param value: number. Default 1.
+        :return: None
+        """
         self.value -= value
 
     def __add__(self, other):
@@ -125,6 +135,10 @@ class Duration(timedelta):
     """Represents duration ISO 8601 format: P[n]Y[n]M[n]DT[n]H[n]M[n]S"""
 
     def string_format(self):
+        """ISO 8601 format: P[n]Y[n]M[n]DT[n]H[n]M[n]S
+
+        :return: str
+        """
         hours, minutes = self.seconds // 3600, self.seconds // 60 % 60
         seconds = self.seconds - (hours * 3600 + minutes * 60)
         return f'{self.days}d{hours}h{minutes}m{seconds}s'
