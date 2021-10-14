@@ -98,3 +98,16 @@ class Item:
     def __repr__(self) -> str: ...
 
     def __str__(self) -> str: ...
+
+
+class ExpiredItem(Item):
+
+    ttl: int
+
+    def __init__(self, key: Union[str, int, float, tuple], value: Any = None, ttl: int = None) -> None:
+        super().__init__(key, value)
+        self._ttl: int = ttl
+
+    def __setitem__(self, key: Union[str, int, float, tuple], value: Any) -> None: ...
+
+    def __repr__(self) -> str: ...
