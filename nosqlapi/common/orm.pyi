@@ -40,7 +40,8 @@ class Map(dict):
 
 
 class Ascii(str):
-    pass
+
+    def __repr__(self) -> str: ...
 
 
 class Blob(bytes):
