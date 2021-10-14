@@ -20,7 +20,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Iterator, Any, Union
+from typing import Iterator, Any, Union, NamedTuple
 
 class Transaction:
 
@@ -111,3 +111,6 @@ class ExpiredItem(Item):
     def __setitem__(self, key: Union[str, int, float, tuple], value: Any) -> None: ...
 
     def __repr__(self) -> str: ...
+
+
+Index: Any
