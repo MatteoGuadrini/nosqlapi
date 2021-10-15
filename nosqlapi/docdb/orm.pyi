@@ -58,7 +58,7 @@ class Collection:
 class Document:
 
     id: Union[str, Uuid]
-    body: dict
+    body: Any
 
     def __init__(self, value: Any = None, oid: Union[str, Uuid] = None, **values) -> None:
         self._body: dict = {}
@@ -78,3 +78,21 @@ class Document:
     def __len__(self) -> int: ...
 
     def __iter__(self) -> Iterator: ...
+
+
+class Index:
+
+    def __init__(self, name: str, data: dict) -> None:
+        self.name: str = name
+        self.data: dict = {}
+        self.data.update(data)
+
+    def __getitem__(self, item: str): ...
+
+    def __setitem__(self, key: str, value: Any) -> None: ...
+
+    def __delitem__(self, key: str) -> None: ...
+
+    def __str__(self) -> str: ...
+
+    def __repr__(self) -> str: ...
