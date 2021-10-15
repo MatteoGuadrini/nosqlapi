@@ -21,7 +21,48 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from nosqlapi.kvdb.orm import Keyspace as Ks
+from typing import Any, Union, List, Iterator
 
 class Keyspace(Ks): ...
 
+class Table:
+
+    name: str
+    columns: List[str, Column]
+    options: dict
+    index: list
+
+
+    def __init__(self, name: str, *columns: Union[str, Column], **options: Any) -> None:
+        self._name: str = name
+        self._columns: List[str, Column] = [column for column in columns]
+        self._options: dict = options
+        self._index: list = []
+
+    def add_column(self, column: Union[str, Column]) -> None: ...
+
+    def delete_column(self, index: int = -1) -> None: ...
+
+    def set_option(self, option: dict) -> None: ...
+
+    def get_rows(self) -> List[tuple]: ...
+
+    def add_index(self, index) -> None: ...
+
+    def delete_index(self, index: int = -1) -> None: ...
+
+    def __getitem__(self, item: int) -> Union[str, Column]: ...
+
+    def __setitem__(self, key: int, value: Any) -> None: ...
+
+    def __delitem__(self, key:int = -1) -> None: ...
+
+    def __iter__(self) -> Iterator: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+
+class Column: ...
 
