@@ -77,6 +77,7 @@ class Transaction:
 
 
 class Keyspace:
+    """Represents keyspace like database"""
 
     def __init__(self, name):
         self._name = name
@@ -142,6 +143,7 @@ class Keyspace:
 
 
 class Subspace(Keyspace):
+    """Represents subspace of the keyspace"""
 
     def __init__(self, name, sub=None, sep='.'):
         super().__init__(name)
@@ -150,6 +152,7 @@ class Subspace(Keyspace):
 
 
 class Item:
+    """Represents key/value like a dictionary"""
 
     def __init__(self, key, value=None):
         self._key = key
@@ -204,6 +207,7 @@ class Item:
 
 
 class ExpiredItem(Item):
+    """Represents Item object with ttl expired time"""
 
     def __init__(self, key, value=None, ttl=None):
         super().__init__(key, value)

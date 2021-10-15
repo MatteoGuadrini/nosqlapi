@@ -22,14 +22,14 @@
 
 from ..common.core import Selector, Session, Response, Batch
 from ..kvdb.client import KVConnection
-from typing import Union
+from typing import Any, Union
 
 class ColumnConnection(KVConnection): ...
 
 
 class ColumnSelector(Selector):
 
-    filtering: bool
+    filtering: Any
 
     def __init__(self) -> None:
         self.filtering: bool = False
