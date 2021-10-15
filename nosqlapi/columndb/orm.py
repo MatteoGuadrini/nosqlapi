@@ -28,6 +28,12 @@ from collections import namedtuple
 
 # endregion
 
+# region global variable
+__all__ = ['Keyspace', 'Table', 'Column', 'Index']
+
+
+# endregion
+
 # region Classes
 class Keyspace(Ks):
     pass
