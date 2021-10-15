@@ -21,5 +21,37 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from nosqlapi.kvdb.orm import Keyspace
+from typing import Union, Any, Iterator
+
 
 class Database(Keyspace): ...
+
+
+class Collection:
+
+    docs: list
+
+    def __init__(self, name: str, *docs: Any) -> None:
+        self.name: str = name
+        self._docs: list = []
+
+    def append(self, doc: Union[str, dict, Document]) -> None: ...
+
+    def pop(self, doc: int = -1) -> None: ...
+
+    def __getitem__(self, item: int) -> None: ...
+
+    def __setitem__(self, key: int, value: Union[str, dict, Document]) -> None: ...
+
+    def __delitem__(self, key: int) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __len__(self) -> int: ...
+
+    def __iter__(self) -> Iterator: ...
+
+
+class Document: ...
