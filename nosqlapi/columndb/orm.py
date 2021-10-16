@@ -28,12 +28,20 @@ from collections import namedtuple
 
 # endregion
 
+# region global variable
+__all__ = ['Keyspace', 'Table', 'Column', 'Index']
+
+
+# endregion
+
 # region Classes
 class Keyspace(Ks):
+    """Represents keyspace like database"""
     pass
 
 
 class Table:
+    """Represents table as container of columns"""
 
     def __init__(self, name, *columns, **options):
         self._name = name
@@ -43,41 +51,75 @@ class Table:
 
     @property
     def name(self):
+        """Name of table"""
         return self._name
 
     @name.setter
     def name(self, value):
+        """Name of table"""
         self._name = value
 
     @property
     def columns(self):
+        """List of columns"""
         return self._columns
 
     @property
     def options(self):
+        """Options"""
         return self._options
 
     @property
     def index(self):
+        """List of indexes"""
         return self._index
 
     def add_column(self, column):
+        """Adding one column to table
+
+        :param column: column name or object
+        :return: None
+        """
         self._columns.append(column)
 
     def delete_column(self, index=-1):
+        """Deleting one column to table
+
+        :param index: number of index
+        :return: None
+        """
         del self[index]
 
     def set_option(self, option):
+        """Update options
+
+        :param option: dict options
+        :return: None
+        """
         self._options.update(option)
 
     def get_rows(self):
+        """Getting all rows
+
+        :return: List[tuple]
+        """
         return [tuple([col[i] for col in self.columns])
                 for i in range(len(self.columns))]
 
     def add_index(self, index):
+        """Adding index to index property
+
+        :param index: name or Index object
+        :return: None
+        """
         self._index.append(index)
 
     def delete_index(self, index=-1):
+        """Deleting index to index property
+
+        :param index: name or Index object
+        :return: None
+        """
         self._index.pop(index)
 
     def __getitem__(self, item):
@@ -100,6 +142,7 @@ class Table:
 
 
 class Column:
+    """Represents column as container of values"""
 
     def __init__(self, name, of_type=None, max_len=None):
         self.name = name
@@ -110,23 +153,33 @@ class Column:
 
     @property
     def of_type(self):
+        """Type of column"""
         return self._of_type
 
     @property
     def data(self):
+        """List of values"""
         return self._data
 
     @property
     def auto_increment(self):
+        """Auto-increment value"""
         return self._auto_increment
 
     @auto_increment.setter
     def auto_increment(self, value: bool):
+        """Auto-increment value"""
         if value is not bool:
             raise TypeError('auto_increment must be a bool value')
         self._auto_increment = value
 
     def append(self, data=None):
+        """Appending data to column.
+        If auto_increment is True, the value is incremented automatically.
+
+        :param data: any type of data
+        :return: None
+        """
         if self.max_len and len(self._data) >= self.max_len:
             raise IndexError(f'maximum number of satisfied data: {self.max_len}')
         if not isinstance(data, self.of_type) and self.of_type is not None:
@@ -142,6 +195,11 @@ class Column:
             self._data.append(data)
 
     def pop(self, index=-1):
+        """Deleting value
+
+        :param index: number of index
+        :return: None
+        """
         self._data.pop(index)
 
     def __getitem__(self, item):

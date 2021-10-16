@@ -28,12 +28,20 @@ from json import dumps
 
 # endregion
 
+# region global variable
+__all__ = ['Database', 'Collection', 'Document', 'Index']
+
+
+# endregion
+
 # region Classes
 class Database(Keyspace):
+    """Represents database"""
     pass
 
 
 class Collection:
+    """Represents collection of documents"""
 
     def __init__(self, name, *docs):
         self.name = name
@@ -43,12 +51,23 @@ class Collection:
 
     @property
     def docs(self):
+        """Documents of collection"""
         return self._docs
 
     def append(self, doc):
+        """Append document to collection
+
+        :param doc: document
+        :return: None
+        """
         self._docs.append(doc)
 
     def pop(self, doc=-1):
+        """Delete document from collection
+
+        :param doc: number of document to remove
+        :return: None
+        """
         self._docs.pop(doc)
 
     def __getitem__(self, item):
@@ -74,6 +93,7 @@ class Collection:
 
 
 class Document:
+    """Represents document"""
 
     def __init__(self, value=None, oid=None, **values):
         self._body = {}
@@ -89,20 +109,28 @@ class Document:
 
     @property
     def id(self):
+        """Document unique id"""
         return self._id
 
     @property
     def body(self):
+        """Elements of document"""
         return self._body
 
     @body.setter
     def body(self, value):
+        """Elements of document"""
         if isinstance(value, dict):
             self._body = value
         else:
             raise ValueError('value must be a dict')
 
     def to_json(self, indent=2):
+        """Transform document into json
+
+        :param indent: number of indentation
+        :return: str
+        """
         return dumps(self.body, indent=indent)
 
     def __getitem__(self, item):
@@ -128,6 +156,7 @@ class Document:
 
 
 class Index:
+    """Represents document index"""
 
     def __init__(self, name, data):
         self.name = name

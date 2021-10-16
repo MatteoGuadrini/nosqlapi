@@ -56,6 +56,7 @@ class KVConnection(Connection, ABC):
 
     @property
     def return_data(self):
+        """Result data after any operation"""
         return self._return_data
 
 
@@ -64,18 +65,38 @@ class KVSelector(Selector, ABC):
 
     @abstractmethod
     def first_greater_or_equal(self, key):
+        """First greater or equal key by selector key
+
+        :param key: key to search
+        :return: Union[str, list, tuple]
+        """
         pass
 
     @abstractmethod
     def first_greater_than(self, key):
+        """First greater key by selector key
+
+        :param key: key to search
+        :return: Union[str, list, tuple]
+        """
         pass
 
     @abstractmethod
     def last_less_or_equal(self, key):
+        """Last less or equal key by selector key
+
+        :param key: key to search
+        :return: Union[str, list, tuple]
+        """
         pass
 
     @abstractmethod
     def last_less_than(self, key):
+        """Last less key by selector key
+
+        :param key: key to search
+        :return: Union[str, list, tuple]
+        """
         pass
 
     def __str__(self):

@@ -256,7 +256,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['header'])
 
     def close(self):
-        self.session = None
+        self._database = None
 
     def find(self, selector):
         if not self.session:
@@ -579,7 +579,7 @@ class DocSessionTest(unittest.TestCase):
 
     def test_close_session(self):
         self.mysess.close()
-        self.assertEqual(self.mysess.session, None)
+        self.assertEqual(self.mysess.database, None)
         DocSessionTest.mysess = DocSessionTest.myconn.connect()
 
     def test_new_user(self):

@@ -20,6 +20,8 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module that contains some ORM common objects."""
+
 # region Imports
 from decimal import Decimal as Dc
 from datetime import date
@@ -28,33 +30,47 @@ from datetime import time
 from datetime import datetime
 from uuid import uuid1
 
+# endregion
+
+# region global variable
+__all__ = ['Null', 'List', 'Map', 'Int', 'Inet', 'Ascii', 'Time', 'SmallInt', 'Decimal', 'Timestamp', 'Counter',
+           'Date', 'Text', 'Blob', 'Boolean', 'Double', 'Uuid', 'Duration', 'Float', 'Varint', 'Varchar', 'Array']
+
 
 # endregion
 
 # region Classes
 class Null:
+    """Represents None"""
 
     def __repr__(self):
         return 'null'
 
 
 class List(list):
+    """Represents list of objects"""
     pass
 
 
 class Map(dict):
+    """Represents dict of objects"""
     pass
 
 
 class Ascii(str):
-    pass
+    """Represents ASCII string"""
+
+    def __repr__(self):
+        return ascii(self)
 
 
 class Blob(bytes):
+    """Represents bytes"""
     pass
 
 
 class Boolean:
+    """Represents bool"""
 
     def __init__(self, value):
         self.value = bool(value)
@@ -67,14 +83,25 @@ class Boolean:
 
 
 class Counter:
+    """Represents integer counter"""
 
     def __init__(self, value=0):
         self.value = int(value)
 
     def increment(self, value=1):
+        """Increment number
+
+        :param value: number. Default 1.
+        :return: None
+        """
         self.value += value
 
     def decrement(self, value=1):
+        """Decrement number
+
+        :param value: number. Default 1.
+        :return: None
+        """
         self.value -= value
 
     def __add__(self, other):
@@ -88,22 +115,30 @@ class Counter:
 
 
 class Date(date):
+    """Represents date in format %Y-%m-%d"""
 
     def __repr__(self):
         return self.strftime('%Y-%m-%d')
 
 
 class Decimal(Dc):
+    """Represents decimal number"""
     pass
 
 
 class Double(float):
+    """Represents float"""
     pass
 
 
 class Duration(timedelta):
+    """Represents duration ISO 8601 format: P[n]Y[n]M[n]DT[n]H[n]M[n]S"""
 
     def string_format(self):
+        """ISO 8601 format: P[n]Y[n]M[n]DT[n]H[n]M[n]S
+
+        :return: str
+        """
         hours, minutes = self.seconds // 3600, self.seconds // 60 % 60
         seconds = self.seconds - (hours * 3600 + minutes * 60)
         return f'{self.days}d{hours}h{minutes}m{seconds}s'
@@ -113,10 +148,12 @@ class Duration(timedelta):
 
 
 class Float(float):
+    """Represents float"""
     pass
 
 
 class Inet:
+    """Represents ip address version 4 or 6 like string"""
 
     def __init__(self, ip):
         self.ip = ip
@@ -126,6 +163,7 @@ class Inet:
 
 
 class Int(int):
+    """Represents integer"""
 
     def __init__(self, number):
         self.number = number
@@ -135,6 +173,7 @@ class Int(int):
 
 
 class SmallInt(Int):
+    """Represents small integer: -32767 to 32767"""
 
     def __init__(self, number):
         if number > 32767 or number < -32767:
@@ -143,22 +182,26 @@ class SmallInt(Int):
 
 
 class Text(str):
+    """Represents str"""
     pass
 
 
 class Time(time):
+    """Represents time"""
 
     def __repr__(self):
         return self.strftime('%H:%M:%S')
 
 
 class Timestamp(datetime):
+    """Represents datetime timestamp"""
 
     def __repr__(self):
         return self.timestamp().__repr__()
 
 
 class Uuid:
+    """Represents uuid version 1"""
 
     def __init__(self):
         self.uuid = uuid1()

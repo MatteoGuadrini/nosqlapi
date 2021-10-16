@@ -26,8 +26,15 @@ from collections import namedtuple
 
 # endregion
 
+# region global variable
+__all__ = ['Keyspace', 'Subspace', 'Transaction', 'Item', 'ExpiredItem', 'Index']
+
+
+# endregion
+
 # region Classes
 class Transaction:
+    """Represents group of commands in a single step"""
 
     def __init__(self, commands=None):
         if commands is None:
@@ -36,15 +43,27 @@ class Transaction:
 
     @property
     def commands(self):
+        """Command list"""
         return list(enumerate(self._commands))
 
     def add(self, command, index=-1):
+        """Add command to commands list
+
+        :param command: command string
+        :param index: index to append command
+        :return: None
+        """
         if index == -1:
             self._commands.append(command)
         else:
             self._commands.insert(index, command)
 
     def delete(self, index=-1):
+        """Remove command to command list
+
+        :param index: index to remove command
+        :return: None
+        """
         self._commands.pop(index)
 
     def __repr__(self):
@@ -58,6 +77,7 @@ class Transaction:
 
 
 class Keyspace:
+    """Represents keyspace like database"""
 
     def __init__(self, name):
         self._name = name
@@ -66,24 +86,38 @@ class Keyspace:
 
     @property
     def name(self):
+        """Name of keyspace"""
         return self._name
 
     @name.setter
     def name(self, value):
+        """Name of keyspace"""
         self._name = value
 
     @property
     def exists(self):
+        """Existence of keyspace"""
         return self._exists
 
     @property
     def store(self):
+        """List of object into keyspace"""
         return self._store
 
     def append(self, item):
+        """Append item into store
+
+        :param item: key/value item
+        :return: None
+        """
         self._store.append(item)
 
     def pop(self, item=-1):
+        """Remove item from the store
+
+        :param item: index of item to remove
+        :return: None
+        """
         self._store.pop(item)
 
     def __getitem__(self, item):
@@ -109,6 +143,7 @@ class Keyspace:
 
 
 class Subspace(Keyspace):
+    """Represents subspace of the keyspace"""
 
     def __init__(self, name, sub=None, sep='.'):
         super().__init__(name)
@@ -117,6 +152,7 @@ class Subspace(Keyspace):
 
 
 class Item:
+    """Represents key/value like a dictionary"""
 
     def __init__(self, key, value=None):
         self._key = key
@@ -126,16 +162,28 @@ class Item:
 
     @property
     def key(self):
+        """Key of item"""
         return self._key
 
     @property
     def value(self):
+        """Value of the key"""
         return self._value
 
     def get(self):
+        """Get item
+
+        :return: dict
+        """
         return self.__dict
 
     def set(self, key, value=None):
+        """Set item
+
+        :param key: key of item
+        :param value: value of the key
+        :return: None
+        """
         self[key] = value
 
     def __getitem__(self, item):
@@ -159,6 +207,7 @@ class Item:
 
 
 class ExpiredItem(Item):
+    """Represents Item object with ttl expired time"""
 
     def __init__(self, key, value=None, ttl=None):
         super().__init__(key, value)
@@ -167,6 +216,7 @@ class ExpiredItem(Item):
 
     @property
     def ttl(self):
+        """Time to live of item"""
         return self._ttl
 
     def __setitem__(self, key, value):

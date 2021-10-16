@@ -26,6 +26,12 @@ from .exception import *
 
 # endregion
 
+# region global variable
+__all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
+
+
+# endregion
+
 # region global variables
 API_NAME = 'nosqlapi'
 
@@ -41,11 +47,15 @@ class Connection(ABC):
 
     @property
     def connected(self):
+        """Boolean representing the database connection
+
+        :return: bool
+        """
         return bool(self._connected)
 
     @abstractmethod
     def close(self, *args, **kwargs):
-        """Delete this object
+        """Close connection
 
         :return: None
         """
@@ -63,15 +73,15 @@ class Connection(ABC):
     def create_database(self, *args, **kwargs):
         """Create new database on server
 
-        :return: None
+        :return: Union[bool, Response]
         """
         pass
 
     @abstractmethod
     def has_database(self, *args, **kwargs):
-        """Check if database exists on server
+        """Check if database exists
 
-        :return: bool
+        :return: Union[bool, Response]
         """
         pass
 
@@ -79,7 +89,7 @@ class Connection(ABC):
     def delete_database(self, *args, **kwargs):
         """Delete database on server
 
-        :return: None
+        :return: Union[bool, Response]
         """
         pass
 
@@ -87,7 +97,7 @@ class Connection(ABC):
     def databases(self, *args, **kwargs):
         """Get all databases
 
-        :return: Response
+        :return: Union[list, Response]
         """
         pass
 
@@ -95,7 +105,7 @@ class Connection(ABC):
     def show_database(self, *args, **kwargs):
         """Show a database information
 
-        :return : Response object
+        :return : Union[Any, Response]
         """
         pass
 
@@ -129,50 +139,62 @@ class Selector(ABC):
 
     @property
     def selector(self):
+        """Value than you want search"""
         return self._selector
 
     @selector.setter
     def selector(self, value):
+        """Value than you want search"""
         self._selector = value
 
     @property
     def fields(self):
+        """Key that returned from find operations"""
         return self._fields
 
     @fields.setter
     def fields(self, value: list):
+        """Key that returned from find operations"""
         self._fields = value
 
     @property
     def partition(self):
+        """The name of partition or collection in a database"""
         return self._partition
 
     @partition.setter
     def partition(self, value):
+        """The name of partition or collection in a database"""
         self._partition = value
 
     @property
     def condition(self):
+        """Other condition to apply a selectors"""
         return self._condition
 
     @condition.setter
     def condition(self, value):
+        """Other condition to apply a selectors"""
         self._condition = value
 
     @property
     def order(self):
+        """Order returned from find operations"""
         return self._order
 
     @order.setter
     def order(self, value):
+        """Order returned from find operations"""
         self._order = value
 
     @property
     def limit(self):
+        """Limit number of objects returned from find operations"""
         return self._limit
 
     @limit.setter
     def limit(self, value):
+        """Limit number of objects returned from find operations"""
         self._limit = value
 
     @abstractmethod
@@ -204,31 +226,36 @@ class Session(ABC):
 
     @property
     def item_count(self):
+        """Number of item returned from latest CRUD operation"""
         return self._item_count
 
     @property
     def description(self):
+        """Contains the session parameters"""
         return self._description
 
     @property
     def database(self):
+        """Name of database in current session"""
         return self._database
 
     @property
     @abstractmethod
     def acl(self):
+        """Access Control List in the current session"""
         pass
 
     @property
     @abstractmethod
     def indexes(self):
+        """Name of indexes of the current database"""
         pass
 
     @abstractmethod
     def get(self, *args, **kwargs):
         """Get one or more value
 
-        :return: Response
+        :return: Union[tuple, Response]
         """
         pass
 
@@ -236,7 +263,7 @@ class Session(ABC):
     def insert(self, *args, **kwargs):
         """Insert one value
 
-        :return: None
+        :return: Union[bool, Response]
         """
         pass
 
@@ -244,7 +271,7 @@ class Session(ABC):
     def insert_many(self, *args, **kwargs):
         """Insert one or more value
 
-        :return: None
+        :return: Union[bool, Response]
         """
         pass
 
@@ -252,7 +279,7 @@ class Session(ABC):
     def update(self, *args, **kwargs):
         """Update one value
 
-        :return: None
+        :return: Union[bool, Response]
         """
         pass
 
@@ -260,7 +287,7 @@ class Session(ABC):
     def update_many(self, *args, **kwargs):
         """Update one or more value
 
-        :return: None
+        :return: Union[bool, Response]
         """
         pass
 
@@ -268,7 +295,7 @@ class Session(ABC):
     def delete(self, *args, **kwargs):
         """Delete one value
 
-        :return: None
+        :return: Union[bool, Response]
         """
         pass
 
@@ -284,7 +311,7 @@ class Session(ABC):
     def find(self, *args, **kwargs):
         """Find data
 
-        :return: Response
+        :return: Union[tuple, Response]
         """
         pass
 
@@ -292,7 +319,7 @@ class Session(ABC):
     def grant(self, *args, **kwargs):
         """Grant users ACLs
 
-        :return: Response
+        :return: Union[Any, Response]
         """
         pass
 
@@ -300,7 +327,7 @@ class Session(ABC):
     def revoke(self, *args, **kwargs):
         """Revoke users ACLs
 
-        :return: Response
+        :return: Union[Any, Response]
         """
         pass
 
@@ -308,7 +335,7 @@ class Session(ABC):
     def new_user(self, *args, **kwargs):
         """Create new user
 
-        :return: Response
+        :return: Union[bool, Response]
         """
         pass
 
@@ -316,7 +343,7 @@ class Session(ABC):
     def set_user(self, *args, **kwargs):
         """Modify exist user
 
-        :return: Response
+        :return: Union[bool, Response]
         """
         pass
 
@@ -324,7 +351,7 @@ class Session(ABC):
     def delete_user(self, *args, **kwargs):
         """Delete exist user
 
-        :return: Response
+        :return: Union[bool, Response]
         """
         pass
 
@@ -332,7 +359,7 @@ class Session(ABC):
     def add_index(self, *args, **kwargs):
         """Add index to database
 
-        :return: Response
+        :return: Union[bool, Response]
         """
         pass
 
@@ -340,16 +367,18 @@ class Session(ABC):
     def delete_index(self, *args, **kwargs):
         """Delete index to database
 
-        :return: Response
+        :return: Union[bool, Response]
         """
         pass
 
     @staticmethod
     def call(batch, *args, **kwargs):
-        """Delete index to database
+        """Call a batch
 
-        :return: Response
+        :return: Union[Any, Response]
         """
+        if not hasattr(batch, 'execute'):
+            raise SessionError('batch object must implements an "execute" method.')
         return batch.execute(*args, **kwargs)
 
     def __repr__(self):
@@ -382,18 +411,22 @@ class Response(ABC):
 
     @property
     def data(self):
+        """The effective data than returned"""
         return self._data
 
     @property
     def code(self):
+        """Number code of error or success in an operation"""
         return self._code
 
     @property
     def header(self):
+        """Information (header) of an operation"""
         return self._header
 
     @property
     def error(self):
+        """Error of an operation"""
         return self._error
 
     def __bool__(self):
@@ -415,33 +448,37 @@ class Response(ABC):
 class Batch(ABC):
     """Batch abstract class"""
 
-    def __init__(self, session: Session, batch):
-        self.session = session
-        self.batch = batch
+    def __init__(self, session, batch):
+        self._session = session
+        self._query = batch
 
     @property
     def session(self):
+        """Session object"""
         return self._session
 
     @session.setter
     def session(self, value):
+        """Session object"""
         if not isinstance(value, Session):
             raise SessionError(f'{value} not contains a valid session')
         self._session = value
 
     @property
     def batch(self):
+        """String batch operation"""
         return self._query
 
     @batch.setter
     def batch(self, value):
+        """String batch operation"""
         self._query = value
 
     @abstractmethod
     def execute(self, *args, **kwargs):
-        """Execute some statement
+        """Execute some batch statement
 
-        :return: Response
+        :return: Union[Any, Response]
         """
         pass
 

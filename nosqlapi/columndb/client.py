@@ -72,10 +72,12 @@ class ColumnSelector(Selector, ABC):
 
     @property
     def filtering(self):
+        """Filter data"""
         return self._filtering
 
     @filtering.setter
     def filtering(self, value: bool):
+        """Filter data"""
         value_ = bool(value)
         if not isinstance(value_, bool):
             raise ValueError(f'{value_} must be bool')

@@ -23,17 +23,26 @@
 # region Imports
 from collections import namedtuple
 from nosqlapi.kvdb.orm import Keyspace
+from ..common.orm import Text
+
+
+# endregion
+
+# region global variable
+__all__ = ['Label', 'Property', 'RelationshipType', 'Database', 'Node', 'Relationship', 'Index']
 
 
 # endregion
 
 
 # region Classes
-class Label(str):
+class Label(Text):
+    """Label of node"""
     pass
 
 
 class Property(dict):
+    """Property of node"""
 
     def __repr__(self):
         out = []
@@ -48,10 +57,12 @@ class Property(dict):
 
 
 class RelationshipType(Label):
+    """Type of relationship like a label"""
     pass
 
 
 class Database(Keyspace):
+    """Represents database"""
 
     def __init__(self, name, address=None, role=None, status=None, default=False):
         super().__init__(name=name)
@@ -62,6 +73,7 @@ class Database(Keyspace):
 
     @property
     def online(self):
+        """Status of database"""
         if self.status == 'online':
             return True
         else:
@@ -69,6 +81,7 @@ class Database(Keyspace):
 
 
 class Node:
+    """Represents node"""
 
     def __init__(self, labels, properties=None, var=''):
         self.labels = []
@@ -79,9 +92,19 @@ class Node:
             self.properties.update(properties)
 
     def add_label(self, label):
+        """Add label to node
+
+        :param label: label string or object
+        :return: None
+        """
         self.labels.append(label)
 
-    def remove_label(self, index=-1):
+    def delete_label(self, index=-1):
+        """Delete label
+
+        :param index: number of index
+        :return: None
+        """
         self.labels.pop(index)
 
     def __getitem__(self, item):

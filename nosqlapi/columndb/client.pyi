@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# __init__.py -- nosqlapi
+# client stub -- nosqlapi
 #
 #     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -20,7 +20,33 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Package key-value NOSQL database."""
+from ..common.core import Selector, Session, Response, Batch
+from ..kvdb.client import KVConnection
+from typing import Any, Union
 
-from nosqlapi.kvdb.client import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
-from nosqlapi.kvdb.orm import Keyspace, Subspace, Transaction, Item, ExpiredItem, Index
+class ColumnConnection(KVConnection): ...
+
+
+class ColumnSelector(Selector):
+
+    filtering: Any
+
+    def __init__(self) -> None:
+        self.filtering: bool = False
+
+    def all(self) -> Union[str, list, tuple]: ...
+
+    def alias(self, *args, **kwargs) -> Union[str, list, tuple]: ...
+
+    def cast(self, *args, **kwargs) -> Union[str, list, tuple]: ...
+
+    def count(self) -> Union[str, list, tuple]: ...
+
+
+class ColumnSession(Session): ...
+
+
+class ColumnResponse(Response): ...
+
+
+class ColumnBatch(Batch): ...

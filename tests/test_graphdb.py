@@ -369,7 +369,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def close(self):
-        self.session = None
+        self._database = None
 
     def find(self, selector):
         if not self.session:
@@ -801,7 +801,7 @@ class GraphSessionTest(unittest.TestCase):
 
     def test_close_session(self):
         self.mysess.close()
-        self.assertEqual(self.mysess.session, None)
+        self.assertEqual(self.mysess.database, None)
         GraphSessionTest.mysess = GraphSessionTest.myconn.connect()
 
     def test_batch(self):
