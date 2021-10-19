@@ -209,10 +209,6 @@ This read-only attribute contains the name of indexes of the current database.
 
 Getting one or more data on specific database with position and keyword arguments.
 
-`.get(parameters...)`
-
-Getting one or more data on specific database with position and keyword arguments.
-
 `.insert(parameters...)`
 
 Inserting one data on specific database with position and keyword arguments.
