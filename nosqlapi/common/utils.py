@@ -38,14 +38,14 @@ def api(**methods):
         """Wrap function to decorate standard class
 
         :param cls: standard class you want to decorate
-        :return: object
+        :return: class
         """
         for name, api_name in methods.items():
+            # Check if name is a compliant methods
             if api_name not in API_COMPLIANT_METHODS:
                 raise ValueError(f'{api_name} methods is not in API compliant methods')
             if name in dir(cls):
                 setattr(cls, api_name, getattr(cls, name))
-                delattr(cls, name)
         return cls
 
     return wrapped
