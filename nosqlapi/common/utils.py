@@ -22,18 +22,23 @@
 
 """Utils function and classes for any type of NOSQL database"""
 
+# region globals
+
 API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 'delete_database', 'databases',
                          'show_database', 'get', 'insert', 'insert_many', 'update', 'update_many', 'delete', 'find',
                          'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index', 'add_index',
                          'call', 'build', 'execute', 'link', 'detach')
+# endregion
 
 
+# region functions
 def api(**methods):
     """Decorator function to transform standard classes into API compliant classes
 
     :param methods: method names that you want to bind to the methods of API compliant classes
     :return: class
     """
+
     def wrapped(cls):
         """Wrap function to decorate standard class
 
@@ -49,3 +54,5 @@ def api(**methods):
         return cls
 
     return wrapped
+
+# endregion
