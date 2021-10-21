@@ -22,12 +22,19 @@
 
 """Utils function and classes for any type of NOSQL database"""
 
+# region imports
+from nosqlapi import ConnectError
+
+# endregion
+
 # region globals
 
 API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 'delete_database', 'databases',
                          'show_database', 'get', 'insert', 'insert_many', 'update', 'update_many', 'delete', 'find',
                          'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index', 'add_index',
                          'call', 'build', 'execute', 'link', 'detach')
+
+
 # endregion
 
 
@@ -54,5 +61,19 @@ def api(**methods):
         return cls
 
     return wrapped
+
+
+# endregion
+
+
+# region classes
+class Manager:
+
+    def __init__(self, connection, *args, **kwargs):
+        # Check if connection is a compliant API connection object
+        if not hasattr(connection, 'connect'):
+            raise ConnectError('connection is not a valid connection object')
+        self.connection = connection
+        self.session = self.connection.connect(*args, **kwargs)
 
 # endregion
