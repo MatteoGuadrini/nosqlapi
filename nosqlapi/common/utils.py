@@ -75,5 +75,31 @@ class Manager:
             raise ConnectError('connection is not a valid connection object')
         self.connection = connection
         self.session = self.connection.connect(*args, **kwargs)
+        # Set session properties
+        self._database = self.session.database
+        self._acl = self.session.acl
+        self._item_count = self.session.item_count
+        self._description = self.session.description
+        self._indexes = self.session.indexes
+
+    @property
+    def item_count(self):
+        return self._item_count
+
+    @property
+    def database(self):
+        return self._database
+
+    @property
+    def acl(self):
+        return self._acl
+
+    @property
+    def description(self):
+        return self._description
+
+    @property
+    def indexes(self):
+        return self._indexes
 
 # endregion
