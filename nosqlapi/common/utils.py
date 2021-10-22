@@ -102,6 +102,48 @@ class Manager:
     def indexes(self):
         return self._indexes
 
+    def get(self, *args, **kwargs):
+        """Get one or more value
+
+        :return: Union[tuple, Response]
+        """
+        self.session.get(*args, **kwargs)
+
+    def insert(self, *args, **kwargs):
+        """Insert one value
+
+        :return: Union[bool, Response]
+        """
+        self.session.insert(*args, **kwargs)
+
+    def insert_many(self, *args, **kwargs):
+        """Insert one or more value
+
+        :return: Union[bool, Response]
+        """
+        self.session.insert_many(*args, **kwargs)
+
+    def update(self, *args, **kwargs):
+        """Update one value
+
+        :return: Union[bool, Response]
+        """
+        self.session.update(*args, **kwargs)
+
+    def update_many(self, *args, **kwargs):
+        """Update one or more value
+
+        :return: Union[bool, Response]
+        """
+        self.session.update_many(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Delete one value
+
+        :return: Union[bool, Response]
+        """
+        self.session.delete(*args, **kwargs)
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'
 
