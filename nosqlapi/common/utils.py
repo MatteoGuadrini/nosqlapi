@@ -145,11 +145,18 @@ class Manager:
         self.session.delete(*args, **kwargs)
 
     def close(self, *args, **kwargs):
-        """Delete session
+        """Close session
 
         :return: None
         """
         self.session.close(*args, **kwargs)
+
+    def find(self, *args, **kwargs):
+        """Find data
+
+        :return: Union[tuple, Response]
+        """
+        self.session.find(*args, **kwargs)
 
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'

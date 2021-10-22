@@ -301,7 +301,7 @@ class Session(ABC):
 
     @abstractmethod
     def close(self, *args, **kwargs):
-        """Delete session
+        """Close session
 
         :return: None
         """
