@@ -102,4 +102,10 @@ class Manager:
     def indexes(self):
         return self._indexes
 
+    def __repr__(self):
+        return f'<{self.__class__.__name__} object, connection={self.connection}>'
+
+    def __str__(self):
+        return str(self.session)
+
 # endregion
