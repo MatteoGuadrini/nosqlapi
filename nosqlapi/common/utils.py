@@ -158,6 +158,20 @@ class Manager:
         """
         self.session.find(*args, **kwargs)
 
+    def grant(self, *args, **kwargs):
+        """Grant users ACLs
+
+        :return: Union[Any, Response]
+        """
+        self.session.grant(*args, **kwargs)
+
+    def revoke(self, *args, **kwargs):
+        """Revoke users ACLs
+
+        :return: Union[Any, Response]
+        """
+        self.session.revoke(*args, **kwargs)
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'
 
