@@ -144,6 +144,13 @@ class Manager:
         """
         self.session.delete(*args, **kwargs)
 
+    def close(self, *args, **kwargs):
+        """Delete session
+
+        :return: None
+        """
+        self.session.close(*args, **kwargs)
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'
 
