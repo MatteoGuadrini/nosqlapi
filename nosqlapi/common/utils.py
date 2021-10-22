@@ -172,6 +172,27 @@ class Manager:
         """
         self.session.revoke(*args, **kwargs)
 
+    def new_user(self, *args, **kwargs):
+        """Create new user
+
+        :return: Union[bool, Response]
+        """
+        self.session.new_user(*args, **kwargs)
+
+    def set_user(self, *args, **kwargs):
+        """Modify exist user
+
+        :return: Union[bool, Response]
+        """
+        self.session.set_user(*args, **kwargs)
+
+    def delete_user(self, *args, **kwargs):
+        """Delete exist user
+
+        :return: Union[bool, Response]
+        """
+        self.session.delete_user(*args, **kwargs)
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'
 
