@@ -193,6 +193,27 @@ class Manager:
         """
         self.session.delete_user(*args, **kwargs)
 
+    def add_index(self, *args, **kwargs):
+        """Add index to database
+
+        :return: Union[bool, Response]
+        """
+        self.session.add_index(*args, **kwargs)
+
+    def delete_index(self, *args, **kwargs):
+        """Delete index to database
+
+        :return: Union[bool, Response]
+        """
+        self.session.delete_index(*args, **kwargs)
+
+    def call(self, *args, **kwargs):
+        """Call a batch
+
+        :return: Union[Any, Response]
+        """
+        self.session.call(self.session, *args, **kwargs)
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'
 
