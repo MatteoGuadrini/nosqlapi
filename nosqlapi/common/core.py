@@ -97,7 +97,7 @@ class Connection(ABC):
     def databases(self, *args, **kwargs):
         """Get all databases
 
-        :return: Union[list, Response]
+        :return: Union[tuple, list, Response]
         """
         pass
 
