@@ -209,10 +209,6 @@ This read-only attribute contains the name of indexes of the current database.
 
 Getting one or more data on specific database with position and keyword arguments.
 
-`.get(parameters...)`
-
-Getting one or more data on specific database with position and keyword arguments.
-
 `.insert(parameters...)`
 
 Inserting one data on specific database with position and keyword arguments.
@@ -624,6 +620,44 @@ In the `nosqlapi.common.orm` module there are also classes that represent the da
 >>> [t for t in dir(nosqlapi.common.orm) if not t.startswith('__')]
 ['Array', 'Ascii', 'Blob', 'Boolean', 'Counter', 'Date', 'Dc', 'Decimal', 'Double', 'Duration', 'Float', 'Inet', 'Int', 
 'List', 'Map', 'Null', 'SmallInt', 'Text', 'Time', 'Timestamp', 'Uuid', 'Varchar']
+```
+
+### Utilities
+The package also comes with useful classes and functions to help migrate a library to these APIs. 
+Besides, these there are also some utilities for end users.
+
+#### api decorator
+
+```python
+import nosqlapi
+from pymongo import Connection
+
+# This decorator allows you to map existing method names to API compliant methods.
+@nosqlapi.api(database_names='databases', drop_database='delete_database', close_cursor='close')
+class ApiConnection(Connection):
+    pass
+
+conn = ApiConnection('localhost', 27017, 'test_database')
+hasattr(conn, 'databases')      # True
+conn.databases()                # (test_database, 'db1', 'db2')
+```
+
+#### Manager session
+
+```python
+import nosqlapi
+from neo4j import Neo4jConnection
+
+# Create manager for session API
+man = nosqlapi.Manager(Neo4jConnection(host='server.local', username='admin', password='pass', database='db'))
+print(type(man))        # <class 'Manager'>
+print(man)              # database=db, description=('db', 'online')
+
+# CRUD operation
+C = man.insert(node='n:Person', properties={'name': 'Arthur', 'age': 42})           # Create
+R = man.get(node='n:Person')                                                        # Read
+U = man.update(node='n:Person', properties={'name': 'Arthur', 'age': 42})           # Update
+D = man.delete(node='n:Person')                                                     # Delete
 ```
 
 ## Open source

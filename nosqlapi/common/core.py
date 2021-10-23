@@ -97,7 +97,7 @@ class Connection(ABC):
     def databases(self, *args, **kwargs):
         """Get all databases
 
-        :return: Union[list, Response]
+        :return: Union[tuple, list, Response]
         """
         pass
 
@@ -301,7 +301,7 @@ class Session(ABC):
 
     @abstractmethod
     def close(self, *args, **kwargs):
-        """Delete session
+        """Close session
 
         :return: None
         """
