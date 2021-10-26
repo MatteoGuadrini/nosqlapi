@@ -220,4 +220,8 @@ class Manager:
     def __str__(self):
         return str(self.session)
 
+    def __bool__(self):
+        if self.session:
+            return True
+
 # endregion
