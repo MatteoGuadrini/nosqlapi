@@ -214,6 +214,19 @@ class Manager:
         """
         self.session.call(self.session, *args, **kwargs)
 
+    def change(self, connection, *args, **kwargs):
+        """Change connection type
+
+        :param connection: Connection object
+        :param args: positional args of Connection object
+        :param kwargs: keywords args of Connection object
+        :return: None
+        """
+        if not hasattr(connection, 'connect'):
+            raise ConnectError(f'{connection} is not a valid Connection object')
+        self.connection = connection
+        self.session = self.connection.connect(*args, **kwargs)
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'
 
