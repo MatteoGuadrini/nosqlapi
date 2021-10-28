@@ -23,7 +23,7 @@
 """Utils function and classes for any type of NOSQL database"""
 
 # region imports
-from nosqlapi import ConnectError
+from nosqlapi.common.exception import ConnectError
 
 # endregion
 
