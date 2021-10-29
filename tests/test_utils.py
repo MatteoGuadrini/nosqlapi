@@ -34,6 +34,25 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(man.acl.data, {'test': 'user_read', 'admin': 'admins', 'root': 'admins'})
         self.assertEqual(man.description, ('mykvdb.local', '12345', 'test_db'))
 
+    def test_manager_crud_operation(self):
+        man = nosqlapi.Manager(KVConn(host='mykvdb.local', username='test', password='pass', database='test_db'))
+        # Get operation
+        d = man.get('key')
+        self.assertEqual(repr(d), '<nosqlapi MyDBResponse object>')
+        self.assertIn('key', d)
+        # Find operation
+        d = man.find('{selector=$like:key*}')
+        self.assertEqual(d.data, {'key': 'value', 'key1': 'value1'})
+        self.assertEqual(man.item_count, 2)
+        # Delete operation
+        man.delete('key')
+        self.assertEqual(man.item_count, 0)
+        # Insert and update operation
+        man.insert('key', 'value')
+        self.assertEqual(man.item_count, 1)
+        man.update('key', 'new_value')
+        self.assertEqual(man.item_count, 1)
+
 
 if __name__ == '__main__':
     unittest.main()
