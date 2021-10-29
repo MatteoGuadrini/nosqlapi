@@ -89,14 +89,17 @@ class Manager:
 
     @property
     def database(self):
+        self._database = self.session.database
         return self._database
 
     @property
     def acl(self):
+        self._acl = self.session.acl
         return self._acl
 
     @property
     def description(self):
+        self._description = self.session.description
         return self._description
 
     @property
