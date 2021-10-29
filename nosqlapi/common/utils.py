@@ -107,42 +107,42 @@ class Manager:
 
         :return: Union[tuple, Response]
         """
-        self.session.get(*args, **kwargs)
+        return self.session.get(*args, **kwargs)
 
     def insert(self, *args, **kwargs):
         """Insert one value
 
         :return: Union[bool, Response]
         """
-        self.session.insert(*args, **kwargs)
+        return self.session.insert(*args, **kwargs)
 
     def insert_many(self, *args, **kwargs):
         """Insert one or more value
 
         :return: Union[bool, Response]
         """
-        self.session.insert_many(*args, **kwargs)
+        return self.session.insert_many(*args, **kwargs)
 
     def update(self, *args, **kwargs):
         """Update one value
 
         :return: Union[bool, Response]
         """
-        self.session.update(*args, **kwargs)
+        return self.session.update(*args, **kwargs)
 
     def update_many(self, *args, **kwargs):
         """Update one or more value
 
         :return: Union[bool, Response]
         """
-        self.session.update_many(*args, **kwargs)
+        return self.session.update_many(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         """Delete one value
 
         :return: Union[bool, Response]
         """
-        self.session.delete(*args, **kwargs)
+        return self.session.delete(*args, **kwargs)
 
     def close(self, *args, **kwargs):
         """Close session
@@ -156,63 +156,63 @@ class Manager:
 
         :return: Union[tuple, Response]
         """
-        self.session.find(*args, **kwargs)
+        return self.session.find(*args, **kwargs)
 
     def grant(self, *args, **kwargs):
         """Grant users ACLs
 
         :return: Union[Any, Response]
         """
-        self.session.grant(*args, **kwargs)
+        return self.session.grant(*args, **kwargs)
 
     def revoke(self, *args, **kwargs):
         """Revoke users ACLs
 
         :return: Union[Any, Response]
         """
-        self.session.revoke(*args, **kwargs)
+        return self.session.revoke(*args, **kwargs)
 
     def new_user(self, *args, **kwargs):
         """Create new user
 
         :return: Union[bool, Response]
         """
-        self.session.new_user(*args, **kwargs)
+        return self.session.new_user(*args, **kwargs)
 
     def set_user(self, *args, **kwargs):
         """Modify exist user
 
         :return: Union[bool, Response]
         """
-        self.session.set_user(*args, **kwargs)
+        return self.session.set_user(*args, **kwargs)
 
     def delete_user(self, *args, **kwargs):
         """Delete exist user
 
         :return: Union[bool, Response]
         """
-        self.session.delete_user(*args, **kwargs)
+        return self.session.delete_user(*args, **kwargs)
 
     def add_index(self, *args, **kwargs):
         """Add index to database
 
         :return: Union[bool, Response]
         """
-        self.session.add_index(*args, **kwargs)
+        return self.session.add_index(*args, **kwargs)
 
     def delete_index(self, *args, **kwargs):
         """Delete index to database
 
         :return: Union[bool, Response]
         """
-        self.session.delete_index(*args, **kwargs)
+        return self.session.delete_index(*args, **kwargs)
 
     def call(self, *args, **kwargs):
         """Call a batch
 
         :return: Union[Any, Response]
         """
-        self.session.call(self.session, *args, **kwargs)
+        return self.session.call(self.session, *args, **kwargs)
 
     def change(self, connection, *args, **kwargs):
         """Change connection type
