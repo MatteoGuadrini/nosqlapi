@@ -53,6 +53,14 @@ class TestUtils(unittest.TestCase):
         man.update('key', 'new_value')
         self.assertEqual(man.item_count, 1)
 
+    def test_change_connection(self):
+        man = nosqlapi.Manager(KVConn(host='mykvdb.local', username='test', password='pass', database='test_db'))
+        self.assertIsInstance(man.connection, KVConn)
+        self.assertIn('mykvdb.local', man.description)
+        man.change(DocConn('mydocdb.local', 12345, username='admin', password='test'))
+        self.assertIsInstance(man.connection, DocConn)
+        self.assertEqual('mydocdb.local', man.description['host'])
+
 
 if __name__ == '__main__':
     unittest.main()
