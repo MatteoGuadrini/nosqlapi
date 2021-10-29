@@ -84,6 +84,7 @@ class Manager:
 
     @property
     def item_count(self):
+        self._item_count = self.session.item_count
         return self._item_count
 
     @property
