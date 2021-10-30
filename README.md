@@ -647,6 +647,7 @@ conn.databases()                # (test_database, 'db1', 'db2')
 ```python
 import nosqlapi
 from neo4j import Neo4jConnection
+from mymongo import MongoConnection
 
 # Create manager for session API
 man = nosqlapi.Manager(Neo4jConnection(host='server.local', username='admin', password='pass', database='db'))
@@ -658,6 +659,13 @@ C = man.insert(node='n:Person', properties={'name': 'Arthur', 'age': 42})       
 R = man.get(node='n:Person')                                                        # Read
 U = man.update(node='n:Person', properties={'name': 'Arthur', 'age': 42})           # Update
 D = man.delete(node='n:Person')                                                     # Delete
+
+# Change session
+man.change(MongoConnection(host='server.local', username='admin', password='pass', database='db'))
+C = man.insert(path='db/doc1', doc={"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 42})           # Create
+R = man.get(path='db/doc1')                                                                                    # Read
+U = man.update(path='db/doc1', doc={"_id": "5099803df3f4948bd2f98391", "name": "Arthur", "age": 43}, rev=2)    # Update
+D = man.delete(path='db/doc1', rev=2)                                                                          # Delete
 ```
 
 ## Open source

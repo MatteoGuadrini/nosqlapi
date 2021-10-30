@@ -23,7 +23,7 @@
 """Utils function and classes for any type of NOSQL database"""
 
 # region imports
-from nosqlapi import ConnectError
+from nosqlapi.common.exception import ConnectError
 
 # endregion
 
@@ -84,18 +84,22 @@ class Manager:
 
     @property
     def item_count(self):
+        self._item_count = self.session.item_count
         return self._item_count
 
     @property
     def database(self):
+        self._database = self.session.database
         return self._database
 
     @property
     def acl(self):
+        self._acl = self.session.acl
         return self._acl
 
     @property
     def description(self):
+        self._description = self.session.description
         return self._description
 
     @property
@@ -107,42 +111,42 @@ class Manager:
 
         :return: Union[tuple, Response]
         """
-        self.session.get(*args, **kwargs)
+        return self.session.get(*args, **kwargs)
 
     def insert(self, *args, **kwargs):
         """Insert one value
 
         :return: Union[bool, Response]
         """
-        self.session.insert(*args, **kwargs)
+        return self.session.insert(*args, **kwargs)
 
     def insert_many(self, *args, **kwargs):
         """Insert one or more value
 
         :return: Union[bool, Response]
         """
-        self.session.insert_many(*args, **kwargs)
+        return self.session.insert_many(*args, **kwargs)
 
     def update(self, *args, **kwargs):
         """Update one value
 
         :return: Union[bool, Response]
         """
-        self.session.update(*args, **kwargs)
+        return self.session.update(*args, **kwargs)
 
     def update_many(self, *args, **kwargs):
         """Update one or more value
 
         :return: Union[bool, Response]
         """
-        self.session.update_many(*args, **kwargs)
+        return self.session.update_many(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         """Delete one value
 
         :return: Union[bool, Response]
         """
-        self.session.delete(*args, **kwargs)
+        return self.session.delete(*args, **kwargs)
 
     def close(self, *args, **kwargs):
         """Close session
@@ -156,68 +160,91 @@ class Manager:
 
         :return: Union[tuple, Response]
         """
-        self.session.find(*args, **kwargs)
+        return self.session.find(*args, **kwargs)
 
     def grant(self, *args, **kwargs):
         """Grant users ACLs
 
         :return: Union[Any, Response]
         """
-        self.session.grant(*args, **kwargs)
+        return self.session.grant(*args, **kwargs)
 
     def revoke(self, *args, **kwargs):
         """Revoke users ACLs
 
         :return: Union[Any, Response]
         """
-        self.session.revoke(*args, **kwargs)
+        return self.session.revoke(*args, **kwargs)
 
     def new_user(self, *args, **kwargs):
         """Create new user
 
         :return: Union[bool, Response]
         """
-        self.session.new_user(*args, **kwargs)
+        return self.session.new_user(*args, **kwargs)
 
     def set_user(self, *args, **kwargs):
         """Modify exist user
 
         :return: Union[bool, Response]
         """
-        self.session.set_user(*args, **kwargs)
+        return self.session.set_user(*args, **kwargs)
 
     def delete_user(self, *args, **kwargs):
         """Delete exist user
 
         :return: Union[bool, Response]
         """
-        self.session.delete_user(*args, **kwargs)
+        return self.session.delete_user(*args, **kwargs)
 
     def add_index(self, *args, **kwargs):
         """Add index to database
 
         :return: Union[bool, Response]
         """
-        self.session.add_index(*args, **kwargs)
+        return self.session.add_index(*args, **kwargs)
 
     def delete_index(self, *args, **kwargs):
         """Delete index to database
 
         :return: Union[bool, Response]
         """
-        self.session.delete_index(*args, **kwargs)
+        return self.session.delete_index(*args, **kwargs)
 
     def call(self, *args, **kwargs):
         """Call a batch
 
         :return: Union[Any, Response]
         """
-        self.session.call(self.session, *args, **kwargs)
+        return self.session.call(self.session, *args, **kwargs)
+
+    def change(self, connection, *args, **kwargs):
+        """Change connection type
+
+        :param connection: Connection object
+        :param args: positional args of Connection object
+        :param kwargs: keywords args of Connection object
+        :return: None
+        """
+        if not hasattr(connection, 'connect'):
+            raise ConnectError(f'{connection} is not a valid Connection object')
+        self.connection = connection
+        self.session = self.connection.connect(*args, **kwargs)
 
     def __repr__(self):
         return f'<{self.__class__.__name__} object, connection={self.connection}>'
 
     def __str__(self):
         return str(self.session)
+
+    def __bool__(self):
+        if self.session:
+            return True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 # endregion
