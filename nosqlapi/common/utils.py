@@ -106,6 +106,17 @@ class Manager:
     def indexes(self):
         return self._indexes
 
+    # Connection methods
+
+    def create_database(self, *args, **kwargs):
+        """Create new database
+
+        :return: Union[bool, Response]
+        """
+        return self.connection.create_database(*args, **kwargs)
+
+    # Session methods
+
     def get(self, *args, **kwargs):
         """Get one or more value
 
