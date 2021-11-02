@@ -129,6 +129,13 @@ class Manager:
         """
         return self.connection.delete_database(*args, **kwargs)
 
+    def databases(self, *args, **kwargs):
+        """Get all databases
+
+        :return: Union[tuple, list, Response]
+        """
+        return self.connection.databases(*args, **kwargs)
+
     # Session methods
 
     def get(self, *args, **kwargs):
