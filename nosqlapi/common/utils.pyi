@@ -21,7 +21,8 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from nosqlapi import Response, Batch, Connection
-from typing import Union
+from typing import Union, Any
+
 
 def api(**methods: str) -> type: ...
 
@@ -50,6 +51,8 @@ class Manager:
     def delete_database(self, *args, **kwargs) -> Union[bool, Response]: ...
 
     def databases(self, *args, **kwargs) -> Union[tuple, list, Response]: ...
+
+    def show_database(self, *args, **kwargs) -> Union[Any, Response]: ...
 
     def get(self, *args, **kwargs) -> Union[tuple, dict, Response]: ...
 

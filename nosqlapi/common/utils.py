@@ -136,6 +136,13 @@ class Manager:
         """
         return self.connection.databases(*args, **kwargs)
 
+    def show_database(self, *args, **kwargs):
+        """Show a database information
+
+        :return : Union[Any, Response]
+        """
+        return self.connection.show_database(*args, **kwargs)
+
     # Session methods
 
     def get(self, *args, **kwargs):
