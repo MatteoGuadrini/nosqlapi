@@ -122,6 +122,13 @@ class Manager:
         """
         return self.connection.has_database(*args, **kwargs)
 
+    def delete_database(self, *args, **kwargs):
+        """Delete database on server
+
+        :return: Union[bool, Response]
+        """
+        return self.connection.delete_database(*args, **kwargs)
+
     # Session methods
 
     def get(self, *args, **kwargs):
