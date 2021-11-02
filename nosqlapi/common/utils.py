@@ -115,6 +115,13 @@ class Manager:
         """
         return self.connection.create_database(*args, **kwargs)
 
+    def has_database(self, *args, **kwargs):
+        """Check if database exists
+
+        :return: Union[bool, Response]
+        """
+        return self.connection.has_database(*args, **kwargs)
+
     # Session methods
 
     def get(self, *args, **kwargs):
