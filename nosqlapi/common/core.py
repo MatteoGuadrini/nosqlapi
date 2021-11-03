@@ -441,6 +441,9 @@ class Response(ABC):
     def __contains__(self, item):
         return True if item in self.data else False
 
+    def __getitem__(self, item):
+        return self.data[item]
+
 
 class Batch(ABC):
     """Batch abstract class"""
