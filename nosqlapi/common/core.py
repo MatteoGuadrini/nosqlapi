@@ -438,6 +438,9 @@ class Response(ABC):
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
+    def __len__(self):
+        return self.data.__len__()
+
     def __contains__(self, item):
         return True if item in self.data else False
 
