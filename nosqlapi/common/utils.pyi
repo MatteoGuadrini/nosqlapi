@@ -26,6 +26,8 @@ from typing import Union, Any
 
 def api(**methods: str) -> type: ...
 
+def global_session(connection: Any, *args, **kwargs) -> None: ...
+
 class Manager:
 
     item_count: int

@@ -63,6 +63,18 @@ def api(**methods):
     return wrapped
 
 
+def global_session(connection, *args, **kwargs):
+    """Global session
+
+    :param connection: Connection object
+    :param args: positional arguments of connect method on Connection object
+    :param kwargs: keywords arguments of connect method on Connection object
+    :return: None
+    """
+    if not hasattr(connection, 'connect'):
+        raise ConnectError(f'{connection} is not valid api connection')
+    globals()['driver'] = connection.connect(*args, **kwargs)
+
 # endregion
 
 
