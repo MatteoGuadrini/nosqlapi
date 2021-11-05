@@ -146,11 +146,11 @@ This read-only attribute contains a boolean value.
 
 #### Connection methods
 
-`.close()`
+`.close(parameters...)`
 
 Closing the connection now.
 
-`.connect()`
+`.connect(parameters...)`
 
 Connecting to database with the arguments when object has been instantiated.
 
@@ -166,7 +166,7 @@ Checking if exists a single database with position and keyword arguments.
 
 Deleting of a single database with position and keyword arguments.
 
-`.databases()`
+`.databases(parameters...)`
 
 List all databases.
 
@@ -229,7 +229,7 @@ Updating one or more existing data on specific database with position and keywor
 
 Deleting one existing data on specific database with position and keyword arguments.
 
-`.close()`
+`.close(parameters...)`
 
 Closing the session and connection now.
 
@@ -301,7 +301,7 @@ This read/write attribute represents _limit_ number of objects returned from fin
 
 #### Selector methods
 
-`.build()`
+`.build(parameters...)`
 
 Building a _selector_ string in the dialect of a NOSQL language based on various property of the `Selector` object.
 

@@ -73,7 +73,7 @@ def global_session(connection, *args, **kwargs):
     """
     if not hasattr(connection, 'connect'):
         raise ConnectError(f'{connection} is not valid api connection')
-    globals()['driver'] = connection.connect(*args, **kwargs)
+    globals()['SESSION'] = connection.connect(*args, **kwargs)
 
 # endregion
 
