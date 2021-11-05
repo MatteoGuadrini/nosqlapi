@@ -426,6 +426,15 @@ class Response(ABC):
         """Error of an operation"""
         return self._error
 
+    @property
+    def dict(self):
+        d = dict()
+        d['data'] = self.data
+        d['code'] = self.code
+        d['header'] = self.header
+        d['error'] = self.error
+        return d
+
     def __bool__(self):
         if self.error:
             return False

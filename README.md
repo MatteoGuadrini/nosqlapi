@@ -329,6 +329,10 @@ This read-only attribute represents a string information (header) of an operatio
 
 This read-only attribute represents a string error of an operation.
 
+`.dict`
+
+This read-only attribute represents a dictionary transformation of Response object.
+
 ### Batch Objects
 
 `Batch` objects should respond to the following methods.
