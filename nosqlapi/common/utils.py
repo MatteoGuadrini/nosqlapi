@@ -33,6 +33,7 @@ API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 
                          'show_database', 'get', 'insert', 'insert_many', 'update', 'update_many', 'delete', 'find',
                          'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index', 'add_index',
                          'call', 'build', 'execute', 'link', 'detach')
+__all__ = ['api', 'global_session', 'Manager']
 
 
 # endregion
@@ -80,6 +81,7 @@ def global_session(connection, *args, **kwargs):
 
 # region classes
 class Manager:
+    """Manager class for api compliant nosql database connection"""
 
     def __init__(self, connection, *args, **kwargs):
         # Check if connection is a compliant API connection object
