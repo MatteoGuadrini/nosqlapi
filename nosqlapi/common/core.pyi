@@ -154,6 +154,7 @@ class Response:
     code: int
     header: Union[str, tuple]
     error: Union[str, Exception]
+    dict: dict
 
     def __init__(self, data: Any, code: int = None, header: Union[str, tuple] = None,
                  error: Union[str, Exception] = None) -> None:
@@ -168,4 +169,8 @@ class Response:
 
     def __repr__(self) -> str: ...
 
+    def __len__(self) -> int: ...
+
     def __contains__(self, item) -> bool: ...
+
+    def __getitem__(self, item) -> Any: ...

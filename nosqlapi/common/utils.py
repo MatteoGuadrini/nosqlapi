@@ -33,6 +33,7 @@ API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 
                          'show_database', 'get', 'insert', 'insert_many', 'update', 'update_many', 'delete', 'find',
                          'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index', 'add_index',
                          'call', 'build', 'execute', 'link', 'detach')
+__all__ = ['api', 'global_session', 'Manager']
 
 
 # endregion
@@ -63,11 +64,24 @@ def api(**methods):
     return wrapped
 
 
+def global_session(connection, *args, **kwargs):
+    """Global session
+
+    :param connection: Connection object
+    :param args: positional arguments of connect method on Connection object
+    :param kwargs: keywords arguments of connect method on Connection object
+    :return: None
+    """
+    if not hasattr(connection, 'connect'):
+        raise ConnectError(f'{connection} is not valid api connection')
+    globals()['SESSION'] = connection.connect(*args, **kwargs)
+
 # endregion
 
 
 # region classes
 class Manager:
+    """Manager class for api compliant nosql database connection"""
 
     def __init__(self, connection, *args, **kwargs):
         # Check if connection is a compliant API connection object
@@ -105,6 +119,45 @@ class Manager:
     @property
     def indexes(self):
         return self._indexes
+
+    # Connection methods
+
+    def create_database(self, *args, **kwargs):
+        """Create new database
+
+        :return: Union[bool, Response]
+        """
+        return self.connection.create_database(*args, **kwargs)
+
+    def has_database(self, *args, **kwargs):
+        """Check if database exists
+
+        :return: Union[bool, Response]
+        """
+        return self.connection.has_database(*args, **kwargs)
+
+    def delete_database(self, *args, **kwargs):
+        """Delete database on server
+
+        :return: Union[bool, Response]
+        """
+        return self.connection.delete_database(*args, **kwargs)
+
+    def databases(self, *args, **kwargs):
+        """Get all databases
+
+        :return: Union[tuple, list, Response]
+        """
+        return self.connection.databases(*args, **kwargs)
+
+    def show_database(self, *args, **kwargs):
+        """Show a database information
+
+        :return : Union[Any, Response]
+        """
+        return self.connection.show_database(*args, **kwargs)
+
+    # Session methods
 
     def get(self, *args, **kwargs):
         """Get one or more value
@@ -245,6 +298,9 @@ class Manager:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def __del__(self):
         self.close()
 
 # endregion

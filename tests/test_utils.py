@@ -1,6 +1,6 @@
 import unittest
 import nosqlapi
-from test_kvdb import MyDBConnection as KVConn
+from test_kvdb import MyDBConnection as KVConn, MyDBResponse
 from test_docdb import MyDBConnection as DocConn
 
 
@@ -52,6 +52,26 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(man.item_count, 1)
         man.update('key', 'new_value')
         self.assertEqual(man.item_count, 1)
+
+    def test_connection_operation(self):
+        man = nosqlapi.Manager(KVConn(host='mykvdb.local', username='test', password='pass', database='test_db'))
+        # Create database
+        man.create_database('test_db')
+        self.assertEqual(man.connection.return_data, 'DB_CREATED')
+        # Exists database
+        man.has_database('test_db')
+        self.assertEqual(man.connection.return_data, 'DB_EXISTS')
+        # Delete database
+        man.delete_database('test_db')
+        self.assertEqual(man.connection.return_data, 'DB_DELETED')
+        # All databases
+        dbs = man.databases()
+        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
+        # Show database
+        db = man.show_database('test_db')
+        self.assertIsInstance(db, MyDBResponse)
+        self.assertEqual(db.data, 'name=test_db, size=0.4GB')
 
     def test_change_connection(self):
         man = nosqlapi.Manager(KVConn(host='mykvdb.local', username='test', password='pass', database='test_db'))

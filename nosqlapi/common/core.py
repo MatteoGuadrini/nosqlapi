@@ -29,13 +29,8 @@ from .exception import *
 # endregion
 
 # region global variable
-__all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
-
-
-# endregion
-
-# region global variables
 API_NAME = 'nosqlapi'
+__all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
 
 
 # endregion
@@ -431,6 +426,15 @@ class Response(ABC):
         """Error of an operation"""
         return self._error
 
+    @property
+    def dict(self):
+        d = dict()
+        d['data'] = self.data
+        d['code'] = self.code
+        d['header'] = self.header
+        d['error'] = self.error
+        return d
+
     def __bool__(self):
         if self.error:
             return False
@@ -443,8 +447,14 @@ class Response(ABC):
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
+    def __len__(self):
+        return self.data.__len__()
+
     def __contains__(self, item):
         return True if item in self.data else False
+
+    def __getitem__(self, item):
+        return self.data[item]
 
 
 class Batch(ABC):
