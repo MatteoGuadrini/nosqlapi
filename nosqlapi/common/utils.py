@@ -23,6 +23,7 @@
 """Utils function and classes for any type of NOSQL database"""
 
 # region imports
+import nosqlapi
 from nosqlapi.common.exception import ConnectError
 
 # endregion
@@ -74,7 +75,8 @@ def global_session(connection, *args, **kwargs):
     """
     if not hasattr(connection, 'connect'):
         raise ConnectError(f'{connection} is not valid api connection')
-    globals()['SESSION'] = connection.connect(*args, **kwargs)
+    nosqlapi.CONNECTION = connection
+    nosqlapi.SESSION = nosqlapi.CONNECTION.connect(*args, **kwargs)
 
 # endregion
 

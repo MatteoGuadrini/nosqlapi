@@ -33,3 +33,4 @@ from nosqlapi.common import (Int, Inet, Ascii, Time, SmallInt, Decimal, Timestam
                              Boolean, Double, Uuid, Duration, Float, Varint, Varchar)
 
 apilevel = '1.0'
+SESSION, CONNECTION = None, None
