@@ -23,7 +23,7 @@
 """Python NOSQL Database library."""
 
 from nosqlapi.common.exception import *
-from nosqlapi.common.utils import api, Manager
+from nosqlapi.common.utils import api, Manager, global_session
 from nosqlapi.common import Connection, Session, Selector, Response, Batch
 from nosqlapi.kvdb import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
 from nosqlapi.columndb import ColumnConnection, ColumnSelector, ColumnSession, ColumnResponse, ColumnBatch
