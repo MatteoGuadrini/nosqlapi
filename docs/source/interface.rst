@@ -28,3 +28,12 @@ With ``Session`` object you can operate directly on the database data specified 
 .. note::
     This division of objects allows you to have more flexibility in case you want to change databases.
     It is not necessary to create a new object to connect to a different database.
+
+Globals
+*******
+
+``api_level`` is a global variable to check compatibility with the names defined in this document. Currently the level is *1.0*.
+
+``CONNECTION`` is a global variable where to save a ``Connection`` object.
+
+``SESSION`` is a global variable where to save a ``Session`` object.
