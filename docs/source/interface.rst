@@ -90,4 +90,16 @@ The tree of exceptions:
        |__SelectorError
           |__SelectorAttributeError
 
+Selectors
+*********
 
+NOSQL databases do not use SQL syntax, or if they do, it is encapsulated in a shell or interpreter.
+The selection queries will be driven through ``Selector`` objects which will then be passed to the ``find`` method of a ``Session`` object.
+
+.. code-block:: pycon
+
+    >>> selector = Selector(*args, **kwargs)
+    >>> session.find(selector)
+
+.. note::
+    A string representing the language of the selector can also be passed to the find method.
