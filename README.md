@@ -21,7 +21,7 @@ Access to the database is made available through connection objects. The module 
 `Connection(parameters...)`
 
 Constructor for creating a connection to the database.
-Returns a `Session` object. It takes a number of parameters which are database dependent.
+This object has a `connect` method that returns a `Session` object. It takes a number of parameters which are database dependent.
 
 ### Globals
 
