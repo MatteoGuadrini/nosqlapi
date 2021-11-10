@@ -37,3 +37,57 @@ Globals
 ``CONNECTION`` is a global variable where to save a ``Connection`` object.
 
 ``SESSION`` is a global variable where to save a ``Session`` object.
+
+Exceptions
+**********
+
+All defined exceptions derive from the general exception ``Error`` based on ``Exception`` class, which tends not to be used directly.
+
+.. code-block:: pycon
+
+    >>> raise Error("Don't use this, but its subclasses!")
+
+======================= =============   ===========
+Name                    Base            Description
+======================= =============   ===========
+Error                   Exception       Exception that is the base class of all other error exceptions. Use only for checks.
+UnknownError            Error           Exception raised when an unspecified error occurred.
+ConnectError            Error           Exception raised for errors that are related to the database connection.
+CloseError              Error           Exception raised for errors that are related to the database close connection.
+DatabaseError           Error           Exception raised for errors that are related to the database, generally.
+DatabaseCreationError   DatabaseError   Exception raised for errors that are related to the creation of a database.
+DatabaseDeletionError   DatabaseError   Exception raised for errors that are related to the deletion of a database.
+SessionError            Error           Exception raised for errors that are related to the session, generally.
+SessionInsertingError   SessionError    Exception raised for errors that are related to the inserting data on a database session.
+SessionUpdatingError    SessionError    Exception raised for errors that are related to the updating data on a database session.
+SessionDeletingError    SessionError    Exception raised for errors that are related to the deletion data on a database session.
+SessionClosingError     SessionError    Exception raised for errors that are related to the closing database session.
+SessionFindingError     SessionError    Exception raised for errors that are related to the finding data on a database session.
+SessionACLError         SessionError    Exception raised for errors that are related to the grant or revoke permission on a database.
+SelectorError           Error           Exception raised for errors that are related to the selectors in general.
+SelectorAttributeError  SelectorError   Exception raised for errors that are related to the selectors attribute.
+======================= =============   ===========
+
+The tree of exceptions:
+
+.. code-block::
+
+    Exception
+    |__Error
+       |__UnknownError
+       |__ConnectError
+       |__CloseError
+       |__DatabaseError
+       |  |__DatabaseCreationError
+       |  |__DatabaseDeletionError
+       |__SessionError
+       |  |__SessionInsertingError
+       |  |__SessionUpdatingError
+       |  |__SessionDeletingError
+       |  |__SessionClosingError
+       |  |__SessionFindingError
+       |  |__SessionACLError
+       |__SelectorError
+          |__SelectorAttributeError
+
+
