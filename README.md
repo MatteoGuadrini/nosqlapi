@@ -29,7 +29,15 @@ This object has a `connect` method that returns a `Session` object. It takes a n
 
 String constant stating the supported DB API level.
 
-Currently only the strings "1.0".
+Currently, only the strings _"1.0"_.
+
+`CONNECTION`
+
+Connection object global variable.
+
+`SESSION`
+
+Session object global variable.
 
 ### Exceptions
 
