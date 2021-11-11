@@ -69,6 +69,7 @@ Contents
    :maxdepth: 2
 
    interface
+   api
 
 
 
