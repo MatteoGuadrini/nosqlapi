@@ -208,3 +208,33 @@ Selector methods
 .. function:: build(*args, **kwargs)
 
 Building a selector string in the dialect of a NOSQL language based on various property of the ``Selector`` object. Returns ``str``.
+
+Response Objects
+****************
+
+The ``Response`` object represents the response that comes from an operation from the database.
+
+.. note::
+    ``Response`` objects is a species of an either-data type, because contains both *success* and *error* values.
+
+Response attributes
+-------------------
+.. py:attribute:: data
+
+This read-only attribute represents the effective python data (``Any``) than returned from an operation from the database.
+
+.. py:attribute:: code
+
+This read-only attribute represents a number code (``int``) of error or success in an operation.
+
+.. py:attribute:: header
+
+This read-only attribute represents a ``str`` information (header) of an operation.
+
+.. py:attribute:: error
+
+This read-only attribute represents a ``str`` or ``Exception`` object error of an operation.
+
+.. py:attribute:: dict
+
+This read-only attribute represents a ``dict`` transformation of ``Response`` object.
