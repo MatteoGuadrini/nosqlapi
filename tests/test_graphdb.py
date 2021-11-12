@@ -808,7 +808,7 @@ class GraphSessionTest(unittest.TestCase):
         b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
     SET rel.startYear = date({year: 2018})
     RETURN p"""
-        batch = MyDBBatch(self.mysess, b)
+        batch = MyDBBatch(b)
         resp = batch.execute()
         self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
 
@@ -816,7 +816,7 @@ class GraphSessionTest(unittest.TestCase):
         b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
     SET rel.startYear = date({year: 2018})
     RETURN p"""
-        batch = MyDBBatch(self.mysess, b)
+        batch = MyDBBatch(b)
         resp = self.mysess.call(batch)
         self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
 
