@@ -26,34 +26,34 @@ This read-only attribute contains a boolean value representing whether the conne
 Connection methods
 ------------------
 
-.. function:: close(*args, **kwargs)**
+.. function:: close(*args, **kwargs)
 
 Immediate closure of the connection and session with the database. Returns ``None``.
 
-.. function:: connect(*args, **kwargs)**
+.. function:: connect(*args, **kwargs)
 
 Create a persistent session with a specific database. Returns an object of type ``Session``.
 
 .. attention::
     A valid ``Session`` object must necessarily be instantiated with a valid *database* name.
 
-.. function:: create_database(*args, **kwargs)**
+.. function:: create_database(*args, **kwargs)
 
 Create a single database. Returns an object of type ``Response``.
 
-.. function:: has_database(*args, **kwargs)**
+.. function:: has_database(*args, **kwargs)
 
 Check if exists a single database. Returns an object of type ``Response``.
 
-.. function:: delete_database(*args, **kwargs)**
+.. function:: delete_database(*args, **kwargs)
 
 Delete of a single database. Returns an object of type ``Response``.
 
-.. function:: databases(*args, **kwargs)**
+.. function:: databases(*args, **kwargs)
 
 List all databases. Returns an object of type ``Response``.
 
-.. function:: show_database(*args, **kwargs)**
+.. function:: show_database(*args, **kwargs)
 
 Show an information of a specific database. Returns an object of type ``Response``.
 
@@ -130,6 +130,7 @@ Delete one existing data on specific database. Returns an object of type ``Respo
     This is the letter *D* of CRUD operations.
 
 .. function:: close(*args, **kwargs)
+    :noindex:
 
 Close immediately current session. Returns ``None``.
 
@@ -168,3 +169,42 @@ Delete exists index to database. Returns an object of type ``Response``
 .. function:: call(batch, *args, **kwargs)
 
 Call a ``Batch`` object to execute one or more statement. Returns an object of type ``Response``
+
+Selector Objects
+****************
+
+The ``Selector`` object represents the *query* string for find data from database.
+Once instantiated, it can be an input to the ``Session``'s find method.
+
+Selector attributes
+-------------------
+.. py:attribute:: selector
+
+This read/write attribute represents the selector key/value than you want search.
+
+.. py:attribute:: fields
+
+This read/write attribute represents the fields key that returned from find operations.
+
+.. py:attribute:: partition
+
+This read/write attribute represents the name of partition/collection in a database.
+
+.. py:attribute:: condition
+
+This read/write attribute represents other condition to apply a selectors.
+
+.. py:attribute:: order
+
+This read/write attribute represents order returned from find operations.
+
+.. py:attribute:: limit
+
+This read/write attribute represents limit number of objects returned from find operations.
+
+Selector methods
+----------------
+
+.. function:: build(*args, **kwargs)
+
+Building a selector string in the dialect of a NOSQL language based on various property of the ``Selector`` object. Returns ``str``.
