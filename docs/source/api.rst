@@ -178,6 +178,7 @@ Once instantiated, it can be an input to the ``Session``'s find method.
 
 Selector attributes
 -------------------
+
 .. py:attribute:: selector
 
 This read/write attribute represents the selector key/value than you want search.
@@ -219,6 +220,7 @@ The ``Response`` object represents the response that comes from an operation fro
 
 Response attributes
 -------------------
+
 .. py:attribute:: data
 
 This read-only attribute represents the effective python data (``Any``) than returned from an operation from the database.
@@ -238,3 +240,26 @@ This read-only attribute represents a ``str`` or ``Exception`` object error of a
 .. py:attribute:: dict
 
 This read-only attribute represents a ``dict`` transformation of ``Response`` object.
+
+Batch Objects
+*************
+
+The ``Batch`` object represents an aggregation of CRUD operations.
+
+Batch attributes
+----------------
+
+.. py:attribute:: session
+
+This read/write attribute represents a ``Session`` object.
+
+.. py:attribute:: batch
+
+This read/write attribute represents a *batch* operation.
+
+Batch methods
+-------------
+
+.. function:: execute(*args, **kwargs)
+
+Executing a batch operation with position and keyword arguments. Returns ``tuple`` or an object of type ``Response``
