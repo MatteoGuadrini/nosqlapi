@@ -460,7 +460,7 @@ class Response(ABC):
 class Batch(ABC):
     """Batch abstract class"""
 
-    def __init__(self, session, batch):
+    def __init__(self, batch, session=None):
         self._session = session
         self._query = batch
 
@@ -472,7 +472,7 @@ class Batch(ABC):
     @session.setter
     def session(self, value):
         """Session object"""
-        if not isinstance(value, Session):
+        if not hasattr(value, 'call'):
             raise SessionError(f'{value} not contains a valid session')
         self._session = value
 
@@ -490,7 +490,7 @@ class Batch(ABC):
     def execute(self, *args, **kwargs):
         """Execute some batch statement
 
-        :return: Union[Any, Response]
+        :return: Union[tuple, Response]
         """
         pass
 

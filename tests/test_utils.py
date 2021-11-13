@@ -81,6 +81,13 @@ class TestUtils(unittest.TestCase):
         self.assertIsInstance(man.connection, DocConn)
         self.assertEqual('mydocdb.local', man.description['host'])
 
+    def test_global_session(self):
+        man = nosqlapi.Manager(KVConn(host='mykvdb.local', username='test', password='pass', database='test_db'))
+        self.assertIsInstance(man.connection, KVConn)
+        self.assertIn('mykvdb.local', man.description)
+        nosqlapi.global_session(DocConn('mydocdb.local', 12345, username='admin', password='test'))
+        self.assertEqual('mydocdb.local', nosqlapi.SESSION.description['host'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -27,7 +27,7 @@ class Batch:
     session: Session
     batch: Any
 
-    def __init__(self, session: Session, batch: Any) -> None:
+    def __init__(self, batch: Any, session: Any = None) -> None:
         self._session: Session = session
         self._query: str = batch
 
