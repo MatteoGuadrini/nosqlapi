@@ -62,11 +62,9 @@ these relationships are implied and must be reified at run-time.
 Graph databases are similar to 1970s network model databases in that both represent general graphs,
 but network-model databases operate at a lower level of abstraction and lack easy traversal over a chain of edges.
 
-Contents
-========
-
 .. toctree::
    :maxdepth: 2
+   :caption: Contents:
 
    interface
    api

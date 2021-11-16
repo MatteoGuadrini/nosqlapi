@@ -6,3 +6,5 @@ The package nosqlapi is a collection of interface and utility class and function
 .. toctree::
    :maxdepth: 2
    :caption: Package:
+
+   nosqlapi_common
