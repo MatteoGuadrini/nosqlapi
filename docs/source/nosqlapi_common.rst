@@ -21,14 +21,16 @@ In the **core** module, we find the abstract classes that form the basis of the 
     :special-members:
     :show-inheritance:
 
-Usage example
-*************
+core example
+************
 
-Classes are *abstract* (interfaces), therefore, they cannot be instantiated as objects, but inherit them in their own classes.
+Classes on this module are *abstract* (interfaces), therefore, they cannot be instantiated as objects, but inherit them in their own classes.
 
 .. code-block:: python
 
     import nosqlapi
+
+    # this module is my library of NOSQL database
 
     class Connection(nosqlapi.common.Connection):
         def __init__(host=None, port=None, database=None, username=None, password=None, ssl=None, tls=None, cert=None,
@@ -42,9 +44,34 @@ Classes are *abstract* (interfaces), therefore, they cannot be instantiated as o
         def show_database(self, database): ...
 
     conn = Connection('server.local', 1241, 'new_db', username='admin', password='pa$$w0rd', ssl=True)
-    conn.create_database(conn.database)     # use 'database' attribute == 'new_db'
+    conn.create_database(conn.database)     # use 'database' attribute equals 'new_db'
     if conn.has_database('new_db'):         # check if database exists
         sess = conn.connect()               # Session object
     else:
         raise nosqlapi.common.exception.ConnectError(f'Connection error with database {conn.database}')
+    ...
 
+exception module
+----------------
+
+In the **exception** module, we find the exceptions listed in the exceptions table in the `interface <interface.html#exceptions>`_ documentation.
+
+.. note::
+    You should never use the `Error` exception class as it is the basis for all exceptions.
+    If you have a generic or unknown error, use `UnknownError` instead.
+
+.. automodule:: nosqlapi.common.exception
+    :members:
+    :show-inheritance:
+
+exception example
+*****************
+
+The exceptions stated in this form are used in certain circumstances. See the `table <interface.html#exceptions>`_ of exceptions to find out more.
+
+.. code-block:: python
+
+    import nosqlapi
+
+    raise nosqlapi.common.exception.UnknownError('I have no idea what the hell happened!')
+    raise nosqlapi.UnknownError('in short')
