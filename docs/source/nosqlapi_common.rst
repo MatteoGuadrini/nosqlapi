@@ -75,3 +75,31 @@ The exceptions stated in this form are used in certain circumstances. See the `t
 
     raise nosqlapi.common.exception.UnknownError('I have no idea what the hell happened!')
     raise nosqlapi.UnknownError('in short')
+
+
+orm module
+----------
+
+In the **orm** module, we find generic classes represent real objects present in various NOSQL databases.
+
+.. note::
+    These objects are not mandatory for the implementation of their own NOSQL module.
+    Rather they serve to help the end user have some consistency in python.
+
+.. automodule:: nosqlapi.common.orm
+    :members:
+    :show-inheritance:
+
+orm example
+***********
+
+The classes within the module are python representations of real objects in the database.
+
+.. code-block:: python
+
+    import nosqlapi
+
+    null = nosqlapi.common.orm.Null()     # compare with null object into database
+    null = nosqlapi.Null()                # in short
+    map_ = nosqlapi.Map()                 # like dict
+    inet = nosqlapi.Inet('192.168.1.1')   # ipv4/ipv6 addresses
