@@ -28,6 +28,7 @@ Classes on this module are *abstract* (interfaces), therefore, they cannot be in
 
 .. code-block:: python
 
+    # mymodule.py
     import nosqlapi
 
     # this module is my library of NOSQL database
@@ -103,3 +104,55 @@ The classes within the module are python representations of real objects in the 
     null = nosqlapi.Null()                # in short
     map_ = nosqlapi.Map()                 # like dict
     inet = nosqlapi.Inet('192.168.1.1')   # ipv4/ipv6 addresses
+
+utils module
+------------
+
+In the **utils** module, we find classes and functions that help the end user's work.
+
+.. note::
+    The functions and classes in this module are meant for the work of the end user and not for those who build libraries.
+
+.. automodule:: nosqlapi.common.utils
+    :members:
+    :show-inheritance:
+
+utils example
+*************
+
+This is an example of a ``Manager`` object, used to change manage multiple sessions to different types of databases.
+
+.. code-block:: python
+
+    import nosqlapi
+    import mymodule
+
+    connection = mymodule.Connection('server.local', 1241, 'new_db', username='admin', password='pa$$w0rd', ssl=True)
+    manager = nosqlapi.common.utils.Manager(connection)
+
+The ``api`` decorator function allows you to return existing classes so that the methods can match the NOSQL api described in this documentation.
+
+.. code-block:: python
+
+    import nosqlapi
+    import pymongo
+
+    @nosqlapi.common.utils.api(database_names='databases', drop_database='delete_database', close_cursor='close')
+    class Connection(pymongo.Connection): ...
+
+    connection = ApiConnection('localhost', 27017, 'test_database')
+
+    print(hasattr(connection, 'databases'))     # True
+
+The ``global_session`` function allows you to instantiate a global connection and session.
+
+.. code-block:: python
+
+    import nosqlapi
+    import mymodule
+
+    connection = mymodule.Connection('server.local', 1241, 'new_db', username='admin', password='pa$$w0rd', ssl=True)
+    nosqlapi.common.utils.global_session(connection)
+
+    print(nosqlapi.CONNECTION)  # Connection object
+    print(nosqlapi.SESSION)     # Session object
