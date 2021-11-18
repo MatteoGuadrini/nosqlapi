@@ -8,3 +8,4 @@ The package nosqlapi is a collection of interface and utility class and function
    :caption: Package:
 
    nosqlapi_common
+   nosqlapi_kv
