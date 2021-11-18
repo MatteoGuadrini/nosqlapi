@@ -6,7 +6,6 @@ nosqlapi common
 In this package you will find the modules that contain common interfaces and `ORMs <https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping>`_
 (Object-relational mapping), shared by all four types of NOSQL database.
 
-
 core module
 -----------
 
@@ -89,6 +88,7 @@ In the **orm** module, we find generic classes represent real objects present in
 
 .. automodule:: nosqlapi.common.orm
     :members:
+    :special-members:
     :show-inheritance:
 
 orm example
@@ -115,6 +115,7 @@ In the **utils** module, we find classes and functions that help the end user's 
 
 .. automodule:: nosqlapi.common.utils
     :members:
+    :special-members:
     :show-inheritance:
 
 utils example
