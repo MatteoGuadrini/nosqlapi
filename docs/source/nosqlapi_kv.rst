@@ -39,7 +39,40 @@ This is an example of a library for connecting to a `redis <https://redis.io/>`_
         def delete_database(self): ...
         def show_database(self, database): ...
 
+
+    class Session(nosqlapi.kvdb.KVSession):
+        # define here all methods
+        pass
+
     conn = Connection('myredis.local', password='pa$$w0rd')
     print(conn.databases(conn.database))    # (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     sess = conn.connect()                   # Session object
     ...
+
+orm module
+----------
+
+The **orm** module contains the specific object for *key-value* databases.
+
+.. automodule:: nosqlapi.kvdb.orm
+    :members:
+    :special-members:
+    :show-inheritance:
+
+orm example
+***********
+
+These objects represent the respective *key-value* in databases.
+
+.. code-block:: python
+
+    import nosqlapi
+
+    transaction = nosqlapi.kvdb.orm.Transaction()   # in short -> nosqlapi.Transaction()
+    # Add commands
+    transaction.add('ACL LIST')
+    transaction.add('ACL DELUSER test')
+    # Remove commands
+    transaction.delete(1)
+
+    item = nosqlapi.Item('key', 'value')            # item key=value
