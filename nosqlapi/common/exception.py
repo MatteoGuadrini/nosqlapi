@@ -23,28 +23,7 @@
 
 """Exception module.
 
-This module contains the hierarchy of exceptions included in the NOSQL API.
-
-Hierarchy is:
-
-Exception
-|__Error
-   |__UnknownError
-   |__ConnectError
-   |__CloseError
-   |__DatabaseError
-   |  |__DatabaseCreationError
-   |  |__DatabaseDeletionError
-   |__SessionError
-   |  |__SessionInsertingError
-   |  |__SessionUpdatingError
-   |  |__SessionDeletingError
-   |  |__SessionClosingError
-   |  |__SessionFindingError
-   |  |__SessionACLError
-   |__SelectorError
-      |__SelectorAttributeError
-"""
+This module contains the hierarchy of exceptions included in the NOSQL API."""
 
 # region global variable
 __all__ = ['Error', 'UnknownError', 'ConnectError', 'CloseError', 'DatabaseError',
