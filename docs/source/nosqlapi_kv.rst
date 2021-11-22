@@ -45,7 +45,7 @@ This is an example of a library for connecting to a `redis <https://redis.io/>`_
         pass
 
     conn = Connection('myredis.local', password='pa$$w0rd')
-    print(conn.databases(conn.database))    # (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    print(conn.databases())                 # (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     sess = conn.connect()                   # Session object
     ...
 
