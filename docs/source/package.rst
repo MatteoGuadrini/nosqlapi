@@ -18,3 +18,4 @@ To install the nosqlapi package, run ``pip`` as follows:
 
    nosqlapi_common
    nosqlapi_kv
+   nosqlapi_column
