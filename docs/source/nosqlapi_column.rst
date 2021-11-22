@@ -47,3 +47,13 @@ This is an example of a library for connecting to a `cassandra <https://cassandr
     print(conn.show_database('testdb')      # ('testdb', 17983788, 123, False) -- name, size, rows, readonly
     sess = conn.connect()                   # Session object
     ...
+
+orm module
+----------
+
+The **orm** module contains the specific object for *column* databases.
+
+.. automodule:: nosqlapi.columndb.orm
+    :members:
+    :special-members:
+    :show-inheritance:
