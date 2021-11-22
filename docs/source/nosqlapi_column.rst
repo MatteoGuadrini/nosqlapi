@@ -22,10 +22,10 @@ This is an example of a library for connecting to a `cassandra <https://cassandr
 
 .. code-block:: python
 
-    # mykvdb.py
+    # mycolumndb.py
     import nosqlapi
 
-    # this module is my library of NOSQL key-value database, like Redis database
+    # this module is my library of NOSQL column database, like Cassandra database
 
     class Connection(nosqlapi.column.ColumnConnection):
         def __init__(host='localhost', port=7000, database=0, username=None, password=None, ssl=None, tls=None,
@@ -39,7 +39,7 @@ This is an example of a library for connecting to a `cassandra <https://cassandr
         def show_database(self, database): ...
 
 
-    class Session(nosqlapi.kvdb.KVSession):
+    class Session(nosqlapi.column.ColumnSession):
         # define here all methods
         pass
 
@@ -57,3 +57,30 @@ The **orm** module contains the specific object for *column* databases.
     :members:
     :special-members:
     :show-inheritance:
+
+orm example
+***********
+
+These objects represent the respective *column* in databases.
+
+.. code-block:: python
+
+    import nosqlapi
+    import mycolumndb
+
+    keyspace = nosqlapi.columndb.orm.Keyspace('new_db')     # in short -> nosqlapi.columndb.Keyspace('new_db')
+    # Make columns
+    id = nosqlapi.columndb.Column('id', of_type=int)
+    id.auto_increment = True                                # increment automatically
+    name = nosqlapi.columndb.Column('name', of_type=str)
+    # Set data
+    id.append()
+    name.append('Matteo Guadrini')
+    # Make table
+    table = nosqlapi.columndb.Table('peoples', id, name)
+    # Add table to keyspace
+    keyspace.append(table)
+
+    # Create database and insert data
+    mycolumndb.conn.create_database(keyspace)
+    mycolumndb.sess.insert(keyspace.store[0])
