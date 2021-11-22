@@ -68,11 +68,11 @@ These objects represent the respective *key-value* in databases.
 
     import nosqlapi
 
-    transaction = nosqlapi.kvdb.orm.Transaction()   # in short -> nosqlapi.Transaction()
+    transaction = nosqlapi.kvdb.orm.Transaction()       # in short -> nosqlapi.kvdb.Transaction()
     # Add commands
     transaction.add('ACL LIST')
     transaction.add('ACL DELUSER test')
     # Remove commands
     transaction.delete(1)
 
-    item = nosqlapi.Item('key', 'value')            # item key=value
+    item = nosqlapi.kvdb.Item('key', 'value')            # item key=value
