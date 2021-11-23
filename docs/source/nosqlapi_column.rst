@@ -27,7 +27,7 @@ This is an example of a library for connecting to a `cassandra <https://cassandr
 
     # this module is my library of NOSQL column database, like Cassandra database
 
-    class Connection(nosqlapi.column.ColumnConnection):
+    class Connection(nosqlapi.columndb.ColumnConnection):
         def __init__(host='localhost', port=7000, database=0, username=None, password=None, ssl=None, tls=None,
                      cert=None, ca_cert=None, ca_bundle=None): ...
         def close(self): ...
@@ -39,7 +39,7 @@ This is an example of a library for connecting to a `cassandra <https://cassandr
         def show_database(self, database): ...
 
 
-    class Session(nosqlapi.column.ColumnSession):
+    class Session(nosqlapi.columndb.ColumnSession):
         # define here all methods
         pass
 
