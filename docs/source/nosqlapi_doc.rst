@@ -47,3 +47,35 @@ This is an example of a library for connecting to a `mongodb <https://www.mongod
     print(conn.databases()                  # {"databases": [{"name": "admin", "sizeOnDisk": 978944, "empty": False}], "totalSize": 1835008, "ok": 1}
     sess = conn.connect()                   # Session object
     ...
+
+orm module
+----------
+
+The **orm** module contains the specific object for *document* databases.
+
+.. automodule:: nosqlapi.docdb.orm
+    :members:
+    :special-members:
+    :show-inheritance:
+
+orm example
+***********
+
+These objects represent the respective *document* in databases.
+
+.. code-block:: python
+
+    import nosqlapi
+    import mydocdb
+
+    # Create database
+    db = nosqlapi.docdb.orm.Database('test')
+    # Create documents
+    doc1 = nosqlapi.docdb.Document(oid=1)
+    doc2 = nosqlapi.docdb.Document(oid=2)
+    # Add document to database
+    db.append(doc1)
+    db.append(doc2)
+
+    # Create database wih docs
+    mydocdb.conn.create_database(db)
