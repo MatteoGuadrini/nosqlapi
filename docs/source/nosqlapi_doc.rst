@@ -73,9 +73,9 @@ These objects represent the respective *document* in databases.
     # Create documents
     doc1 = nosqlapi.docdb.Document(oid=1)
     doc2 = nosqlapi.docdb.Document(oid=2)
-    # Add document to database
+    # Add documents to database
     db.append(doc1)
     db.append(doc2)
 
-    # Create database wih docs
+    # Create database with docs
     mydocdb.conn.create_database(db)

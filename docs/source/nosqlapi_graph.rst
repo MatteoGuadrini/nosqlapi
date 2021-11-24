@@ -47,3 +47,37 @@ This is an example of a library for connecting to a `neo4j <https://neo4j.com/>`
     print(conn.show_database('mydb'))       # {"name": "mydb", "address": "myneo.local:7474", "role": "standalone", "requestedStatus": "online", "currentStatus": "online", "error": "", "default": False}
     sess = conn.connect()                   # Session object
     ...
+
+orm module
+----------
+
+The **orm** module contains the specific object for *graph* databases.
+
+.. automodule:: nosqlapi.graphdb.orm
+    :members:
+    :special-members:
+    :show-inheritance:
+
+orm example
+***********
+
+These objects represent the respective *graph* in databases.
+
+.. code-block:: python
+
+    import nosqlapi
+    import mygraphdb
+
+    # Create database
+    db = nosqlapi.graphdb.orm.Database('test')
+    # Create nodes
+    node1 = nosqlapi.graphdb.Node(var='n1', labels=[nosqlapi.graphdb.Label('Person')],
+                                  properties=nosqlapi.graphdb.Property({'name': 'Matteo', 'age': 35}))
+    node2 = nosqlapi.graphdb.Node(var='n2', labels=[nosqlapi.graphdb.Label('Person')],
+                                  properties=nosqlapi.graphdb.Property({'name': 'Julio', 'age': 53}))
+    # Add nodes to database
+    db.append(node1)
+    db.append(node2)
+
+    # Create database with nodes
+    mydocdb.conn.create_database(db)
