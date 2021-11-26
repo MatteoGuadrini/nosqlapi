@@ -160,7 +160,7 @@ Closing the connection now.
 
 `.connect(parameters...)`
 
-Connecting to database with the arguments when object has been instantiated.
+Connecting to database with the arguments when object has been instantiated and create a Session object to database.
 
 `.create_database(parameters...)`
 

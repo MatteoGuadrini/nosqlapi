@@ -127,9 +127,22 @@ This is an example of a ``Manager`` object, used to change manage multiple sessi
 
     import nosqlapi
     import mymodule
+    import othermodule
 
     connection = mymodule.Connection('server.local', 1241, 'new_db', username='admin', password='pa$$w0rd', ssl=True)
     manager = nosqlapi.common.utils.Manager(connection)
+
+    # Change connection and session
+    new_connection = othermodule.Connection('server2.local', 1241, 'other_db', username='admin', password='pa$$w0rd', ssl=True)
+    manager.change(new_connection)
+
+    # use connection methods
+    manager.create_database('db')
+    manager.databases()
+
+    # use session methods
+    manager.acl
+    manager.get('key')
 
 The ``api`` decorator function allows you to return existing classes so that the methods can match the NOSQL api described in this documentation.
 

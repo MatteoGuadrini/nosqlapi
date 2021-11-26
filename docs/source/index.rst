@@ -63,12 +63,13 @@ Graph databases are similar to 1970s network model databases in that both repres
 but network-model databases operate at a lower level of abstraction and lack easy traversal over a chain of edges.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    interface
    api
    package
+   build
 
 
 

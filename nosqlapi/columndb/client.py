@@ -52,7 +52,7 @@ class ColumnSelector(Selector, ABC):
 
     @abstractmethod
     def all(self):
-        """Star selector: SELECT *..."""
+        """Star selector: SELECT *"""
         pass
 
     @abstractmethod
