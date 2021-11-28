@@ -13,6 +13,7 @@ We will first build the core objects that will allow us to connect and operate w
 
 Let's prepare the steps:
 
+* Create a package (directory with an ``__init__.py`` file) named **pycouch**.
 * write ``core.py``, with core classes and functions.
 * write ``utils.py``, with utility classes and function, like ORM objects.
 
