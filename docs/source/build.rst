@@ -144,3 +144,14 @@ we will take advantage of the *http API*.
                                 code=response.status_code,
                                 error=noslapi.DatabaseError(f'Database not found: {name}'),
                                 header=response.header_items())
+
+Response class
+**************
+
+There isn't much to do with the ``Response`` class. We inherit directly from the ``nosqlapi.docdb.DocResponse`` class.
+
+.. code-block:: python
+
+    class Response(nosqlapi.DocResponse):
+        """CouchDB response class; information about a certain transaction."""
+        ...
