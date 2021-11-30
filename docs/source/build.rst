@@ -155,3 +155,26 @@ There isn't much to do with the ``Response`` class. We inherit directly from the
     class Response(nosqlapi.DocResponse):
         """CouchDB response class; information about a certain transaction."""
         ...
+
+Session class
+*************
+
+Ok, now build the ``Session`` class. This class used for CRUD operation on the specific database.
+
+.. code-block:: python
+
+    class Session(nosqlapi.DocSession):
+        """CouchDB session class; CRUD operation on the database."""
+        @property
+        def acl(self):
+            response = urllib.request.urlopen(self.database + f'/_security')
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.DatabaseError(f'Database not found: {name}'),
+                                header=response.header_items())
