@@ -176,7 +176,7 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
             else:
                 return Response(data=None,
                                 code=response.status_code,
-                                error=noslapi.DatabaseError(f'Database not found: {name}'),
+                                error=noslapi.SessionACLError(f'ACLs error'),
                                 header=response.header_items())
 
         @property
@@ -190,5 +190,31 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
             else:
                 return Response(data=None,
                                 code=response.status_code,
-                                error=noslapi.DatabaseError(f'Database not found: {name}'),
+                                error=noslapi.SessionError(f'Index error'),
+                                header=response.header_items())
+
+        def get(self, document='_all_docs', rev=None, attachment=None, partition=None, local=False, key=None):
+            url = self.database
+            if partition:
+                url += url + f'/{partition}/{document}'
+            else:
+                url += url + f'/{document}'
+            if attachment:
+                url += url + f'/{attachment}'
+            if rev:
+                url += url + f'?rev={rev}'
+            elif key:
+                url += url + f'?key={key}'
+            if bool(local):
+                url = self.database + f'/_local_docs'
+            response = urllib.request.urlopen(url)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionFindingError(f'Document not found: {url}'),
                                 header=response.header_items())
