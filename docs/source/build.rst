@@ -178,3 +178,17 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                 code=response.status_code,
                                 error=noslapi.DatabaseError(f'Database not found: {name}'),
                                 header=response.header_items())
+
+        @property
+        def indexes(self):
+            response = urllib.request.urlopen(self.database + f'/_index')
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.DatabaseError(f'Database not found: {name}'),
+                                header=response.header_items())
