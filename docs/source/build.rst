@@ -218,3 +218,27 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                 code=response.status_code,
                                 error=noslapi.SessionFindingError(f'Document not found: {url}'),
                                 header=response.header_items())
+
+            def insert(self, name, data=None, attachment=None, partition=None):
+                url = self.database
+                if attachment:
+                    url += url + f"/{attachment}"
+                id = f"{partition}:{name}" if partition else name
+                data = {"_id": id}
+                if data:
+                    data.update(data)
+                req = urllib.request.Request(url + f'/{name}',
+                                        data=json.dumps(data).encode('utf8'),
+                                        method='PUT')
+                req.add_header('Content-Type', 'application/json')
+                response = urllib.request.urlopen(req)
+                if response.status_code == 200:
+                    return Response(data=json.loads(response.read()),
+                                    code=response.status_code,
+                                    error=None,
+                                    header=response.header_items())
+                else:
+                    return Response(data=None,
+                                    code=response.status_code,
+                                    error=noslapi.SessionInsertingError(f'Insert document {url} with data {data} failed'),
+                                    header=response.header_items())
