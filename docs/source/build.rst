@@ -80,7 +80,7 @@ we will take advantage of the *http API*.
                                         method='PUT')
             req.add_header('Content-Type', 'application/json')
             response = urllib.request.urlopen(req)
-            if response.status_code == 200:
+            if response.status_code == 201:
                 return Response(data=json.loads(response.read()),
                                 code=response.status_code,
                                 error=None,
@@ -232,7 +232,7 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                         method='PUT')
                 req.add_header('Content-Type', 'application/json')
                 response = urllib.request.urlopen(req)
-                if response.status_code == 200:
+                if response.status_code == 201:
                     return Response(data=json.loads(response.read()),
                                     code=response.status_code,
                                     error=None,
@@ -241,4 +241,25 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                     return Response(data=None,
                                     code=response.status_code,
                                     error=noslapi.SessionInsertingError(f'Insert document {url} with data {data} failed'),
+                                    header=response.header_items())
+
+            def insert_many(self, *documents):
+                url = f"{self.database}/_bulk_docs"
+                data = {"docs": []}
+                if documents:
+                    data['docs'].extend(documents)
+                req = urllib.request.Request(url,
+                                        data=json.dumps(data).encode('utf8'),
+                                        method='POST')
+                req.add_header('Content-Type', 'application/json')
+                response = urllib.request.urlopen(req)
+                if response.status_code == 201:
+                    return Response(data=json.loads(response.read()),
+                                    code=response.status_code,
+                                    error=None,
+                                    header=response.header_items())
+                else:
+                    return Response(data=None,
+                                    code=response.status_code,
+                                    error=noslapi.SessionInsertingError('Bulk insert document failed'),
                                     header=response.header_items())
