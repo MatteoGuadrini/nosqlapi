@@ -220,14 +220,14 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                 header=response.header_items())
 
             def insert(self, name, data=None, attachment=None, partition=None):
-                url = self.database
+                url = self.database + f'/{name}'
                 if attachment:
                     url += url + f"/{attachment}"
                 id = f"{partition}:{name}" if partition else name
                 data = {"_id": id}
                 if data:
                     data.update(data)
-                req = urllib.request.Request(url + f'/{name}',
+                req = urllib.request.Request(url,
                                         data=json.dumps(data).encode('utf8'),
                                         method='PUT')
                 req.add_header('Content-Type', 'application/json')
@@ -262,4 +262,26 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                     return Response(data=None,
                                     code=response.status_code,
                                     error=noslapi.SessionInsertingError('Bulk insert document failed'),
+                                    header=response.header_items())
+
+            def update(self, name, rev, data=None, partition=None):
+                url = self.database + f'/{name}?rev={rev}'
+                id = f"{partition}:{name}" if partition else name
+                data = {"_id": id}
+                if data:
+                    data.update(data)
+                req = urllib.request.Request(url,
+                                        data=json.dumps(data).encode('utf8'),
+                                        method='PUT')
+                req.add_header('Content-Type', 'application/json')
+                response = urllib.request.urlopen(req)
+                if response.status_code == 201:
+                    return Response(data=json.loads(response.read()),
+                                    code=response.status_code,
+                                    error=None,
+                                    header=response.header_items())
+                else:
+                    return Response(data=None,
+                                    code=response.status_code,
+                                    error=noslapi.SessionInsertingError(f'Insert document {url} with data {data} failed'),
                                     header=response.header_items())
