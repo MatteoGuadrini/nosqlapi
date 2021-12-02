@@ -283,5 +283,26 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                 else:
                     return Response(data=None,
                                     code=response.status_code,
-                                    error=noslapi.SessionInsertingError(f'Insert document {url} with data {data} failed'),
+                                    error=noslapi.SessionUpdatingError(f'Update document {url} with data {data} failed'),
+                                    header=response.header_items())
+
+            def update_many(self, *documents):
+                url = f"{self.database}/_bulk_docs"
+                data = {"docs": []}
+                if documents:
+                    data['docs'].extend(documents)
+                req = urllib.request.Request(url,
+                                        data=json.dumps(data).encode('utf8'),
+                                        method='POST')
+                req.add_header('Content-Type', 'application/json')
+                response = urllib.request.urlopen(req)
+                if response.status_code == 201:
+                    return Response(data=json.loads(response.read()),
+                                    code=response.status_code,
+                                    error=None,
+                                    header=response.header_items())
+                else:
+                    return Response(data=None,
+                                    code=response.status_code,
+                                    error=noslapi.SessionUpdatingError('Bulk update document failed'),
                                     header=response.header_items())
