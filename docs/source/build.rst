@@ -219,90 +219,109 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                 error=noslapi.SessionFindingError(f'Document not found: {url}'),
                                 header=response.header_items())
 
-            def insert(self, name, data=None, attachment=None, partition=None):
-                url = self.database + f'/{name}'
-                if attachment:
-                    url += url + f"/{attachment}"
-                id = f"{partition}:{name}" if partition else name
-                data = {"_id": id}
-                if data:
-                    data.update(data)
-                req = urllib.request.Request(url,
-                                        data=json.dumps(data).encode('utf8'),
-                                        method='PUT')
-                req.add_header('Content-Type', 'application/json')
-                response = urllib.request.urlopen(req)
-                if response.status_code == 201:
-                    return Response(data=json.loads(response.read()),
-                                    code=response.status_code,
-                                    error=None,
-                                    header=response.header_items())
-                else:
-                    return Response(data=None,
-                                    code=response.status_code,
-                                    error=noslapi.SessionInsertingError(f'Insert document {url} with data {data} failed'),
-                                    header=response.header_items())
+        def insert(self, name, data=None, attachment=None, partition=None):
+             url = self.database + f'/{name}'
+             if attachment:
+                 url += url + f"/{attachment}"
+             id = f"{partition}:{name}" if partition else name
+             data = {"_id": id}
+             if data:
+                 data.update(data)
+             req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+             req.add_header('Content-Type', 'application/json')
+             response = urllib.request.urlopen(req)
+             if response.status_code == 201:
+                 return Response(data=json.loads(response.read()),
+                                 code=response.status_code,
+                                 error=None,
+                                 header=response.header_items())
+             else:
+                 return Response(data=None,
+                                 code=response.status_code,
+                                 error=noslapi.SessionInsertingError(f'Insert document {url} with data {data} failed'),
+                                 header=response.header_items())
 
-            def insert_many(self, *documents):
-                url = f"{self.database}/_bulk_docs"
-                data = {"docs": []}
-                if documents:
-                    data['docs'].extend(documents)
-                req = urllib.request.Request(url,
-                                        data=json.dumps(data).encode('utf8'),
-                                        method='POST')
-                req.add_header('Content-Type', 'application/json')
-                response = urllib.request.urlopen(req)
-                if response.status_code == 201:
-                    return Response(data=json.loads(response.read()),
-                                    code=response.status_code,
-                                    error=None,
-                                    header=response.header_items())
-                else:
-                    return Response(data=None,
-                                    code=response.status_code,
-                                    error=noslapi.SessionInsertingError('Bulk insert document failed'),
-                                    header=response.header_items())
+        def insert_many(self, *documents):
+             url = f"{self.database}/_bulk_docs"
+             data = {"docs": []}
+             if documents:
+                 data['docs'].extend(documents)
+             req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='POST')
+             req.add_header('Content-Type', 'application/json')
+             response = urllib.request.urlopen(req)
+             if response.status_code == 201:
+                 return Response(data=json.loads(response.read()),
+                                 code=response.status_code,
+                                 error=None,
+                                 header=response.header_items())
+             else:
+                 return Response(data=None,
+                                 code=response.status_code,
+                                 error=noslapi.SessionInsertingError('Bulk insert document failed'),
+                                 header=response.header_items())
 
-            def update(self, name, rev, data=None, partition=None):
-                url = self.database + f'/{name}?rev={rev}'
-                id = f"{partition}:{name}" if partition else name
-                data = {"_id": id}
-                if data:
-                    data.update(data)
-                req = urllib.request.Request(url,
-                                        data=json.dumps(data).encode('utf8'),
-                                        method='PUT')
-                req.add_header('Content-Type', 'application/json')
-                response = urllib.request.urlopen(req)
-                if response.status_code == 201:
-                    return Response(data=json.loads(response.read()),
-                                    code=response.status_code,
-                                    error=None,
-                                    header=response.header_items())
-                else:
-                    return Response(data=None,
-                                    code=response.status_code,
-                                    error=noslapi.SessionUpdatingError(f'Update document {url} with data {data} failed'),
-                                    header=response.header_items())
+        def update(self, name, rev, data=None, partition=None):
+             url = self.database + f'/{name}?rev={rev}'
+             id = f"{partition}:{name}" if partition else name
+             data = {"_id": id}
+             if data:
+                 data.update(data)
+             req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+             req.add_header('Content-Type', 'application/json')
+             response = urllib.request.urlopen(req)
+             if response.status_code == 201:
+                 return Response(data=json.loads(response.read()),
+                                 code=response.status_code,
+                                 error=None,
+                                 header=response.header_items())
+             else:
+                 return Response(data=None,
+                                 code=response.status_code,
+                                 error=noslapi.SessionUpdatingError(f'Update document {url} with data {data} failed'),
+                                 header=response.header_items())
 
-            def update_many(self, *documents):
-                url = f"{self.database}/_bulk_docs"
-                data = {"docs": []}
-                if documents:
-                    data['docs'].extend(documents)
-                req = urllib.request.Request(url,
-                                        data=json.dumps(data).encode('utf8'),
-                                        method='POST')
-                req.add_header('Content-Type', 'application/json')
-                response = urllib.request.urlopen(req)
-                if response.status_code == 201:
-                    return Response(data=json.loads(response.read()),
-                                    code=response.status_code,
-                                    error=None,
-                                    header=response.header_items())
-                else:
-                    return Response(data=None,
-                                    code=response.status_code,
-                                    error=noslapi.SessionUpdatingError('Bulk update document failed'),
-                                    header=response.header_items())
+        def update_many(self, *documents):
+             url = f"{self.database}/_bulk_docs"
+             data = {"docs": []}
+             if documents:
+                 data['docs'].extend(documents)
+             req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='POST')
+             req.add_header('Content-Type', 'application/json')
+             response = urllib.request.urlopen(req)
+             if response.status_code == 201:
+                 return Response(data=json.loads(response.read()),
+                                 code=response.status_code,
+                                 error=None,
+                                 header=response.header_items())
+             else:
+                 return Response(data=None,
+                                 code=response.status_code,
+                                 error=noslapi.SessionUpdatingError('Bulk update document failed'),
+                                 header=response.header_items())
+
+        def delete(self, name, rev, partition=None):
+             url = self.database + f'/{name}?rev={rev}'
+             id = f"{partition}:{name}" if partition else name
+             req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='DELETE')
+             req.add_header('Content-Type', 'application/json')
+             response = urllib.request.urlopen(req)
+             if response.status_code == 201:
+                 return Response(data=json.loads(response.read()),
+                                 code=response.status_code,
+                                 error=None,
+                                 header=response.header_items())
+             else:
+                 return Response(data=None,
+                                 code=response.status_code,
+                                 error=noslapi.SessionDeletingError(f'Delete document {name} failed'),
+                                 header=response.header_items())
