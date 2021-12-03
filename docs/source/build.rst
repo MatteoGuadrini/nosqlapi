@@ -43,6 +43,8 @@ Connection class
 Let's build the server connection class. Since we are connecting to a `CouchDB database <https://couchdb.apache.org/>`_,
 we will take advantage of the *http API*.
 
+We define the ``__init__`` constructor with all the info needed to perform operations with the database and create a ``Session`` object using the ``connect()`` method.
+
 .. code-block:: python
 
     class Connection(nosqlapi.DocConnection):
@@ -55,6 +57,10 @@ we will take advantage of the *http API*.
             if self.username and self.password:
                 auth = f'{self.username}:{self.password}@'
             self.url = f'{self.method}{auth}{self.host}:{self.port}'
+
+Now let's define the ``close`` and ``connect`` methods, to create the database connection.
+
+.. code-block:: python
 
         def close(self, clean=False):
             self._connected = False
@@ -70,6 +76,10 @@ we will take advantage of the *http API*.
                 return session
             else:
                 raise nosqlapi.ConnectError(f'I cannot connect to the server: {self.url}')
+
+Now let's all define methods that operate at the database level.
+
+.. code-block:: python
 
         def create_database(self, name, shards=8, replicas=3, partitioned=False):
             data = {"w": shards, "n": replicas}
@@ -192,6 +202,10 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                 code=response.status_code,
                                 error=noslapi.SessionError(f'Index error'),
                                 header=response.header_items())
+
+Now let's all define CRUD (Create, Read, Update, Delete) methods.
+
+.. code-block:: python
 
         def get(self, document='_all_docs', rev=None, attachment=None, partition=None, local=False, key=None):
             url = self.database
