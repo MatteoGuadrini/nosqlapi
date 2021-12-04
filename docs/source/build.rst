@@ -203,7 +203,9 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                 error=noslapi.SessionError(f'Index error'),
                                 header=response.header_items())
 
-Now let's all define CRUD (Create, Read, Update, Delete) methods.
+Now let's all define CRUD (Create, Read, Update, Delete) methods. *Create* word is associated to ``insert`` and ``insert_many`` methods;
+*Read* to ``get`` method, *Update* to ``update`` and ``update_many`` methods and *Delete* to ``delete`` method.
+Each *CRUD* method is created to directly manage the data in the database to which the connection was created via the ``Connection`` object.
 
 .. code-block:: python
 
