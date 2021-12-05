@@ -170,6 +170,8 @@ Session class
 *************
 
 Ok, now build the ``Session`` class. This class used for CRUD operation on the specific database.
+The ``acl`` property is used to retrieve the Access Control lists of the current database and therefore the read/write permissions of the current session.
+The property ``indexes`` is used to retrieve all the indexes created for the current database.
 
 .. code-block:: python
 
