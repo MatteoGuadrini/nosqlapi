@@ -343,3 +343,10 @@ Each *CRUD* method is created to directly manage the data in the database to whi
                                  code=response.status_code,
                                  error=noslapi.SessionDeletingError(f'Delete document {name} failed'),
                                  header=response.header_items())
+
+The ``close`` method will only close the session, but not the connection.
+
+.. code-block:: python
+
+        def close(self):
+            self.database = None
