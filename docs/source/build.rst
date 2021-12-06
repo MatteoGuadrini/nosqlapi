@@ -350,3 +350,28 @@ The ``close`` method will only close the session, but not the connection.
 
         def close(self):
             self.database = None
+
+The ``find`` method is the one that allows searching for data in the database.
+This method can accept strings or ``Selector`` objects, which help in the construction of the query in the database language.
+
+.. code-block:: python
+
+        def find(self, query):
+            url = f"{self.database}/_find"
+            if isinstance(query, Selector):
+                query = query.build()
+            req = urllib.request.Request(url,
+                                     data=query.encode('utf8'),
+                                     method='POST')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionFindingError(f'Delete document {name} failed'),
+                                header=response.header_items())
