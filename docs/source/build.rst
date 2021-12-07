@@ -373,5 +373,47 @@ This method can accept strings or ``Selector`` objects, which help in the constr
             else:
                 return Response(data=None,
                                 code=response.status_code,
-                                error=noslapi.SessionFindingError(f'Delete document {name} failed'),
+                                error=noslapi.SessionFindingError(f'Find documents failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+The ``grant`` and ``revoke`` methods are specific for enabling and revoking permissions on the current database.
+
+.. code-block:: python
+
+        def grant(self, admins, members):
+            url = f"{self.database}/_security"
+            data = {"admins": admins, "members": members}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Grant failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+        def revoke(self):
+            url = f"{self.database}/_security"
+            data = {"admins": {"names": [], "roles": []}, "members": {"names": [], "roles": []}}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Revoke failed: {json.loads(response.read())}'),
                                 header=response.header_items())
