@@ -417,3 +417,29 @@ The ``grant`` and ``revoke`` methods are specific for enabling and revoking perm
                                 code=response.status_code,
                                 error=noslapi.SessionACLError(f'Revoke failed: {json.loads(response.read())}'),
                                 header=response.header_items())
+
+Now let's write the three methods for creating, modifying (also password reset) and deleting a user respectively: ``new_user``, ``set_user`` and ``delete_user``.
+
+.. code-block:: python
+
+        def new_user(self, name, password, roles=None, type='user'):
+            if roles is None:
+                roles = []
+            server = self.database.split('/')
+            url = f"{server[0]}//{server[2]}/_users/org.couchdb.user:{name}"
+            data = {"name": name, "password": password, "roles": roles, "type": type}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Revoke failed: {json.loads(response.read())}'),
+                                header=response.header_items())
