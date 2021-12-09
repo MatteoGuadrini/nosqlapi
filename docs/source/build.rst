@@ -441,7 +441,7 @@ Now let's write the three methods for creating, modifying (also password reset) 
             else:
                 return Response(data=None,
                                 code=response.status_code,
-                                error=noslapi.SessionACLError(f'Revoke failed: {json.loads(response.read())}'),
+                                error=noslapi.SessionACLError(f'New user failed: {json.loads(response.read())}'),
                                 header=response.header_items())
 
         def set_user(self, name, password, rev, roles=None, type='user'):
@@ -464,5 +464,26 @@ Now let's write the three methods for creating, modifying (also password reset) 
             else:
                 return Response(data=None,
                                 code=response.status_code,
-                                error=noslapi.SessionACLError(f'Revoke failed: {json.loads(response.read())}'),
+                                error=noslapi.SessionACLError(f'Modify user or password failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+        def delete_user(self, name, rev, admin=False):
+            server = self.database.split('/')
+            if admin:
+                url = f"{server[0]}//{server[2]}/_users/org.couchdb.user:{name}"
+            else:
+                url = f"{server[0]}//{server[2]}/_config/admins/{name}"
+            req = urllib.request.Request(url, method='DELETE')
+            req.add_header('Content-Type', 'application/json')
+            req.add_header(f"If-Match: {rev}")
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Delete user failed: {json.loads(response.read())}'),
                                 header=response.header_items())
