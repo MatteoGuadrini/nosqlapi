@@ -510,3 +510,19 @@ We will now write the ``add_index`` and ``delete_index`` methods, which are main
                                 code=response.status_code,
                                 error=noslapi.SessionError(f'Index creation error: {json.loads(response.read())}'),
                                 header=response.header_items())
+
+        def delete_index(self, ddoc, name):
+            url = f"_index/{ddoc}/json/{name}"
+            req = urllib.request.Request(url, method='DELETE')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionError(f'Index deletion error: {json.loads(response.read())}'),
+                                header=response.header_items())
