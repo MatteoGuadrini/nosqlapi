@@ -433,7 +433,7 @@ Now let's write the three methods for creating, modifying (also password reset) 
                                      method='PUT')
             req.add_header('Content-Type', 'application/json')
             response = urllib.request.urlopen(req)
-            if response.status_code == 200:
+            if response.status_code == 201:
                 return Response(data=json.loads(response.read()),
                                 code=response.status_code,
                                 error=None,
@@ -456,7 +456,7 @@ Now let's write the three methods for creating, modifying (also password reset) 
             req.add_header('Content-Type', 'application/json')
             req.add_header(f"If-Match: {rev}")
             response = urllib.request.urlopen(req)
-            if response.status_code == 200:
+            if response.status_code == 201:
                 return Response(data=json.loads(response.read()),
                                 code=response.status_code,
                                 error=None,
@@ -486,4 +486,27 @@ Now let's write the three methods for creating, modifying (also password reset) 
                 return Response(data=None,
                                 code=response.status_code,
                                 error=noslapi.SessionACLError(f'Delete user failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+We will now write the ``add_index`` and ``delete_index`` methods, which are mainly concerned with creating indexes for the database.
+
+.. code-block:: python
+
+        def add_index(self, name, fields):
+            url = f"{self.database}/_index"
+            data = {"name": name, 'type': 'json', "index": {'fields': fields}}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='POST')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 201:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionError(f'Index creation error: {json.loads(response.read())}'),
                                 header=response.header_items())
