@@ -170,6 +170,8 @@ Session class
 *************
 
 Ok, now build the ``Session`` class. This class used for CRUD operation on the specific database.
+The ``acl`` property is used to retrieve the Access Control lists of the current database and therefore the read/write permissions of the current session.
+The property ``indexes`` is used to retrieve all the indexes created for the current database.
 
 .. code-block:: python
 
@@ -203,7 +205,9 @@ Ok, now build the ``Session`` class. This class used for CRUD operation on the s
                                 error=noslapi.SessionError(f'Index error'),
                                 header=response.header_items())
 
-Now let's all define CRUD (Create, Read, Update, Delete) methods.
+Now let's all define CRUD (Create, Read, Update, Delete) methods. *Create* word is associated to ``insert`` and ``insert_many`` methods;
+*Read* to ``get`` method, *Update* to ``update`` and ``update_many`` methods and *Delete* to ``delete`` method.
+Each *CRUD* method is created to directly manage the data in the database to which the connection was created via the ``Connection`` object.
 
 .. code-block:: python
 
@@ -339,3 +343,186 @@ Now let's all define CRUD (Create, Read, Update, Delete) methods.
                                  code=response.status_code,
                                  error=noslapi.SessionDeletingError(f'Delete document {name} failed'),
                                  header=response.header_items())
+
+The ``close`` method will only close the session, but not the connection.
+
+.. code-block:: python
+
+        def close(self):
+            self.database = None
+
+The ``find`` method is the one that allows searching for data in the database.
+This method can accept strings or ``Selector`` objects, which help in the construction of the query in the database language.
+
+.. code-block:: python
+
+        def find(self, query):
+            url = f"{self.database}/_find"
+            if isinstance(query, Selector):
+                query = query.build()
+            req = urllib.request.Request(url,
+                                     data=query.encode('utf8'),
+                                     method='POST')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionFindingError(f'Find documents failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+The ``grant`` and ``revoke`` methods are specific for enabling and revoking permissions on the current database.
+
+.. code-block:: python
+
+        def grant(self, admins, members):
+            url = f"{self.database}/_security"
+            data = {"admins": admins, "members": members}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Grant failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+        def revoke(self):
+            url = f"{self.database}/_security"
+            data = {"admins": {"names": [], "roles": []}, "members": {"names": [], "roles": []}}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Revoke failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+Now let's write the three methods for creating, modifying (also password reset) and deleting a user respectively: ``new_user``, ``set_user`` and ``delete_user``.
+
+.. code-block:: python
+
+        def new_user(self, name, password, roles=None, type='user'):
+            if roles is None:
+                roles = []
+            server = self.database.split('/')
+            url = f"{server[0]}//{server[2]}/_users/org.couchdb.user:{name}"
+            data = {"name": name, "password": password, "roles": roles, "type": type}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 201:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'New user failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+        def set_user(self, name, password, rev, roles=None, type='user'):
+            if roles is None:
+                roles = []
+            server = self.database.split('/')
+            url = f"{server[0]}//{server[2]}/_users/org.couchdb.user:{name}"
+            data = {"name": name, "password": password, "roles": roles, "type": type}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='PUT')
+            req.add_header('Content-Type', 'application/json')
+            req.add_header(f"If-Match: {rev}")
+            response = urllib.request.urlopen(req)
+            if response.status_code == 201:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Modify user or password failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+        def delete_user(self, name, rev, admin=False):
+            server = self.database.split('/')
+            if admin:
+                url = f"{server[0]}//{server[2]}/_users/org.couchdb.user:{name}"
+            else:
+                url = f"{server[0]}//{server[2]}/_config/admins/{name}"
+            req = urllib.request.Request(url, method='DELETE')
+            req.add_header('Content-Type', 'application/json')
+            req.add_header(f"If-Match: {rev}")
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionACLError(f'Delete user failed: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+We will now write the ``add_index`` and ``delete_index`` methods, which are mainly concerned with creating indexes for the database.
+
+.. code-block:: python
+
+        def add_index(self, name, fields):
+            url = f"{self.database}/_index"
+            data = {"name": name, 'type': 'json', "index": {'fields': fields}}
+            req = urllib.request.Request(url,
+                                     data=json.dumps(data).encode('utf8'),
+                                     method='POST')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 201:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionError(f'Index creation error: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+        def delete_index(self, ddoc, name):
+            url = f"_index/{ddoc}/json/{name}"
+            req = urllib.request.Request(url, method='DELETE')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionError(f'Index deletion error: {json.loads(response.read())}'),
+                                header=response.header_items())
