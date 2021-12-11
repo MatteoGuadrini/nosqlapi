@@ -554,3 +554,14 @@ we can define the get bulk through a ``Batch`` class.
                                 code=response.status_code,
                                 error=noslapi.SessionError(f'Get multiple document error: {json.loads(response.read())}'),
                                 header=response.header_items())
+
+Selector class
+**************
+
+Now instead, let's define the last class that will represent the query shape for our CouchDB server, the ``Selector`` class.
+
+.. code-block:: python
+
+    class Selector(nosqlapi.DocSelector):
+        """CouchDB selector class; query representation."""
+        pass
