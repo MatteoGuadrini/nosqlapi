@@ -512,7 +512,7 @@ We will now write the ``add_index`` and ``delete_index`` methods, which are main
                                 header=response.header_items())
 
         def delete_index(self, ddoc, name):
-            url = f"_index/{ddoc}/json/{name}"
+            url = f"{self.database}/_index/{ddoc}/json/{name}"
             req = urllib.request.Request(url, method='DELETE')
             req.add_header('Content-Type', 'application/json')
             response = urllib.request.urlopen(req)
@@ -525,4 +525,32 @@ We will now write the ``add_index`` and ``delete_index`` methods, which are main
                 return Response(data=None,
                                 code=response.status_code,
                                 error=noslapi.SessionError(f'Index deletion error: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+Batch class
+***********
+
+Since we have already defined *"bulk"* operations in the ``insert_many`` and in the ``update_many`` in the ``Session`` class,
+we can define the get bulk through a ``Batch`` class.
+
+.. code-block:: python
+
+    class Batch(nosqlapi.DocBatch):
+        """CouchDB batch class; multiple get from session."""
+
+        def execute(self):
+            data = {"docs": self.batch}
+            url = f"{self.session.database}/_bulk_get"
+            req = urllib.request.Request(url, method='POST')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionError(f'Get multiple document error: {json.loads(response.read())}'),
                                 header=response.header_items())
