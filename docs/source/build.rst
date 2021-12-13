@@ -565,3 +565,22 @@ Now instead, let's define the last class that will represent the query shape for
     class Selector(nosqlapi.DocSelector):
         """CouchDB selector class; query representation."""
         pass
+
+Utils
+-----
+
+The **utils** classes and functions they map objects that represent data on the CouchDB server.
+These types of objects are called *ORMs*.
+
+Create a ``utils.py`` module.
+
+.. code-block:: python
+
+    #!/usr/bin/env python3
+    # -*- encoding: utf-8 -*-
+    # utils.py
+
+    """Python utility library for document CouchDB server"""
+
+    import nosqlapi
+    import json
