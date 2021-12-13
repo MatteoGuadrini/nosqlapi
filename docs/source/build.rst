@@ -67,6 +67,7 @@ Now let's define the ``close`` and ``connect`` methods, to create the database c
             if clean:
                 self.database = None
                 self.host = None
+                self.url = None
 
         def connect(self):
             session_url = self.url + f'/{self.database}'
@@ -583,4 +584,19 @@ Create a ``utils.py`` module.
     """Python utility library for document CouchDB server"""
 
     import nosqlapi
+    import core
     import json
+
+connect function
+****************
+
+Let's create a simple function that will create a ``Connection`` object for us and return a ``Session`` object.
+We will call it ``connect()``.
+
+.. code-block:: python
+
+    def connect(host='localhost', port=5984, username=None, password=None, ssl=None, tls=None, cert=None,
+                    database=None, ca_cert=None, ca_bundle=None):
+        conn = core.Connection(host='localhost', port=5984, username=None, password=None, ssl=None, tls=None, cert=None,
+                    database=None, ca_cert=None, ca_bundle=None)
+        return conn.connect()
