@@ -583,7 +583,7 @@ Create a ``utils.py`` module.
 
     """Python utility library for document CouchDB server"""
 
-    import nosqlapi
+    from nosqlapi.docdb import Database, Collection, Document, Index
     import core
     import json
 
@@ -600,3 +600,26 @@ We will call it ``connect()``.
         conn = core.Connection(host='localhost', port=5984, username=None, password=None, ssl=None, tls=None, cert=None,
                     database=None, ca_cert=None, ca_bundle=None)
         return conn.connect()
+
+Now let's define a ``DesignDocument`` class, which will represent a design document in the CouchDB server.
+
+.. code-block:: python
+
+    class DesignDocument(Document):
+        """Design document"""
+
+        def __init__(self, oid=None, views=None, updates=None, filters=None, validate_doc_update=None):
+            super().__init__(oid)
+            self._id = self['_id'] = f'_design/{self.id}'
+            self["language"] = "javascript"
+            self['views'] = {}
+            self['updates'] = {}
+            self['filters'] = {}
+            if views:
+                self['views'].update(views)
+            if updates:
+                self['updates'].update(updates)
+            if filters:
+                self['filters'].update(filters)
+            if validate_doc_update:
+                self['validate_doc_update'] = validate_doc_update
