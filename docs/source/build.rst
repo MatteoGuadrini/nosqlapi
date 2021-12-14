@@ -7,9 +7,13 @@ In this section we will build a **NOSQL API** compliant library, using the ``nos
 We will first build the core objects that will allow us to connect and operate with our database.
 
 .. note::
-    The following example is designed for a NOSQL database of the Document type; by changing the application logic of
+    The following example is designed for a NOSQL database of the *Document* type; by changing the application logic of
     the various methods in the classes you can build a library for another type of NOSQL database in the same way.
     The procedures are the same.
+
+.. warning::
+    The purpose of this document is to explain how to use API class interfaces in the real world.
+    Do not use the following example as a production library because it is very simplified and does not reflect all possible operations on a CouchDB server.
 
 Let's prepare the steps:
 
@@ -640,3 +644,9 @@ Now let's define a ``PermissionDocument`` class, which will represent a permissi
             del self['_id']
             self["admins"] = {"names": [], "roles": []} if not admins else admins
             self['members'] = {"names": [], "roles": []} if not members else members
+
+.. note::
+    Now that we have defined some classes that represent documents, we can adapt our methods of the Session class around these ORM types.
+
+.. warning::
+    Obviously this is a very simplified representation of a library for CouchDB.
