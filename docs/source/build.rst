@@ -583,7 +583,7 @@ Create a ``utils.py`` module.
 
     """Python utility library for document CouchDB server"""
 
-    from nosqlapi.docdb import Database, Collection, Document, Index
+    from nosqlapi.docdb import Database, Document, Index
     import core
     import json
 
@@ -600,6 +600,9 @@ We will call it ``connect()``.
         conn = core.Connection(host='localhost', port=5984, username=None, password=None, ssl=None, tls=None, cert=None,
                     database=None, ca_cert=None, ca_bundle=None)
         return conn.connect()
+
+ORM classes
+***********
 
 Now let's define a ``DesignDocument`` class, which will represent a design document in the CouchDB server.
 
@@ -623,3 +626,17 @@ Now let's define a ``DesignDocument`` class, which will represent a design docum
                 self['filters'].update(filters)
             if validate_doc_update:
                 self['validate_doc_update'] = validate_doc_update
+
+Now let's define a ``PermissionDocument`` class, which will represent a permission document in the CouchDB server.
+
+.. code-block:: python
+
+    class PermissionDocument(Document):
+        """Permission document"""
+
+        def __init__(self, admins=None, members=None):
+            super().__init__()
+            self._id = None
+            del self['_id']
+            self["admins"] = {"names": [], "roles": []} if not admins else admins
+            self['members'] = {"names": [], "roles": []} if not members else members
