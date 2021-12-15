@@ -648,5 +648,11 @@ Now let's define a ``PermissionDocument`` class, which will represent a permissi
 .. note::
     Now that we have defined some classes that represent documents, we can adapt our methods of the Session class around these ORM types.
 
-.. warning::
-    Obviously this is a very simplified representation of a library for CouchDB.
+If you want to see more examples, clone the official repository of ``nosqlapi`` and find in the *tests* folder all the examples for each type of database.
+
+.. code-block:: console
+
+    $ git clone https://github.com/MatteoGuadrini/nosqlapi.git
+    $ cd nosqlapi
+    $ python -m unittest discover tests
+    $ ls -l tests
