@@ -1,1 +1,2 @@
 nosqlapi
+python-docs-theme

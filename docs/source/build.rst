@@ -7,9 +7,13 @@ In this section we will build a **NOSQL API** compliant library, using the ``nos
 We will first build the core objects that will allow us to connect and operate with our database.
 
 .. note::
-    The following example is designed for a NOSQL database of the Document type; by changing the application logic of
+    The following example is designed for a NOSQL database of the *Document* type; by changing the application logic of
     the various methods in the classes you can build a library for another type of NOSQL database in the same way.
     The procedures are the same.
+
+.. warning::
+    The purpose of this document is to explain how to use API class interfaces in the real world.
+    Do not use the following example as a production library because it is very simplified and does not reflect all possible operations on a CouchDB server.
 
 Let's prepare the steps:
 
@@ -67,6 +71,7 @@ Now let's define the ``close`` and ``connect`` methods, to create the database c
             if clean:
                 self.database = None
                 self.host = None
+                self.url = None
 
         def connect(self):
             session_url = self.url + f'/{self.database}'
@@ -512,7 +517,7 @@ We will now write the ``add_index`` and ``delete_index`` methods, which are main
                                 header=response.header_items())
 
         def delete_index(self, ddoc, name):
-            url = f"_index/{ddoc}/json/{name}"
+            url = f"{self.database}/_index/{ddoc}/json/{name}"
             req = urllib.request.Request(url, method='DELETE')
             req.add_header('Content-Type', 'application/json')
             response = urllib.request.urlopen(req)
@@ -526,3 +531,128 @@ We will now write the ``add_index`` and ``delete_index`` methods, which are main
                                 code=response.status_code,
                                 error=noslapi.SessionError(f'Index deletion error: {json.loads(response.read())}'),
                                 header=response.header_items())
+
+Batch class
+***********
+
+Since we have already defined *"bulk"* operations in the ``insert_many`` and in the ``update_many`` in the ``Session`` class,
+we can define the get bulk through a ``Batch`` class.
+
+.. code-block:: python
+
+    class Batch(nosqlapi.DocBatch):
+        """CouchDB batch class; multiple get from session."""
+
+        def execute(self):
+            data = {"docs": self.batch}
+            url = f"{self.session.database}/_bulk_get"
+            req = urllib.request.Request(url, method='POST')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionError(f'Get multiple document error: {json.loads(response.read())}'),
+                                header=response.header_items())
+
+Selector class
+**************
+
+Now instead, let's define the last class that will represent the query shape for our CouchDB server, the ``Selector`` class.
+
+.. code-block:: python
+
+    class Selector(nosqlapi.DocSelector):
+        """CouchDB selector class; query representation."""
+        pass
+
+Utils
+-----
+
+The **utils** classes and functions they map objects that represent data on the CouchDB server.
+These types of objects are called *ORMs*.
+
+Create a ``utils.py`` module.
+
+.. code-block:: python
+
+    #!/usr/bin/env python3
+    # -*- encoding: utf-8 -*-
+    # utils.py
+
+    """Python utility library for document CouchDB server"""
+
+    from nosqlapi.docdb import Database, Document, Index
+    import core
+    import json
+
+connect function
+****************
+
+Let's create a simple function that will create a ``Connection`` object for us and return a ``Session`` object.
+We will call it ``connect()``.
+
+.. code-block:: python
+
+    def connect(host='localhost', port=5984, username=None, password=None, ssl=None, tls=None, cert=None,
+                    database=None, ca_cert=None, ca_bundle=None):
+        conn = core.Connection(host='localhost', port=5984, username=None, password=None, ssl=None, tls=None, cert=None,
+                    database=None, ca_cert=None, ca_bundle=None)
+        return conn.connect()
+
+ORM classes
+***********
+
+Now let's define a ``DesignDocument`` class, which will represent a design document in the CouchDB server.
+
+.. code-block:: python
+
+    class DesignDocument(Document):
+        """Design document"""
+
+        def __init__(self, oid=None, views=None, updates=None, filters=None, validate_doc_update=None):
+            super().__init__(oid)
+            self._id = self['_id'] = f'_design/{self.id}'
+            self["language"] = "javascript"
+            self['views'] = {}
+            self['updates'] = {}
+            self['filters'] = {}
+            if views:
+                self['views'].update(views)
+            if updates:
+                self['updates'].update(updates)
+            if filters:
+                self['filters'].update(filters)
+            if validate_doc_update:
+                self['validate_doc_update'] = validate_doc_update
+
+Now let's define a ``PermissionDocument`` class, which will represent a permission document in the CouchDB server.
+
+.. code-block:: python
+
+    class PermissionDocument(Document):
+        """Permission document"""
+
+        def __init__(self, admins=None, members=None):
+            super().__init__()
+            self._id = None
+            del self['_id']
+            self["admins"] = {"names": [], "roles": []} if not admins else admins
+            self['members'] = {"names": [], "roles": []} if not members else members
+
+.. note::
+    Now that we have defined some classes that represent documents, we can adapt our methods of the Session class around these ORM types.
+
+If you want to see more examples, clone the official repository of ``nosqlapi`` and find in the *tests* folder all the examples for each type of database.
+
+.. code-block:: console
+
+    $ git clone https://github.com/MatteoGuadrini/nosqlapi.git
+    $ cd nosqlapi
+    $ python -m unittest discover tests
+    $ ls -l tests

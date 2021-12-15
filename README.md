@@ -2,7 +2,9 @@
 
 _nosqlapi_ is a library for building standard NOSQL python libraries.
 
-> ATTENTION: This is **WIP** in _beta_ version
+Full documentation: [Read the docs](https://nosqlapi.rtfd.io/)
+
+> ATTENTION: This is **WIP** in _RC_ version
 
 ## Introduction
 
@@ -409,7 +411,7 @@ tests/test_kvdb.py:class MyDBSession(nosqlapi.kvdb.KVSession):
 ```
 
 ### Key-Value database
-A key–value database, or key–value store, is a data storage paradigm designed for storing, retrieving, and managing associative arrays, 
+A _key–value_ database, or key–value store, is a data storage paradigm designed for storing, retrieving, and managing associative arrays, 
 and a data structure more commonly known today as a dictionary or hash table. Dictionaries contain a collection of objects, or records, 
 which in turn have many different fields within them, each containing data. These records are stored and retrieved using a key that 
 uniquely identifies the record, and is used to find the data within the database.
@@ -458,7 +460,7 @@ print(type(resp))      # <class 'RedisResponse'>
 ```
 
 ### Column database
-A column-oriented DBMS or columnar DBMS is a database management system (DBMS) that stores data tables by column rather than by row. 
+A _column-oriented_ DBMS or columnar DBMS is a database management system (DBMS) that stores data tables by column rather than by row. 
 Practical use of a column store versus a row store differs little in the relational DBMS world. Both columnar and row databases 
 can use traditional database query languages like SQL to load data and perform queries. Both row and columnar databases can 
 become the backbone in a system to serve data for common extract, transform, load (ETL) and data visualization tools. 
@@ -513,7 +515,7 @@ print(type(resp))      # <class 'CassandraResponse'>
 ```
 
 ### Document database
-A document-oriented database, or document store, is a computer program and data storage system designed for storing, 
+A _document-oriented_ database, or document store, is a computer program and data storage system designed for storing, 
 retrieving and managing document-oriented information, also known as semi-structured data.
 
 Document-oriented databases are one of the main categories of NoSQL databases, and the popularity of the term 
@@ -566,7 +568,7 @@ print(type(resp))      # <class 'MongoResponse'>
 ```
 
 ### Graph database
-Graph databases are a type of NoSQL database, created to address the limitations of relational databases. 
+_Graph_ databases are a type of NoSQL database, created to address the limitations of relational databases. 
 While the graph model explicitly lays out the dependencies between nodes of data, the relational model and other 
 NoSQL database models link the data by implicit connections. In other words, relationships are a first-class citizen 
 in a graph database and can be labelled, directed, and given properties. This is compared to relational approaches where 
