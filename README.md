@@ -2,7 +2,9 @@
 
 _nosqlapi_ is a library for building standard NOSQL python libraries.
 
-> ATTENTION: This is **WIP** in _beta_ version
+Full documentation: [Read the docs](http://nosqlapi.rtfd.io/)
+
+> ATTENTION: This is **WIP** in _RC_ version
 
 ## Introduction
 
