@@ -10,7 +10,11 @@ To install the nosqlapi package, run ``pip`` as follows:
 
 .. code-block:: console
 
-    $ pip install nosqlapi
+    $ pip install nosqlapi #from pypi
+
+    $ git clone https://github.com/MatteoGuadrini/nosqlapi.git #from official repo
+    $ cd nosqlapi
+    $ python setup.py install
 
 .. toctree::
    :maxdepth: 2
