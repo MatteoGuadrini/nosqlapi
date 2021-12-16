@@ -95,6 +95,7 @@ class Session:
     item_count: int
     description: tuple
     database: Union[str, None]
+    connection: Any
     acl: Union[tuple, dict, Response]
     indexes: Union[tuple, dict, Response]
 

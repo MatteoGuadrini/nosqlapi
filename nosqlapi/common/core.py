@@ -217,25 +217,33 @@ class Selector(ABC):
 class Session(ABC):
     """Server session abstract class"""
 
-    def __init__(self, database=None):
+    def __init__(self, connection, database=None):
         self._item_count = 0
         self._description = ()
         self._database = database
-
-    @property
-    def item_count(self):
-        """Number of item returned from latest CRUD operation"""
-        return self._item_count
-
-    @property
-    def description(self):
-        """Contains the session parameters"""
-        return self._description
+        self._connection = connection
 
     @property
     def database(self):
         """Name of database in current session"""
         return self._database
+
+    @property
+    def connection(self):
+        """Connection of server in current session"""
+        return self._connection
+
+    @property
+    @abstractmethod
+    def item_count(self):
+        """Number of item returned from latest CRUD operation"""
+        return self._item_count
+
+    @property
+    @abstractmethod
+    def description(self):
+        """Contains the session parameters"""
+        return self._description
 
     @property
     @abstractmethod
@@ -386,7 +394,7 @@ class Session(ABC):
         return f"database={self.database}, description={self.description}"
 
     def __bool__(self):
-        if self.description:
+        if self.connection:
             return True
 
     def __enter__(self):
