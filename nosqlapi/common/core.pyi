@@ -99,7 +99,7 @@ class Session:
     acl: Union[tuple, dict, Response]
     indexes: Union[tuple, dict, Response]
 
-    def __init__(self, database: str = None) -> None:
+    def __init__(self, connection: Any, database: str = None) -> None:
         self._item_count: int = 0
         self._description: tuple = ()
         self._database: str = database
