@@ -29,10 +29,6 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         if self.username and self.password:
             url += f'{self.username}:{self.password}@'
         url += f'{self.host}:{self.port}'
-        if self.database:
-            url += f'/{self.database}'
-        else:
-            raise ConnectError('database is mandatory')
         self.req.post = mock.MagicMock(return_value={'body': 'server connected',
                                                      'status': 200,
                                                      'header': f'CONNECT TO {url}'
@@ -40,7 +36,7 @@ class MyDBConnection(nosqlapi.graphdb.GraphConnection):
         if self.req.post(url).get('status') != 200:
             raise ConnectError('server not respond')
         self.connection = url
-        return MyDBSession(self.connection)
+        return MyDBSession(self.connection, self.database)
 
     def create_database(self, name: Union[str, Database], not_exists=False, replace=False, options=None):
         if not_exists and replace:
@@ -177,21 +173,6 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     # Simulate http requests
     req = mock.Mock()
 
-    def __init__(self, connection):
-        super().__init__()
-        db = connection.split('/')[-1]
-        self._database = db
-        self.session = connection + '/data/transaction/commit'
-        stm = {'statements': f'SHOW DATABASE {self.database}'}
-        self.req.post = mock.MagicMock(return_value={'body': f'{{"nodes" : {{"name": "{self.database}"}}, '
-                                                             f'"role": "standalone", "currentStatus": "online"}}',
-                                                     'status': 200,
-                                                     'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
-        if ret.get('status') != 200:
-            raise ConnectError("server not respond or database doesn't exists")
-        self._description = json.loads(ret.get('body'))
-
     @property
     def acl(self):
         stm = {'statements': 'SHOW PRIVILEGES YIELD role, access, action, segment ORDER BY action'}
@@ -200,7 +181,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                              '["admin","GRANTED","dbms_actions","database"]]',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise ConnectError('server not respond')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -213,12 +194,29 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self.req.post = mock.MagicMock(return_value={'body': '["index1", "index2"]',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise ConnectError('server not respond')
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
+
+    @property
+    def item_count(self):
+        return self._item_count
+
+    @property
+    def description(self):
+        stm = {'statements': f'SHOW DATABASE {self.database}'}
+        self.req.post = mock.MagicMock(return_value={'body': f'{{"nodes" : {{"name": "{self.database}"}}, '
+                                                             f'"role": "standalone", "currentStatus": "online"}}',
+                                                     'status': 200,
+                                                     'header': stm['statements']})
+        ret = self.req.post(self.connection, json.dumps(stm))
+        if ret.get('status') != 200:
+            raise ConnectError("server not respond or database doesn't exists")
+        self._description = json.loads(ret.get('body'))
+        return self._description
 
     def get(self,
             node: Union[str, Node],
@@ -226,7 +224,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             properties: dict = None,
             relationship_label=None,
             relationship_object=None):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
@@ -251,7 +249,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                              '"n.age": [35, 42]}',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -259,7 +257,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def insert(self, node: Union[str, Node], properties: dict = None, return_properties: list = None):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
@@ -275,7 +273,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                              '"n.age": [35]}',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -285,7 +283,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     def insert_many(self, nodes: list, properties: List[dict] = None):
         if properties is None:
             properties = []
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         nodes = list(zip(nodes, properties))
         cypher = 'CREATE '
@@ -305,7 +303,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                              '"arthur.age": 42}]',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -315,7 +313,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
     def update(self, node: Union[str, Node], values=None, return_properties: list = None):
         if values is None:
             values = {}
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
@@ -333,7 +331,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                              '"matteo.age": 42}',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -344,7 +342,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         raise NotImplementedError('for this operation use batch object')
 
     def delete(self, node: Union[str, Node], properties: dict = None, with_rel=False):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
@@ -361,7 +359,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self.req.post = mock.MagicMock(return_value={'body': '{}',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionDeletingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -372,7 +370,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self._database = None
 
     def find(self, selector):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         self.req.post = mock.MagicMock(return_value={'body': '[{"matteo.name": "Matteo",'
                                                              '"matteo.age": 35},'
@@ -381,9 +379,9 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                      'status': 200,
                                                      'header': selector.build()})
         if isinstance(selector, nosqlapi.graphdb.GraphSelector):
-            ret = self.req.post(self.session, selector.build())
+            ret = self.req.post(self.connection, selector.build())
         else:
-            ret = self.req.post(self.session, selector)
+            ret = self.req.post(self.connection, selector)
         if ret.get('status') != 200:
             raise SessionFindingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -391,13 +389,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def grant(self, user, role):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         cypher = f"GRANT ROLE {role} TO {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
-        ret = self.req.post(self.session, cypher)
+        ret = self.req.post(self.connection, cypher)
         if ret.get('status') != 200:
             raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(ret.get('body'),
@@ -405,13 +403,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def revoke(self, user, role):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         cypher = f"REVOKE ROLE {role} TO {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
-        ret = self.req.post(self.session, cypher)
+        ret = self.req.post(self.connection, cypher)
         if ret.get('status') != 200:
             raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(ret.get('body'),
@@ -419,13 +417,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def new_user(self, user, password, password_change=True):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         cypher = f"CALL dbms.security.createUser({user}, {password}, {password_change})"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
-        ret = self.req.post(self.session, cypher)
+        ret = self.req.post(self.connection, cypher)
         if ret.get('status') != 200:
             raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(ret.get('body'),
@@ -433,13 +431,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def set_user(self, user, password):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         cypher = f"ALTER USER {user} SET PASSWORD '{password}'"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
-        ret = self.req.post(self.session, cypher)
+        ret = self.req.post(self.connection, cypher)
         if ret.get('status') != 200:
             raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(ret.get('body'),
@@ -447,13 +445,13 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def delete_user(self, user):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         cypher = f"DROP USER {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
-        ret = self.req.post(self.session, cypher)
+        ret = self.req.post(self.connection, cypher)
         if ret.get('status') != 200:
             raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(ret.get('body'),
@@ -461,7 +459,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def link(self, node: Union[str, Node], linking_node, rel):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
@@ -472,7 +470,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self.req.post = mock.MagicMock(return_value={'body': '{"linked": true}',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -480,7 +478,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def detach(self, node: Union[str, Node], properties: dict = None):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Node):
             obj, label = node.var, ':'.join(node.labels)
@@ -494,7 +492,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self.req.post = mock.MagicMock(return_value={'body': '{"detached": true}',
                                                      'status': 200,
                                                      'header': stm['statements']})
-        ret = self.req.post(self.session, json.dumps(stm))
+        ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(json.loads(ret.get('body')),
@@ -502,7 +500,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def add_index(self, name: Union[str, Index], node: str = None, properties: list = None, options: dict = None):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(name, Index):
             node = name.node
@@ -517,7 +515,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
-        ret = self.req.post(self.session, cypher)
+        ret = self.req.post(self.connection, cypher)
         if ret.get('status') != 200:
             raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(ret.get('body'),
@@ -525,7 +523,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['header'])
 
     def delete_index(self, node: Union[str, Index], tag=None):
-        if not self.session:
+        if not self.connection:
             raise ConnectError('connect to a server before some request')
         if isinstance(node, Index):
             tag = node.properties
@@ -534,7 +532,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
-        ret = self.req.post(self.session, cypher)
+        ret = self.req.post(self.connection, cypher)
         if ret.get('status') != 200:
             raise SessionACLError(f'error: {ret.get("body")}, status: {ret.get("status")}')
         return MyDBResponse(ret.get('body'),
@@ -588,19 +586,19 @@ class GraphConnectionTest(unittest.TestCase):
     def test_graphdb_connect(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
 
     def test_graphdb_close(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
         myconn.close()
         self.assertEqual(myconn.connection, None)
 
     def test_graphdb_create_database(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
         resp = myconn.create_database('test_db')
         self.assertEqual(resp.data, '0 rows, System updates: 1')
         resp = myconn.create_database(Database('test_db'))
@@ -612,7 +610,7 @@ class GraphConnectionTest(unittest.TestCase):
     def test_graphdb_create_database_if_not_exists(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
         resp = myconn.create_database('test_db', not_exists=True)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
         resp = myconn.create_database('test_db', replace=True)
@@ -625,7 +623,7 @@ class GraphConnectionTest(unittest.TestCase):
     def test_graphdb_exists_database(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
         self.assertTrue(myconn.has_database('test_db'))
         self.assertTrue(myconn.has_database(Database('test_db')))
         myconn.close()
@@ -635,7 +633,7 @@ class GraphConnectionTest(unittest.TestCase):
     def test_graphdb_delete_database(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
         resp = myconn.delete_database(Database('test_db'))
         self.assertEqual(resp.data, '0 rows, System updates: 1')
         resp = myconn.delete_database('test_db')
@@ -654,7 +652,7 @@ class GraphConnectionTest(unittest.TestCase):
     def test_graphdb_get_all_database(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
@@ -665,7 +663,7 @@ class GraphConnectionTest(unittest.TestCase):
     def test_graphdb_show_database(self):
         myconn = MyDBConnection('mygraphdb.local', 12345, username='admin', password='test', database='db')
         myconn.connect()
-        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345/db')
+        self.assertEqual(myconn.connection, 'bolt://admin:test@mygraphdb.local:12345')
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         dbs = myconn.show_database(Database('test_db'))

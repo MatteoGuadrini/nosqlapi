@@ -156,6 +156,8 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
 
     @property
     def description(self):
+        self.connection.recv = mock.MagicMock(return_value="server=mycolumndb.local\nport=12345\ndatabase=test_db"
+                                                           "\nusername=admin")
         self._description = tuple([item.split('=')[1]
                                    for item in self.connection.recv(2048).split('\n')])
         return self._description
