@@ -20,18 +20,19 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from nosqlapi.kvdb.orm import Keyspace as Ks
 from typing import Any, Union, List, Iterator
+
+from nosqlapi.kvdb.orm import Keyspace as Ks
+
 
 class Keyspace(Ks): ...
 
-class Table:
 
+class Table:
     name: str
     columns: List[str, Column]
     options: dict
     index: list
-
 
     def __init__(self, name: str, *columns: Union[str, Column], **options: Any) -> None:
         self._name: str = name
@@ -55,7 +56,7 @@ class Table:
 
     def __setitem__(self, key: int, value: Any) -> None: ...
 
-    def __delitem__(self, key:int = -1) -> None: ...
+    def __delitem__(self, key: int = -1) -> None: ...
 
     def __iter__(self) -> Iterator: ...
 
@@ -65,7 +66,6 @@ class Table:
 
 
 class Column:
-
     of_type: Any
     data: list
     auto_increment: Any
@@ -74,7 +74,7 @@ class Column:
         self.name: str = name
         self._of_type: Any = of_type
         self.max_len: int = max_len
-        self._data: list  = []
+        self._data: list = []
         self._auto_increment: bool = False
 
     def append(self, data: Any = None): ...
@@ -92,5 +92,6 @@ class Column:
     def __repr__(self) -> str: ...
 
     def __str__(self) -> str: ...
+
 
 Index: Any

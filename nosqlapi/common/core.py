@@ -24,6 +24,7 @@
 
 # region imports
 from abc import ABC, abstractmethod
+
 from .exception import *
 
 # endregion

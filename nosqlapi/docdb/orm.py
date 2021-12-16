@@ -20,11 +20,14 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""ORM module for document NOSQL database."""
+
 # region Imports
-from nosqlapi.kvdb.orm import Keyspace
-from nosqlapi.common.orm import Uuid
 from json import dumps
 
+from nosqlapi.common.orm import Uuid
+
+from nosqlapi.kvdb.orm import Keyspace
 
 # endregion
 
@@ -177,6 +180,5 @@ class Index:
 
     def __repr__(self):
         return f"Index({', '.join(f'{key}={value}' for key, value in self.data.items())})"
-
 
 # endregion

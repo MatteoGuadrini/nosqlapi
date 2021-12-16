@@ -20,15 +20,16 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Union
+
 from ..common.core import Selector, Session, Response, Batch
 from ..kvdb.client import KVConnection
-from typing import Any, Union
+
 
 class ColumnConnection(KVConnection): ...
 
 
 class ColumnSelector(Selector):
-
     filtering: Any
 
     def __init__(self) -> None:

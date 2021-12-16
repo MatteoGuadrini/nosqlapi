@@ -78,6 +78,7 @@ def global_session(connection, *args, **kwargs):
     nosqlapi.CONNECTION = connection
     nosqlapi.SESSION = nosqlapi.CONNECTION.connect(*args, **kwargs)
 
+
 # endregion
 
 

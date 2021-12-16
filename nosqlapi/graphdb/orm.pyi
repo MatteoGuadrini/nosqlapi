@@ -21,9 +21,10 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from typing import Any, Union
+
 from nosqlapi.kvdb.orm import Keyspace
 from ..common.orm import Text
-from typing import Any, Union
 
 
 class Label(Text): ...
@@ -38,7 +39,6 @@ class RelationshipType(Label): ...
 
 
 class Database(Keyspace):
-
     online: bool
 
     def __init__(self, name: str, address: str = None, role: str = None,
@@ -58,7 +58,7 @@ class Node:
 
     def add_label(self, label: Union[str, Label]) -> None: ...
 
-    def delete_label(self, index:int = -1) -> None: ...
+    def delete_label(self, index: int = -1) -> None: ...
 
     def __getitem__(self, item: str) -> Any: ...
 
@@ -76,5 +76,6 @@ class Relationship(Node):
     def __str__(self) -> str: ...
 
     def __repr__(self) -> str: ...
+
 
 Index: Any

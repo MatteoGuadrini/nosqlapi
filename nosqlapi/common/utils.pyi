@@ -20,23 +20,25 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from nosqlapi import Response, Batch, Connection
 from typing import Union, Any
+
+from nosqlapi import Response, Batch, Connection
 
 
 def api(**methods: str) -> type: ...
 
+
 def global_session(connection: Any, *args, **kwargs) -> None: ...
 
-class Manager:
 
+class Manager:
     item_count: int
     description: tuple
     database: Union[str, None]
     acl: Union[tuple, dict, Response]
     indexes: Union[tuple, dict, Response]
 
-    def __init__(self,  connection: Connection, *args, **kwargs) -> None:
+    def __init__(self, connection: Connection, *args, **kwargs) -> None:
         self.connection = connection
         self.session = self.connection.connect(*args, **kwargs)
         # Set session properties

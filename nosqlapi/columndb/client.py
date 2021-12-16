@@ -21,11 +21,12 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Client module for column NOSQL database."""
+
 # region imports
 from abc import ABC, abstractmethod
+
 from ..common.core import Selector, Session, Response, Batch
 from ..kvdb.client import KVConnection
-
 
 # endregion
 

@@ -22,8 +22,8 @@
 
 from typing import Any, Union
 
-class Batch:
 
+class Batch:
     session: Session
     batch: Any
 
@@ -39,8 +39,8 @@ class Batch:
 
     def __bool__(self) -> bool: ...
 
-class Connection:
 
+class Connection:
     connected: bool
 
     def __init__(self) -> None:
@@ -72,7 +72,6 @@ class Connection:
 
 
 class Selector:
-
     selector: Union[list, str]
     fields: Union[list, str]
     partition: str
@@ -91,8 +90,8 @@ class Selector:
 
     def __bool__(self) -> bool: ...
 
-class Session:
 
+class Session:
     item_count: int
     description: tuple
     database: Union[str, None]
@@ -149,7 +148,6 @@ class Session:
 
 
 class Response:
-
     data: Any
     code: int
     header: Union[str, tuple]

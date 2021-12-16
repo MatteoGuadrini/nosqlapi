@@ -20,11 +20,12 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Client module for column NOSQL database."""
+"""Client module for document NOSQL database."""
+
 # region imports
 from abc import ABC
-from ..common.core import Connection, Session, Selector, Response, Batch
 
+from ..common.core import Connection, Session, Selector, Response, Batch
 
 # endregion
 

@@ -20,16 +20,16 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from nosqlapi.kvdb.orm import Keyspace
 from typing import Union, Any, Iterator
+
 from nosqlapi.common.orm import Uuid
+from nosqlapi.kvdb.orm import Keyspace
 
 
 class Database(Keyspace): ...
 
 
 class Collection:
-
     docs: list
 
     def __init__(self, name: str, *docs: Any) -> None:
@@ -56,14 +56,13 @@ class Collection:
 
 
 class Document:
-
     id: Union[str, Uuid]
     body: Any
 
     def __init__(self, value: Any = None, oid: Union[str, Uuid] = None, **values) -> None:
         self._body: dict = {}
 
-    def to_json(self, indent:int = 2) -> str: ...
+    def to_json(self, indent: int = 2) -> str: ...
 
     def __getitem__(self, item: str) -> Any: ...
 

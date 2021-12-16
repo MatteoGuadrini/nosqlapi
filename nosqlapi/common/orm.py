@@ -23,11 +23,12 @@
 """Module that contains some ORM common objects."""
 
 # region Imports
-from decimal import Decimal as Dc
 from datetime import date
-from datetime import timedelta
-from datetime import time
 from datetime import datetime
+from datetime import time
+from datetime import timedelta
+
+from decimal import Decimal as Dc
 from uuid import uuid1
 
 # endregion

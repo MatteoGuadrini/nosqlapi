@@ -20,8 +20,10 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ..common.core import Connection, Session, Selector, Response, Batch
 from typing import Any, Union
+
+from ..common.core import Connection, Session, Selector, Response, Batch
+
 
 class GraphConnection(Connection):
 

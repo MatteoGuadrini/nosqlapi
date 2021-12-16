@@ -20,8 +20,8 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal as Dc
 from datetime import date, timedelta, time, datetime
+from decimal import Decimal as Dc
 from typing import Union, Any
 from uuid import uuid1, UUID
 
@@ -76,7 +76,7 @@ class Counter:
 
 class Date(date):
 
-    def __repr__(self)-> str: ...
+    def __repr__(self) -> str: ...
 
 
 class Decimal(Dc):
@@ -139,6 +139,7 @@ class Uuid:
         self.uuid: Union[str, UUID] = uuid1()
 
     def __repr__(self) -> str: ...
+
 
 Varchar: Any
 Varint: Any
