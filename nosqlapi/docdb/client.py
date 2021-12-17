@@ -51,7 +51,6 @@ class DocConnection(Connection, ABC):
         self.cert = cert
         self.ca_cert = ca_cert
         self.ca_bundle = ca_bundle
-        self.connection = None
 
 
 class DocSession(Session, ABC):
