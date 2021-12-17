@@ -40,7 +40,38 @@ __all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
 class Connection(ABC):
     """Server connection abstract class"""
 
-    def __init__(self):
+    def __init__(self,
+                 host=None,
+                 user=None,
+                 password=None,
+                 database=None,
+                 port=None,
+                 bind_address=None,
+                 read_timeout=None,
+                 write_timeout=None,
+                 ssl=None,
+                 ssl_ca=None,
+                 ssl_cert=None,
+                 tls=None,
+                 ssl_key=None,
+                 ssl_verify_cert=None,
+                 max_allowed_packet=None
+                 ):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.port = port
+        self.bind_address = bind_address
+        self.read_timeout = read_timeout
+        self.write_timeout = write_timeout
+        self.ssl = ssl
+        self.ssl_ca = ssl_ca
+        self.ssl_cert = ssl_cert
+        self.tls = tls
+        self.ssl_key = ssl_key
+        self.ssl_verify_cert = ssl_verify_cert
+        self.max_allowed_packet = max_allowed_packet
         self._connected = False
 
     @property

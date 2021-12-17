@@ -43,7 +43,37 @@ class Batch:
 class Connection:
     connected: bool
 
-    def __init__(self) -> None:
+    def __init__(self,
+                 host: str = None,
+                 user: str = None,
+                 password: str = None,
+                 database: str = None,
+                 port: int = None,
+                 bind_address: str = None,
+                 read_timeout: int = None,
+                 write_timeout: int = None,
+                 ssl: bool = None,
+                 ssl_ca: str = None,
+                 ssl_cert: str = None,
+                 tls: bool = None,
+                 ssl_key: str = None,
+                 ssl_verify_cert: bool = None,
+                 max_allowed_packet: int = None) -> None:
+        self.host: str
+        self.user: str
+        self.password: str
+        self.database: str
+        self.port: int
+        self.bind_address: str
+        self.read_timeout: int
+        self.write_timeout: int
+        self.ssl: bool
+        self.ssl_ca: str
+        self.ssl_cert: str
+        self.tls: bool
+        self.ssl_key: str
+        self.ssl_verify_cert: bool
+        self.max_allowed_packet: int
         self._connected: bool = False
 
     def close(self, *args, **kwargs) -> None: ...
