@@ -40,8 +40,8 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             self.t.send("CLIENT_CONNECT")
         # Check credential
-        if self.username and self.password:
-            self.t.send(f"\nCRED={self.username}:{self.password}")
+        if self.user and self.password:
+            self.t.send(f"\nCRED={self.user}:{self.password}")
         # while len(self.t.recv(2048)) > 0:
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
         self._return_data = self.t.recv(2048)
@@ -390,7 +390,7 @@ class KVConnectionTest(unittest.TestCase):
         self.assertEqual(myconn.return_data, 'CLOSED')
 
     def test_kvdb_connect_with_user_passw(self):
-        myconn = MyDBConnection('mykvdb.local', 12345, username='admin', password='admin000')
+        myconn = MyDBConnection('mykvdb.local', port=12345, user='admin', password='admin000')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
 
@@ -504,7 +504,7 @@ class KVConnectionTest(unittest.TestCase):
 
 
 class KVSessionTest(unittest.TestCase):
-    myconn = MyDBConnection('mykvdb.local', 12345, 'test_db')
+    myconn = MyDBConnection(host='mykvdb.local', port=12345, database='test_db')
     mysess = myconn.connect()
 
     def test_session_instance(self):

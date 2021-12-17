@@ -41,8 +41,8 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
         else:
             self.t.send("CLIENT_CONNECT")
         # Check credential
-        if self.username and self.password:
-            self.t.send(f"\nCRED={self.username}:{self.password}")
+        if self.user and self.password:
+            self.t.send(f"\nCRED={self.user}:{self.password}")
         # while len(self.t.recv(2048)) > 0:
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
         self._return_data = self.t.recv(2048)
@@ -453,19 +453,19 @@ class MyDBSelector(nosqlapi.columndb.ColumnSelector):
 
 class ColumnConnectionTest(unittest.TestCase):
     def test_columndb_connect(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
 
     def test_columndb_close(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         myconn.close()
         self.assertEqual(myconn.return_data, 'CLOSED')
 
     def test_columndb_create_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         myconn.create_database('test_db')
@@ -477,7 +477,7 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_columndb_exists_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         self.assertTrue(myconn.has_database('test_db'))
@@ -488,7 +488,7 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_columndb_delete_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         myconn.delete_database('test_db')
@@ -500,7 +500,7 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_columndb_get_all_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         dbs = myconn.databases()
@@ -511,7 +511,7 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
         self.assertEqual(myconn.return_data, 'OK_PACKET')
         dbs = myconn.show_database('test_db')
@@ -526,7 +526,7 @@ class ColumnConnectionTest(unittest.TestCase):
 
 
 class ColumnSessionTest(unittest.TestCase):
-    myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+    myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
     mysess = myconn.connect()
 
     def test_session_instance(self):
