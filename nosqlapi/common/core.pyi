@@ -123,7 +123,7 @@ class Selector:
 
 class Session:
     item_count: int
-    description: tuple
+    description: Union[tuple, dict]
     database: Union[str, None]
     connection: Any
     acl: Union[tuple, dict, Response]
