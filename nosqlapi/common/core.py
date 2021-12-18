@@ -145,8 +145,7 @@ class Connection(ABC):
         return f"{repr(self)}, connected={self.connected}"
 
     def __bool__(self):
-        if self.connected:
-            return True
+        return True if self.connected else False
 
     def __enter__(self):
         return self
