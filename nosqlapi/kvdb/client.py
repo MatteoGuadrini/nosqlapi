@@ -41,12 +41,6 @@ class KVConnection(Connection, ABC):
 
     def __init__(self, *args, **kwargs):
         Connection.__init__(self, *args, **kwargs)
-        self._return_data = None
-
-    @property
-    def return_data(self):
-        """Result data after any operation"""
-        return self._return_data
 
 
 class KVSelector(Selector, ABC):
