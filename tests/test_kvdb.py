@@ -20,17 +20,11 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
     t.send = mock.MagicMock()
     t.close = mock.MagicMock()
 
-    def __bool__(self):
-        if self.return_data:
-            return True
-
     def close(self):
-        self.connection.close()
-        self.connection = None
+        self._connected = False
         self.t.recv = mock.MagicMock(return_value='CLOSED')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'CLOSED':
-            raise ConnectError(f'Close connection error: {self.return_data}')
+        if self.t.recv(2048) != 'CLOSED':
+            raise ConnectError(f'Close connection error: {self.t.recv(2048)}')
 
     def connect(self):
         # Connection
@@ -42,34 +36,28 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         # Check credential
         if self.user and self.password:
             self.t.send(f"\nCRED={self.user}:{self.password}")
-        # while len(self.t.recv(2048)) > 0:
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'OK_PACKET':
-            raise ConnectError(f'Server connection error: {self.return_data}')
-        self.connection = self.t
-        return MyDBSession(self.connection, self.database)
+        if self.t.recv(2048) != 'OK_PACKET':
+            raise ConnectError(f'Server connection error: {self.t.recv(2048)}')
+        self._connected = True
+        return MyDBSession(self.t, self.database)
 
     def create_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"CREATE_DB='{name}'")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"CREATE_DB='{name}'")
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_CREATED':
-                raise DatabaseCreationError(f'Database creation error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_CREATED':
+                raise DatabaseCreationError(f'Database creation error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def has_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"DB_EXISTS='{name}'")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"DB_EXISTS='{name}'")
             self.t.recv = mock.MagicMock(return_value='DB_EXISTS')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_EXISTS':
+            if self.t.recv(2048) != 'DB_EXISTS':
                 return False
             else:
                 return True
@@ -77,39 +65,34 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
             raise ConnectError(f"Server isn't connected")
 
     def delete_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"DELETE_DB='{name}'")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"DELETE_DB='{name}'")
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_DELETED':
-                raise DatabaseDeletionError(f'Database deletion error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_DELETED':
+                raise DatabaseDeletionError(f'Database deletion error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def databases(self):
-        if self.connection:
-            self.connection.send(f"GET_ALL_DBS")
-            # while len(self.t.recv(2048)) > 0:
+        if self:
+            self.t.send(f"GET_ALL_DBS")
             self.t.recv = mock.MagicMock(return_value='test_db db1 db2')
-            self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data.split())
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048).split())
         else:
             raise ConnectError(f"Server isn't connected")
 
     def show_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"GET_DB={name}")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"GET_DB={name}")
             self.t.recv = mock.MagicMock(return_value='name=test_db, size=0.4GB')
             self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data)
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048))
         else:
             raise ConnectError(f"Server isn't connected")
 
@@ -383,123 +366,117 @@ class KVConnectionTest(unittest.TestCase):
     def test_kvdb_connect(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         with MyDBConnection('mykvdb.local', 12345) as myconn:
             myconn.connect()
-            self.assertEqual(myconn.return_data, 'OK_PACKET')
-        self.assertEqual(myconn.return_data, 'CLOSED')
+            self.assertTrue(myconn)
+        self.assertFalse(myconn)
 
     def test_kvdb_connect_with_user_passw(self):
         myconn = MyDBConnection('mykvdb.local', port=12345, user='admin', password='admin000')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
 
     def test_kvdb_close(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
 
     def test_kvdb_create_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.create_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_kvdb_create_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.create_database(ks)
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_kvdb_exists_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.has_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_EXISTS')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_kvdb_exists_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.has_database(ks)
-        self.assertEqual(myconn.return_data, 'DB_EXISTS')
-        if myconn.return_data == 'DB_EXISTS':
+        if myconn.has_database(ks):
             ks._exists = True
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_kvdb_delete_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.delete_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_kvdb_delete_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.delete_database(ks)
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
-        if myconn.return_data == 'DB_DELETED':
+        if myconn.has_database(ks):
             ks._exists = False
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_kvdb_get_all_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, 'name=test_db, size=0.4GB')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.show_database(ks)
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, 'name=test_db, size=0.4GB')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
 

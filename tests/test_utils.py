@@ -57,13 +57,10 @@ class TestUtils(unittest.TestCase):
         man = nosqlapi.Manager(KVConn(host='mykvdb.local', user='test', password='pass', database='test_db'))
         # Create database
         man.create_database('test_db')
-        self.assertEqual(man.connection.return_data, 'DB_CREATED')
         # Exists database
         man.has_database('test_db')
-        self.assertEqual(man.connection.return_data, 'DB_EXISTS')
         # Delete database
         man.delete_database('test_db')
-        self.assertEqual(man.connection.return_data, 'DB_DELETED')
         # All databases
         dbs = man.databases()
         self.assertIsInstance(dbs, MyDBResponse)
