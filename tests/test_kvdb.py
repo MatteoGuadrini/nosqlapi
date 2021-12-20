@@ -113,7 +113,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
 
     @property
     def acl(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request some ACLs')
         self.connection.send(f"GET_ACL={self.description[2]}")
         self.connection.recv = mock.MagicMock(return_value="test,user_read;admin,admins;root,admins")
@@ -124,7 +124,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
 
     @property
     def indexes(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request indexes.')
         self.connection.send(f"GET_INDEX={self.description[2]}")
         self.connection.recv = mock.MagicMock(return_value="index1,index2")
@@ -133,7 +133,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         )
 
     def get(self, key: Union[Any, Item]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         key = key.key if isinstance(key, Item) else key
         self.connection.send(f"GET={key}")
@@ -148,7 +148,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             raise SessionError(f'key {key} not exists')
 
     def insert(self, key, value):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         i = Item(key, value)
         self.connection.send(f"INSERT={i.key},{i.value}")
@@ -158,7 +158,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         self._item_count = 1
 
     def insert_many(self, dict_: Union[dict, Keyspace]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(dict_, Keyspace):
             self.connection.send(f"INSERT_MANY={';'.join(','.join((item.key, item.value)) for item in dict_.store)}")
@@ -170,7 +170,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         self._item_count = len(dict_)
 
     def update(self, key, value):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if self.get(key):
             i = Item(key, value)
@@ -185,7 +185,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         raise NotImplementedError('update_many not implemented for this module')
 
     def delete(self, key: Union[Any, Item]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         key = key.key if isinstance(key, Item) else key
         self.connection.send(f"DELETE={key}")
@@ -196,12 +196,12 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
 
     def close(self):
         self.connection.close()
-        if not self.database:
+        if not self.connection:
             SessionClosingError('session was not closed')
         self._database = None
 
     def find(self, selector):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(selector, str):
             self.connection.send(f"FIND={selector}")
@@ -219,7 +219,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         return MyDBResponse(out)
 
     def grant(self, database, user, role):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"GRANT={user},{role}:DATABASE={database}")
         self.connection.recv = mock.MagicMock(return_value="GRANT_OK")
@@ -228,7 +228,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
 
     def revoke(self, database, user, role=None):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"REVOKE={user},{role}:DATABASE={database}")
         self.connection.recv = mock.MagicMock(return_value="REVOKE_OK")
@@ -237,7 +237,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
     def new_user(self, user, password, super_user=False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"NEW={user}:PASSWORD={password}:ADMIN={super_user}")
         self.connection.recv = mock.MagicMock(return_value="CREATION_OK")
@@ -246,7 +246,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         return MyDBResponse({'user': user, 'status': self.connection.recv(2048)})
 
     def set_user(self, user, password, super_user=False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"USER={user}:PASSWORD={password}:ADMIN={super_user}")
         self.connection.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
@@ -255,7 +255,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         return MyDBResponse({'user': user, 'status': self.connection.recv(2048)})
 
     def delete_user(self, user):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"DELETE_USER={user}")
         self.connection.recv = mock.MagicMock(return_value="USER_DELETED")
@@ -264,7 +264,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         return MyDBResponse({'user': user, 'status': self.connection.recv(2048)})
 
     def add_index(self, name: Union[str, Index], key=None):
-        if not self.database:
+        if not self.connection:
             raise DatabaseError('database is not set')
         if isinstance(name, Index):
             key = name.key
@@ -278,7 +278,7 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             raise SessionError(f'index not created: {name}')
 
     def delete_index(self, name: Union[str, Index]):
-        if not self.database:
+        if not self.connection:
             raise DatabaseError('database is not set')
         if isinstance(name, Index):
             name = name.name

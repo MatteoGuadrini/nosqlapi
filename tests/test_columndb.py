@@ -21,17 +21,12 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
     t.send = mock.MagicMock()
     t.close = mock.MagicMock()
 
-    def __bool__(self):
-        if self.return_data:
-            return True
-
     def close(self):
-        self.connection.close()
-        self.connection = None
+        self.t.close()
+        self._connected = False
         self.t.recv = mock.MagicMock(return_value='CLOSED')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'CLOSED':
-            raise ConnectError(f'Close connection error: {self.return_data}')
+        if self.t.recv(2048) != 'CLOSED':
+            raise ConnectError(f'Close connection error: {self.t.recv(2048)}')
 
     def connect(self):
         # Connection
@@ -43,17 +38,15 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
         # Check credential
         if self.user and self.password:
             self.t.send(f"\nCRED={self.user}:{self.password}")
-        # while len(self.t.recv(2048)) > 0:
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'OK_PACKET':
-            raise ConnectError(f'Server connection error: {self.return_data}')
-        self.connection = self.t
-        return MyDBSession(self.connection, self.database)
+        if self.t.recv(2048) != 'OK_PACKET':
+            raise ConnectError(f'Server connection error: {self.t.recv(2048)}')
+        self._connected = True
+        return MyDBSession(self.t, self.database)
 
     def create_database(self, name: Union[str, Keyspace], not_exists: bool = False, replication=None,
                         durable_writes=None):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
             query = f"CREATE  KEYSPACE '{name}'"
@@ -63,17 +56,15 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
                 query += f" WITH REPLICATION = {replication}"
             if durable_writes is not None:
                 query += f" AND DURABLE_WRITES = {str(bool(durable_writes)).lower()}"
-            self.connection.send(query)
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(query)
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_CREATED':
-                raise DatabaseCreationError(f'Database creation error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_CREATED':
+                raise DatabaseCreationError(f'Database creation error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def has_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
             if name not in self.databases():
@@ -84,45 +75,40 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
             raise ConnectError(f"Server isn't connected")
 
     def delete_database(self, name: Union[str, Keyspace], exists=False):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
             query = f'DROP KEYSPACE'
             if exists:
                 query += ' IF EXISTS'
             query += f' {name};'
-            self.connection.send(query)
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(query)
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_DELETED':
-                raise DatabaseDeletionError(f'Database deletion error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_DELETED':
+                raise DatabaseDeletionError(f'Database deletion error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def databases(self):
-        if self.connection:
-            self.connection.send(f"DESCRIBE KEYSPACES;")
-            # while len(self.t.recv(2048)) > 0:
+        if self:
+            self.t.send(f"DESCRIBE KEYSPACES;")
             self.t.recv = mock.MagicMock(return_value='test_db db1 db2')
-            self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data.split())
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048).split())
         else:
             raise ConnectError(f"Server isn't connected")
 
     def show_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
-            self.connection.send(f"DESCRIBE KEYSPACE {name};")
+            self.t.send(f"DESCRIBE KEYSPACE {name};")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='table1 table2 table3')
-            self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data.split())
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048).split())
         else:
             raise ConnectError(f"Server isn't connected")
 
@@ -131,7 +117,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
 
     @property
     def acl(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request some ACLs')
         self.connection.send(f"LIST ALL PERMISSIONS OF {self.description[2]}")
         self.connection.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
@@ -142,7 +128,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
 
     @property
     def indexes(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request indexes')
         self.connection.send('SELECT * FROM "IndexInfo";')
         self.connection.recv = mock.MagicMock(return_value=f"index1,index2")
@@ -163,7 +149,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return self._description
 
     def get(self, table: Union[str, Table], *columns: Union[str, Column]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -190,7 +176,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                ttl=None,
                timestamp: Union[int, Timestamp] = None,
                not_exists: bool = False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -225,7 +211,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                     ttl=None,
                     timestamp: Union[int, Timestamp] = None,
                     not_exists: bool = False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -270,7 +256,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
     def delete(self, table: Union[str, Table], conditions: list, exists: bool = False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -291,7 +277,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         self._database = None
 
     def find(self, selector: nosqlapi.columndb.ColumnSelector):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(selector, nosqlapi.columndb.ColumnSelector):
             self.connection.send(selector.build())
@@ -304,7 +290,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return MyDBResponse(out)
 
     def grant(self, database, user, role):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"GRANT {user} ON {database} TO {role};")
         self.connection.recv = mock.MagicMock(return_value="GRANT_OK")
@@ -313,7 +299,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
 
     def revoke(self, database, user, role=None):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"REVOKE {user} ON {database} TO {role};")
         self.connection.recv = mock.MagicMock(return_value="REVOKE_OK")
@@ -322,7 +308,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
     def new_user(self, role, password, login=True, super_user=False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"CREATE ROLE {role} WITH PASSWORD = {password} "
                              f"AND SUPERUSER = {super_user} AND LOGIN = {login};")
@@ -332,7 +318,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return MyDBResponse({'role': role, 'status': self.connection.recv(2048)})
 
     def set_user(self, role, password):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"ALTER ROLE {role} WITH PASSWORD = {password}")
         self.connection.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
@@ -341,7 +327,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return MyDBResponse({'role': role, 'status': self.connection.recv(2048)})
 
     def delete_user(self, role):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         self.connection.send(f"DROP ROLE {role}")
         self.connection.recv = mock.MagicMock(return_value="ROLE_DELETED")
@@ -350,7 +336,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return MyDBResponse({'role': role, 'status': self.connection.recv(2048)})
 
     def add_index(self, name: Union[str, Index], table=None, column=None):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(name, Index):
             column = name.column
@@ -365,7 +351,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         return MyDBResponse({'index': name, 'status': self.connection.recv(2048)})
 
     def delete_index(self, name: Union[str, Index]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(name, Index):
             name = name.name
@@ -455,65 +441,61 @@ class ColumnConnectionTest(unittest.TestCase):
     def test_columndb_connect(self):
         myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
 
     def test_columndb_close(self):
         myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
 
     def test_columndb_create_database(self):
         myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.create_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.create_database(Keyspace('test_db'))
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_columndb_exists_database(self):
         myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         self.assertTrue(myconn.has_database('test_db'))
         self.assertTrue(myconn.has_database(Keyspace('test_db')))
         self.assertFalse(myconn.has_database('casual'))
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_columndb_delete_database(self):
         myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.delete_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
         myconn.delete_database(Keyspace('test_db'))
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_columndb_get_all_database(self):
         myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database(self):
         myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['table1', 'table2', 'table3'])
@@ -521,7 +503,7 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['table1', 'table2', 'table3'])
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
 
