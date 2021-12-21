@@ -74,7 +74,7 @@ class TestUtils(unittest.TestCase):
         man = nosqlapi.Manager(KVConn(host='mykvdb.local', user='test', password='pass', database='test_db'))
         self.assertIsInstance(man.connection, KVConn)
         self.assertIn('mykvdb.local', man.description)
-        man.change(DocConn('mydocdb.local', port=12345, username='admin', password='test'))
+        man.change(DocConn('mydocdb.local', port=12345, user='admin', password='test'))
         self.assertIsInstance(man.connection, DocConn)
         self.assertEqual('mydocdb.local', man.description['host'])
 
@@ -82,7 +82,7 @@ class TestUtils(unittest.TestCase):
         man = nosqlapi.Manager(KVConn(host='mykvdb.local', user='test', password='pass', database='test_db'))
         self.assertIsInstance(man.connection, KVConn)
         self.assertIn('mykvdb.local', man.description)
-        nosqlapi.global_session(DocConn('mydocdb.local', port=12345, username='admin', password='test'))
+        nosqlapi.global_session(DocConn('mydocdb.local', port=12345, user='admin', password='test'))
         self.assertEqual('mydocdb.local', nosqlapi.SESSION.description['host'])
 
 

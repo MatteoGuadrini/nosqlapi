@@ -17,34 +17,37 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
     req = mock.Mock()
 
     def close(self):
-        self.connection = None
-        if self.connection is not None:
-            raise ConnectError('Close connection error')
+        self._connected = False
 
     def connect(self):
-        # Connection
         if not self.port:
             self.port = 27017
         scheme = 'https://' if self.ssl else 'http://'
-        if self.username and self.password:
-            scheme += f'{self.username}:{self.password}@'
+        if self.user and self.password:
+            scheme += f'{self.user}:{self.password}@'
         url = f'{scheme}{self.host}:{self.port}'
         self.req.get = mock.MagicMock(return_value={'body': 'server http response ok',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
         if self.req.get(url).get('status') != 200:
             raise ConnectError('server not respond')
-        self.connection = url
-        return MyDBSession(self.connection)
+        self._connected = True
+        return MyDBSession(url)
 
     def create_database(self, name: Union[str, Database]):
         self.req.put = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
-        if self.connection:
+        if self:
             if isinstance(name, Database):
                 name = name.name
-            ret = self.req.put(f"{self.connection}/{name}")
+            if not self.port:
+                self.port = 27017
+            scheme = 'https://' if self.ssl else 'http://'
+            if self.user and self.password:
+                scheme += f'{self.user}:{self.password}@'
+            url = f'{scheme}{self.host}:{self.port}'
+            ret = self.req.put(f"{url}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseCreationError(f'Database creation error: {ret.get("status")}')
             return MyDBResponse(json.loads(ret['body']),
@@ -54,7 +57,7 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
             raise ConnectError("server isn't connected")
 
     def has_database(self, name: Union[str, Database]):
-        if self.connection:
+        if self:
             if isinstance(name, Database):
                 name = name.name
             if name in self.databases():
@@ -68,10 +71,16 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         self.req.delete = mock.MagicMock(return_value={'body': '{"result": "ok"}',
                                                        'status': 200,
                                                        'header': '"Content-Type": [ "application/json" ]'})
-        if self.connection:
+        if self:
             if isinstance(name, Database):
                 name = name.name
-            ret = self.req.delete(f"{self.connection}/{name}")
+            if not self.port:
+                self.port = 27017
+            scheme = 'https://' if self.ssl else 'http://'
+            if self.user and self.password:
+                scheme += f'{self.user}:{self.password}@'
+            url = f'{scheme}{self.host}:{self.port}'
+            ret = self.req.delete(f"{url}/{name}")
             if ret.get('status') != 200:
                 raise DatabaseDeletionError(f'Database deletion error: {ret.get("status")}')
             return MyDBResponse(json.loads(ret['body']),
@@ -84,8 +93,14 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         self.req.get = mock.MagicMock(return_value={'body': '{"result": ["test_db", "db1", "db2"]}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
-        if self.connection:
-            ret = self.req.get(f"{self.connection}/databases")
+        if self:
+            if not self.port:
+                self.port = 27017
+            scheme = 'https://' if self.ssl else 'http://'
+            if self.user and self.password:
+                scheme += f'{self.user}:{self.password}@'
+            url = f'{scheme}{self.host}:{self.port}'
+            ret = self.req.get(f"{url}/databases")
             dbs = json.loads(ret.get('body'))
             if dbs['result']:
                 return MyDBResponse(dbs['result'],
@@ -100,10 +115,16 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         self.req.get = mock.MagicMock(return_value={'body': '{"result": {"name": "test_db", "size": "0.4GB"}}',
                                                     'status': 200,
                                                     'header': '"Content-Type": [ "application/json" ]'})
-        if self.connection:
+        if self:
             if isinstance(name, Database):
                 name = name.name
-            ret = self.req.get(f"{self.connection}/databases?name={name}")
+            if not self.port:
+                self.port = 27017
+            scheme = 'https://' if self.ssl else 'http://'
+            if self.user and self.password:
+                scheme += f'{self.user}:{self.password}@'
+            url = f'{scheme}{self.host}:{self.port}'
+            ret = self.req.get(f"{url}/databases?name={name}")
             dbs = json.loads(ret.get('body'))
             if dbs['result']:
                 return MyDBResponse(dbs['result'],
@@ -423,81 +444,81 @@ class MyDBSelector(nosqlapi.docdb.DocSelector):
 
 class DocConnectionTest(unittest.TestCase):
     def test_docdb_connect(self):
-        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
-        myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
 
     def test_docdb_close(self):
-        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
-        myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
         myconn.close()
-        self.assertEqual(myconn.connection, None)
+        self.assertFalse(myconn)
 
     def test_docdb_create_database(self):
-        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
-        myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
         resp = myconn.create_database('test_db')
         self.assertEqual(resp.data['result'], 'ok')
         db = Database('test_db')
         resp = myconn.create_database(db)
         self.assertEqual(resp.data['result'], 'ok')
         myconn.close()
-        self.assertEqual(myconn.connection, None)
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_docdb_exists_database(self):
-        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
-        myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
         self.assertTrue(myconn.has_database('test_db'))
         db = Database('test_db')
         self.assertTrue(myconn.has_database(db))
         myconn.close()
-        self.assertEqual(myconn.connection, None)
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_docdb_delete_database(self):
-        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
-        myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
         resp = myconn.delete_database('test_db')
         self.assertEqual(resp.data['result'], 'ok')
         db = Database('test_db')
         resp = myconn.delete_database(db)
         self.assertEqual(resp.data['result'], 'ok')
         myconn.close()
-        self.assertEqual(myconn.connection, None)
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_docdb_get_all_database(self):
-        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
-        myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
-        self.assertEqual(myconn.connection, None)
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database(self):
-        myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
-        myconn.connect()
-        self.assertEqual(myconn.connection, 'http://admin:test@mydocdb.local:12345')
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, {'name': 'test_db', 'size': '0.4GB'})
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, {'name': 'test_db', 'size': '0.4GB'})
         myconn.close()
-        self.assertEqual(myconn.connection, None)
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
 
 class DocSessionTest(unittest.TestCase):
-    myconn = MyDBConnection('mydocdb.local', 12345, username='admin', password='test')
+    myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
     mysess = myconn.connect()
 
     def test_session_instance(self):
