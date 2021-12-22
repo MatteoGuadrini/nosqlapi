@@ -40,19 +40,8 @@ __all__ = ['GraphConnection', 'GraphSelector', 'GraphSession', 'GraphResponse', 
 class GraphConnection(Connection, ABC):
     """Graph NOSQL database Connection class"""
 
-    def __init__(self, host=None, port=None, database=None, username=None, password=None, ssl=None, tls=None, cert=None,
-                 ca_cert=None, ca_bundle=None):
-        super().__init__()
-        self.host = host
-        self.port = port
-        self.database = database
-        self.username = username
-        self.password = password
-        self.ssl = ssl
-        self.tls = tls
-        self.cert = cert
-        self.ca_cert = ca_cert
-        self.ca_bundle = ca_bundle
+    def __init__(self, *args, **kwargs):
+        Connection.__init__(self, *args, **kwargs)
 
 
 class GraphSession(Session, ABC):
