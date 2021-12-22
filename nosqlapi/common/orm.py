@@ -23,6 +23,7 @@
 """Module that contains some ORM common objects."""
 
 # region Imports
+import string
 from datetime import date
 from datetime import datetime
 from datetime import time
@@ -61,8 +62,10 @@ class Map(dict):
 class Ascii(str):
     """Represents ASCII string"""
 
-    def __repr__(self):
-        return ascii(self)
+    def __init__(self, value=''):
+        for char in value:
+            if char not in string.printable:
+                raise ValueError(f'The string "{value}" contains non-ASCII characters: {char}')
 
 
 class Blob(bytes):
