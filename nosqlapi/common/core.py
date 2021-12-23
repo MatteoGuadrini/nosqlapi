@@ -470,12 +470,11 @@ class Response(ABC):
 
     @property
     def dict(self):
-        d = dict()
-        d['data'] = self.data
-        d['code'] = self.code
-        d['header'] = self.header
-        d['error'] = self.error
-        return d
+        """dict format for Response object"""
+        return {'data': self._data,
+                'code': self._code,
+                'header': self._header,
+                'error': self._error}
 
     def __bool__(self):
         if self._error:
