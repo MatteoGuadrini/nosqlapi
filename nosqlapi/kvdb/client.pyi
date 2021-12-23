@@ -20,28 +20,15 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ..common.core import Connection, Selector, Session, Response, Batch
 from typing import Any, Union
+
+from ..common.core import Connection, Selector, Session, Response, Batch
 
 
 class KVConnection(Connection):
-
     return_data: Union[str, tuple, Response]
 
-    def __init__(self, host: str = None, port: int = None, database: str = None, username: str = None,
-                 password: str = None, ssl: bool = None, tls: bool = None, cert: str = None,
-                 ca_cert: str = None, ca_bundle: str = None) -> None:
-        self.host: str = host
-        self.port: int = port
-        self.database: str = database
-        self.username: str = username
-        self.password: str = password
-        self.ssl: bool = ssl
-        self.tls: bool = tls
-        self.cert: str = cert
-        self.ca_cert: str = ca_cert
-        self.ca_bundle: str = ca_bundle
-        self.connection: Any = None
+    def __init__(self, *args, **kwargs) -> None:
         self._return_data: Union[str, tuple, Response] = None
 
 

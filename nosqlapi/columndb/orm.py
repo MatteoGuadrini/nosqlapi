@@ -20,11 +20,13 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""ORM module for column NOSQL database."""
+
 # region Imports
-from nosqlapi.kvdb.orm import Keyspace as Ks
-from nosqlapi.common import Counter
 from collections import namedtuple
 
+from nosqlapi.common import Counter
+from nosqlapi.kvdb.orm import Keyspace as Ks
 
 # endregion
 

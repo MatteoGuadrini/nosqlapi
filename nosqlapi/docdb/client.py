@@ -20,11 +20,12 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Client module for column NOSQL database."""
+"""Client module for document NOSQL database."""
+
 # region imports
 from abc import ABC
-from ..common.core import Connection, Session, Selector, Response, Batch
 
+from ..common.core import Connection, Session, Selector, Response, Batch
 
 # endregion
 
@@ -38,19 +39,8 @@ __all__ = ['DocConnection', 'DocSelector', 'DocSession', 'DocResponse', 'DocBatc
 class DocConnection(Connection, ABC):
     """Document NOSQL database Connection class"""
 
-    def __init__(self, host=None, port=None, username=None, password=None, ssl=None, tls=None, cert=None, ca_cert=None,
-                 ca_bundle=None):
-        super().__init__()
-        self.host = host
-        self.port = port
-        self.username = username
-        self.password = password
-        self.ssl = ssl
-        self.tls = tls
-        self.cert = cert
-        self.ca_cert = ca_cert
-        self.ca_bundle = ca_bundle
-        self.connection = None
+    def __init__(self, *args, **kwargs):
+        Connection.__init__(self, *args, **kwargs)
 
 
 class DocSession(Session, ABC):

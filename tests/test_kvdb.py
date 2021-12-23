@@ -1,12 +1,13 @@
 import unittest
+from string import Template
 from typing import Union, Any
+from unittest import mock
+
 import nosqlapi.kvdb
-from nosqlapi.kvdb.orm import Keyspace, Item, Transaction, Index
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
-from unittest import mock
-from string import Template
+from nosqlapi.kvdb.orm import Keyspace, Item, Transaction, Index
 
 
 # Below classes is a emulation of FoundationDB like database
@@ -19,17 +20,11 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
     t.send = mock.MagicMock()
     t.close = mock.MagicMock()
 
-    def __bool__(self):
-        if self.return_data:
-            return True
-
     def close(self):
-        self.connection.close()
-        self.connection = None
+        self._connected = False
         self.t.recv = mock.MagicMock(return_value='CLOSED')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'CLOSED':
-            raise ConnectError(f'Close connection error: {self.return_data}')
+        if self.t.recv(2048) != 'CLOSED':
+            raise ConnectError(f'Close connection error: {self.t.recv(2048)}')
 
     def connect(self):
         # Connection
@@ -39,36 +34,30 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
         else:
             self.t.send("CLIENT_CONNECT")
         # Check credential
-        if self.username and self.password:
-            self.t.send(f"\nCRED={self.username}:{self.password}")
-        # while len(self.t.recv(2048)) > 0:
+        if self.user and self.password:
+            self.t.send(f"\nCRED={self.user}:{self.password}")
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'OK_PACKET':
-            raise ConnectError(f'Server connection error: {self.return_data}')
-        self.connection = self.t
-        return MyDBSession(self.connection, self.database)
+        if self.t.recv(2048) != 'OK_PACKET':
+            raise ConnectError(f'Server connection error: {self.t.recv(2048)}')
+        self._connected = True
+        return MyDBSession(self.t, self.database)
 
     def create_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"CREATE_DB='{name}'")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"CREATE_DB='{name}'")
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_CREATED':
-                raise DatabaseCreationError(f'Database creation error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_CREATED':
+                raise DatabaseCreationError(f'Database creation error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def has_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"DB_EXISTS='{name}'")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"DB_EXISTS='{name}'")
             self.t.recv = mock.MagicMock(return_value='DB_EXISTS')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_EXISTS':
+            if self.t.recv(2048) != 'DB_EXISTS':
                 return False
             else:
                 return True
@@ -76,83 +65,81 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
             raise ConnectError(f"Server isn't connected")
 
     def delete_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"DELETE_DB='{name}'")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"DELETE_DB='{name}'")
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_DELETED':
-                raise DatabaseDeletionError(f'Database deletion error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_DELETED':
+                raise DatabaseDeletionError(f'Database deletion error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def databases(self):
-        if self.connection:
-            self.connection.send(f"GET_ALL_DBS")
-            # while len(self.t.recv(2048)) > 0:
+        if self:
+            self.t.send(f"GET_ALL_DBS")
             self.t.recv = mock.MagicMock(return_value='test_db db1 db2')
-            self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data.split())
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048).split())
         else:
             raise ConnectError(f"Server isn't connected")
 
     def show_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             name = name.name if isinstance(name, Keyspace) else name
-            self.connection.send(f"GET_DB={name}")
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(f"GET_DB={name}")
             self.t.recv = mock.MagicMock(return_value='name=test_db, size=0.4GB')
             self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data)
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048))
         else:
             raise ConnectError(f"Server isn't connected")
 
 
 class MyDBSession(nosqlapi.kvdb.KVSession):
 
-    def __init__(self, connection, database=None):
-        super().__init__()
-        self.session = connection
-        self.session.send("SHOW_DESC")
-        self.session.recv = mock.MagicMock(return_value="server=mykvdb.local\nport=12345\ndatabase=test_db")
+    @property
+    def item_count(self):
+        return self._item_count
+
+    @property
+    def description(self):
+        self.connection.send("SHOW_DESC")
+        self.connection.recv = mock.MagicMock(return_value="server=mykvdb.local\nport=12345\ndatabase=test_db")
         self._description = tuple([item.split('=')[1]
-                                   for item in self.session.recv(2048).split('\n')])
-        self._database = database
+                                   for item in self.connection.recv(2048).split('\n')])
+        return self._description
 
     @property
     def acl(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request some ACLs')
-        self.session.send(f"GET_ACL={self.description[2]}")
-        self.session.recv = mock.MagicMock(return_value="test,user_read;admin,admins;root,admins")
+        self.connection.send(f"GET_ACL={self.description[2]}")
+        self.connection.recv = mock.MagicMock(return_value="test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
-                  for item in self.session.recv(2048).split(';')}
+                  for item in self.connection.recv(2048).split(';')}
         )
 
     @property
     def indexes(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request indexes.')
-        self.session.send(f"GET_INDEX={self.description[2]}")
-        self.session.recv = mock.MagicMock(return_value="index1,index2")
+        self.connection.send(f"GET_INDEX={self.description[2]}")
+        self.connection.recv = mock.MagicMock(return_value="index1,index2")
         return MyDBResponse(
-            data=[item for item in self.session.recv(2048).split(',')]
+            data=[item for item in self.connection.recv(2048).split(',')]
         )
 
     def get(self, key: Union[Any, Item]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         key = key.key if isinstance(key, Item) else key
-        self.session.send(f"GET={key}")
-        self.session.recv = mock.MagicMock(return_value=f"{key}=value")
-        if self.session.recv != 'KEY_NOT_FOUND':
-            key, value = self.session.recv(2048).split('=')
+        self.connection.send(f"GET={key}")
+        self.connection.recv = mock.MagicMock(return_value=f"{key}=value")
+        if self.connection.recv != 'KEY_NOT_FOUND':
+            key, value = self.connection.recv(2048).split('=')
             out = dict()
             out[key] = value
             self._item_count = 1
@@ -161,35 +148,35 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
             raise SessionError(f'key {key} not exists')
 
     def insert(self, key, value):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         i = Item(key, value)
-        self.session.send(f"INSERT={i.key},{i.value}")
-        self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
-        if self.session.recv(2048) != "NEW_KEY_OK":
+        self.connection.send(f"INSERT={i.key},{i.value}")
+        self.connection.recv = mock.MagicMock(return_value="NEW_KEY_OK")
+        if self.connection.recv(2048) != "NEW_KEY_OK":
             raise SessionInsertingError(f'insert key {key} with value {value} failure')
         self._item_count = 1
 
     def insert_many(self, dict_: Union[dict, Keyspace]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(dict_, Keyspace):
-            self.session.send(f"INSERT_MANY={';'.join(','.join((item.key, item.value)) for item in dict_.store)}")
+            self.connection.send(f"INSERT_MANY={';'.join(','.join((item.key, item.value)) for item in dict_.store)}")
         else:
-            self.session.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
-        self.session.recv = mock.MagicMock(return_value="NEW_KEY_OK")
-        if self.session.recv(2048) != "NEW_KEY_OK":
-            raise SessionInsertingError(f'insert many values failure: {self.session.recv}')
+            self.connection.send(f"INSERT_MANY={';'.join(','.join((k, v)) for k, v in dict_.items())}")
+        self.connection.recv = mock.MagicMock(return_value="NEW_KEY_OK")
+        if self.connection.recv(2048) != "NEW_KEY_OK":
+            raise SessionInsertingError(f'insert many values failure: {self.connection.recv}')
         self._item_count = len(dict_)
 
     def update(self, key, value):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if self.get(key):
             i = Item(key, value)
-            self.session.send(f"UPDATE={i.key},{i.value}")
-            self.session.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
-            if self.session.recv(2048) != "UPDATE_KEY_OK":
+            self.connection.send(f"UPDATE={i.key},{i.value}")
+            self.connection.recv = mock.MagicMock(return_value="UPDATE_KEY_OK")
+            if self.connection.recv(2048) != "UPDATE_KEY_OK":
                 raise SessionUpdatingError(f'update key {key} with value {value} failure')
         self._item_count = 1
 
@@ -198,108 +185,108 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         raise NotImplementedError('update_many not implemented for this module')
 
     def delete(self, key: Union[Any, Item]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         key = key.key if isinstance(key, Item) else key
-        self.session.send(f"DELETE={key}")
-        self.session.recv = mock.MagicMock(return_value="DELETE_OK")
-        if self.session.recv(2048) != 'DELETE_OK':
+        self.connection.send(f"DELETE={key}")
+        self.connection.recv = mock.MagicMock(return_value="DELETE_OK")
+        if self.connection.recv(2048) != 'DELETE_OK':
             raise SessionDeletingError(f'key {key} not deleted')
         self._item_count = 0
 
     def close(self):
-        self.session.close()
-        if not self.database:
+        self.connection.close()
+        if not self.connection:
             SessionClosingError('session was not closed')
         self._database = None
 
     def find(self, selector):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(selector, str):
-            self.session.send(f"FIND={selector}")
-            self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
+            self.connection.send(f"FIND={selector}")
+            self.connection.recv = mock.MagicMock(return_value="key=value,key1=value1")
         elif isinstance(selector, nosqlapi.kvdb.KVSelector):
-            self.session.send(f"FIND={selector.build()}")
-            self.session.recv = mock.MagicMock(return_value="key=value,key1=value1")
+            self.connection.send(f"FIND={selector.build()}")
+            self.connection.recv = mock.MagicMock(return_value="key=value,key1=value1")
         else:
             raise SessionFindingError(f'selector is incompatible')
         out = dict()
-        for item in self.session.recv(2048).split(','):
+        for item in self.connection.recv(2048).split(','):
             key, value = item.split('=')
             out[key] = value
         self._item_count = len(out)
         return MyDBResponse(out)
 
     def grant(self, database, user, role):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"GRANT={user},{role}:DATABASE={database}")
-        self.session.recv = mock.MagicMock(return_value="GRANT_OK")
-        if self.session.recv(2048) != "GRANT_OK":
-            raise SessionACLError(f'grant {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        self.connection.send(f"GRANT={user},{role}:DATABASE={database}")
+        self.connection.recv = mock.MagicMock(return_value="GRANT_OK")
+        if self.connection.recv(2048) != "GRANT_OK":
+            raise SessionACLError(f'grant {user} with role {role} on {database} failed: {self.connection.recv(2048)}')
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
 
     def revoke(self, database, user, role=None):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"REVOKE={user},{role}:DATABASE={database}")
-        self.session.recv = mock.MagicMock(return_value="REVOKE_OK")
-        if self.session.recv(2048) != "REVOKE_OK":
-            raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        self.connection.send(f"REVOKE={user},{role}:DATABASE={database}")
+        self.connection.recv = mock.MagicMock(return_value="REVOKE_OK")
+        if self.connection.recv(2048) != "REVOKE_OK":
+            raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.connection.recv(2048)}')
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
     def new_user(self, user, password, super_user=False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"NEW={user}:PASSWORD={password}:ADMIN={super_user}")
-        self.session.recv = mock.MagicMock(return_value="CREATION_OK")
-        if self.session.recv(2048) != "CREATION_OK":
-            raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+        self.connection.send(f"NEW={user}:PASSWORD={password}:ADMIN={super_user}")
+        self.connection.recv = mock.MagicMock(return_value="CREATION_OK")
+        if self.connection.recv(2048) != "CREATION_OK":
+            raise SessionACLError(f'create user {user} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'user': user, 'status': self.connection.recv(2048)})
 
     def set_user(self, user, password, super_user=False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"USER={user}:PASSWORD={password}:ADMIN={super_user}")
-        self.session.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
-        if self.session.recv(2048) != "PASSWORD_CHANGED":
-            raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+        self.connection.send(f"USER={user}:PASSWORD={password}:ADMIN={super_user}")
+        self.connection.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
+        if self.connection.recv(2048) != "PASSWORD_CHANGED":
+            raise SessionACLError(f'create user {user} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'user': user, 'status': self.connection.recv(2048)})
 
     def delete_user(self, user):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"DELETE_USER={user}")
-        self.session.recv = mock.MagicMock(return_value="USER_DELETED")
-        if self.session.recv(2048) != "USER_DELETED":
-            raise SessionACLError(f'create user {user} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'user': user, 'status': self.session.recv(2048)})
+        self.connection.send(f"DELETE_USER={user}")
+        self.connection.recv = mock.MagicMock(return_value="USER_DELETED")
+        if self.connection.recv(2048) != "USER_DELETED":
+            raise SessionACLError(f'create user {user} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'user': user, 'status': self.connection.recv(2048)})
 
     def add_index(self, name: Union[str, Index], key=None):
-        if not self.database:
+        if not self.connection:
             raise DatabaseError('database is not set')
         if isinstance(name, Index):
             key = name.key
             name = name.name
-        self.session.send(f"NEW_INDEX={name} WITH_KEY={key}")
-        self.session.recv = mock.MagicMock(return_value=f"INDEX_OK={name}")
-        if self.session.recv != 'KO':
+        self.connection.send(f"NEW_INDEX={name} WITH_KEY={key}")
+        self.connection.recv = mock.MagicMock(return_value=f"INDEX_OK={name}")
+        if self.connection.recv != 'KO':
             self._item_count = 1
-            return MyDBResponse(self.session.recv(2048).split('=')[1])
+            return MyDBResponse(self.connection.recv(2048).split('=')[1])
         else:
             raise SessionError(f'index not created: {name}')
 
     def delete_index(self, name: Union[str, Index]):
-        if not self.database:
+        if not self.connection:
             raise DatabaseError('database is not set')
         if isinstance(name, Index):
             name = name.name
-        self.session.send(f"DELETE_INDEX={name}")
-        self.session.recv = mock.MagicMock(return_value=f"INDEX_REMOVED={name}")
-        if self.session.recv != 'KO':
+        self.connection.send(f"DELETE_INDEX={name}")
+        self.connection.recv = mock.MagicMock(return_value=f"INDEX_REMOVED={name}")
+        if self.connection.recv != 'KO':
             self._item_count = 1
-            return MyDBResponse(self.session.recv(2048).split('=')[1])
+            return MyDBResponse(self.connection.recv(2048).split('=')[1])
         else:
             raise SessionError(f'index not removed: {name}')
 
@@ -379,128 +366,122 @@ class KVConnectionTest(unittest.TestCase):
     def test_kvdb_connect(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         with MyDBConnection('mykvdb.local', 12345) as myconn:
             myconn.connect()
-            self.assertEqual(myconn.return_data, 'OK_PACKET')
-        self.assertEqual(myconn.return_data, 'CLOSED')
+            self.assertTrue(myconn)
+        self.assertFalse(myconn)
 
     def test_kvdb_connect_with_user_passw(self):
-        myconn = MyDBConnection('mykvdb.local', 12345, username='admin', password='admin000')
+        myconn = MyDBConnection('mykvdb.local', port=12345, user='admin', password='admin000')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
 
     def test_kvdb_close(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
 
     def test_kvdb_create_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.create_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_kvdb_create_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.create_database(ks)
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_kvdb_exists_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.has_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_EXISTS')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_kvdb_exists_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.has_database(ks)
-        self.assertEqual(myconn.return_data, 'DB_EXISTS')
-        if myconn.return_data == 'DB_EXISTS':
+        if myconn.has_database(ks):
             ks._exists = True
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_kvdb_delete_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.delete_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_kvdb_delete_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.delete_database(ks)
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
-        if myconn.return_data == 'DB_DELETED':
+        if myconn.has_database(ks):
             ks._exists = False
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_kvdb_get_all_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database(self):
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, 'name=test_db, size=0.4GB')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database_with_keyspace(self):
         ks = Keyspace('test_db')
         myconn = MyDBConnection('mykvdb.local', 12345)
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.show_database(ks)
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, 'name=test_db, size=0.4GB')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
 
 class KVSessionTest(unittest.TestCase):
-    myconn = MyDBConnection('mykvdb.local', 12345, 'test_db')
+    myconn = MyDBConnection(host='mykvdb.local', port=12345, database='test_db')
     mysess = myconn.connect()
 
     def test_session_instance(self):

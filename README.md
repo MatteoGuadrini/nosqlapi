@@ -188,9 +188,13 @@ Show an information of a specific database
 
 `Session` objects should respond to the following methods.
 
-> ATTENTION: Session object it will come instantiated if the Connection object contains a database value.
+> ATTENTION: Session object it will come instantiated if the Connection object contains a `connection` value. `database` value is optional.
 
 #### Session attributes
+
+`.connection`
+
+This read-only attribute contains the connection object.
 
 `.description`
 
@@ -337,7 +341,7 @@ This read-only attribute represents a string information (header) of an operatio
 
 `.error`
 
-This read-only attribute represents a string error of an operation.
+This read-only attribute that throw an `Exception` if it has been set.
 
 `.dict`
 

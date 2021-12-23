@@ -24,6 +24,7 @@
 
 # region imports
 from abc import ABC, abstractmethod
+
 from .exception import *
 
 # endregion
@@ -39,7 +40,38 @@ __all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
 class Connection(ABC):
     """Server connection abstract class"""
 
-    def __init__(self):
+    def __init__(self,
+                 host=None,
+                 user=None,
+                 password=None,
+                 database=None,
+                 port=None,
+                 bind_address=None,
+                 read_timeout=None,
+                 write_timeout=None,
+                 ssl=None,
+                 ssl_ca=None,
+                 ssl_cert=None,
+                 tls=None,
+                 ssl_key=None,
+                 ssl_verify_cert=None,
+                 max_allowed_packet=None
+                 ):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.port = port
+        self.bind_address = bind_address
+        self.read_timeout = read_timeout
+        self.write_timeout = write_timeout
+        self.ssl = ssl
+        self.ssl_ca = ssl_ca
+        self.ssl_cert = ssl_cert
+        self.tls = tls
+        self.ssl_key = ssl_key
+        self.ssl_verify_cert = ssl_verify_cert
+        self.max_allowed_packet = max_allowed_packet
         self._connected = False
 
     @property
@@ -113,8 +145,7 @@ class Connection(ABC):
         return f"{repr(self)}, connected={self.connected}"
 
     def __bool__(self):
-        if self.connected:
-            return True
+        return True if self.connected else False
 
     def __enter__(self):
         return self
@@ -216,25 +247,33 @@ class Selector(ABC):
 class Session(ABC):
     """Server session abstract class"""
 
-    def __init__(self, database=None):
+    def __init__(self, connection, database=None):
         self._item_count = 0
         self._description = ()
         self._database = database
-
-    @property
-    def item_count(self):
-        """Number of item returned from latest CRUD operation"""
-        return self._item_count
-
-    @property
-    def description(self):
-        """Contains the session parameters"""
-        return self._description
+        self._connection = connection
 
     @property
     def database(self):
         """Name of database in current session"""
         return self._database
+
+    @property
+    def connection(self):
+        """Connection of server in current session"""
+        return self._connection
+
+    @property
+    @abstractmethod
+    def item_count(self):
+        """Number of item returned from latest CRUD operation"""
+        return self._item_count
+
+    @property
+    @abstractmethod
+    def description(self):
+        """Contains the session parameters"""
+        return self._description
 
     @property
     @abstractmethod
@@ -385,7 +424,7 @@ class Session(ABC):
         return f"database={self.database}, description={self.description}"
 
     def __bool__(self):
-        if self.description:
+        if self.connection:
             return True
 
     def __enter__(self):
@@ -424,21 +463,23 @@ class Response(ABC):
     @property
     def error(self):
         """Error of an operation"""
-        return self._error
+        if isinstance(self._error, Exception):
+            raise self._error
+        else:
+            return self._error
 
     @property
     def dict(self):
-        d = dict()
-        d['data'] = self.data
-        d['code'] = self.code
-        d['header'] = self.header
-        d['error'] = self.error
-        return d
+        """dict format for Response object"""
+        return {'data': self._data,
+                'code': self._code,
+                'header': self._header,
+                'error': self._error}
 
     def __bool__(self):
-        if self.error:
+        if self._error:
             return False
-        if self.data:
+        if self._data:
             return True
 
     def __str__(self):

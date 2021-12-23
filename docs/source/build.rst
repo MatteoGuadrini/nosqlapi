@@ -76,7 +76,7 @@ Now let's define the ``close`` and ``connect`` methods, to create the database c
         def connect(self):
             session_url = self.url + f'/{self.database}'
             if urllib.request.head(session_url).status_code == 200:
-                session = Session(database=session_url)
+                session = Session(connection=self, database=session_url)
                 self._connected = True
                 return session
             else:
@@ -208,6 +208,27 @@ The property ``indexes`` is used to retrieve all the indexes created for the cur
                 return Response(data=None,
                                 code=response.status_code,
                                 error=noslapi.SessionError(f'Index error'),
+                                header=response.header_items())
+
+Now let's define the ``item_count`` and ``description`` properties. ``item_count`` will be used to indicate a counter of each CRUD
+operation that will be impacted. ``description`` instead will contain the database info.
+
+.. code-block:: python
+
+        @property
+        def item_count(self):
+            return self._item_count
+
+        @property
+        def description(self):
+            response = urllib.request.urlopen(self.database + f'/_index')
+            if response.status_code == 200:
+                return self._description
+
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.SessionError(f'Get description failed'),
                                 header=response.header_items())
 
 Now let's all define CRUD (Create, Read, Update, Delete) methods. *Create* word is associated to ``insert`` and ``insert_many`` methods;

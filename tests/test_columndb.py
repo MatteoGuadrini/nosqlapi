@@ -1,13 +1,14 @@
 import unittest
-import nosqlapi.columndb
+from typing import List
 from typing import Union
-from nosqlapi.columndb.orm import Keyspace, Table, Column, Index
-from nosqlapi.common.orm import Varchar, Varint, Timestamp
+from unittest import mock
+
+import nosqlapi.columndb
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
-from unittest import mock
-from typing import List
+from nosqlapi.columndb.orm import Keyspace, Table, Column, Index
+from nosqlapi.common.orm import Varchar, Varint, Timestamp
 
 
 # Below classes is a simple emulation of Cassandra like database
@@ -20,17 +21,12 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
     t.send = mock.MagicMock()
     t.close = mock.MagicMock()
 
-    def __bool__(self):
-        if self.return_data:
-            return True
-
     def close(self):
-        self.connection.close()
-        self.connection = None
+        self.t.close()
+        self._connected = False
         self.t.recv = mock.MagicMock(return_value='CLOSED')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'CLOSED':
-            raise ConnectError(f'Close connection error: {self.return_data}')
+        if self.t.recv(2048) != 'CLOSED':
+            raise ConnectError(f'Close connection error: {self.t.recv(2048)}')
 
     def connect(self):
         # Connection
@@ -40,19 +36,17 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
         else:
             self.t.send("CLIENT_CONNECT")
         # Check credential
-        if self.username and self.password:
-            self.t.send(f"\nCRED={self.username}:{self.password}")
-        # while len(self.t.recv(2048)) > 0:
+        if self.user and self.password:
+            self.t.send(f"\nCRED={self.user}:{self.password}")
         self.t.recv = mock.MagicMock(return_value='OK_PACKET')
-        self._return_data = self.t.recv(2048)
-        if self.return_data != 'OK_PACKET':
-            raise ConnectError(f'Server connection error: {self.return_data}')
-        self.connection = self.t
-        return MyDBSession(self.connection, self.database)
+        if self.t.recv(2048) != 'OK_PACKET':
+            raise ConnectError(f'Server connection error: {self.t.recv(2048)}')
+        self._connected = True
+        return MyDBSession(self.t, self.database)
 
     def create_database(self, name: Union[str, Keyspace], not_exists: bool = False, replication=None,
                         durable_writes=None):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
             query = f"CREATE  KEYSPACE '{name}'"
@@ -62,17 +56,15 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
                 query += f" WITH REPLICATION = {replication}"
             if durable_writes is not None:
                 query += f" AND DURABLE_WRITES = {str(bool(durable_writes)).lower()}"
-            self.connection.send(query)
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(query)
             self.t.recv = mock.MagicMock(return_value='DB_CREATED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_CREATED':
-                raise DatabaseCreationError(f'Database creation error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_CREATED':
+                raise DatabaseCreationError(f'Database creation error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def has_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
             if name not in self.databases():
@@ -83,84 +75,81 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
             raise ConnectError(f"Server isn't connected")
 
     def delete_database(self, name: Union[str, Keyspace], exists=False):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
             query = f'DROP KEYSPACE'
             if exists:
                 query += ' IF EXISTS'
             query += f' {name};'
-            self.connection.send(query)
-            # while len(self.t.recv(2048)) > 0:
+            self.t.send(query)
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
-            self._return_data = self.t.recv(2048)
-            if self.return_data != 'DB_DELETED':
-                raise DatabaseDeletionError(f'Database deletion error: {self.return_data}')
+            if self.t.recv(2048) != 'DB_DELETED':
+                raise DatabaseDeletionError(f'Database deletion error: {self.t.recv(2048)}')
         else:
             raise ConnectError(f"Server isn't connected")
 
     def databases(self):
-        if self.connection:
-            self.connection.send(f"DESCRIBE KEYSPACES;")
-            # while len(self.t.recv(2048)) > 0:
+        if self:
+            self.t.send(f"DESCRIBE KEYSPACES;")
             self.t.recv = mock.MagicMock(return_value='test_db db1 db2')
-            self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data.split())
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048).split())
         else:
             raise ConnectError(f"Server isn't connected")
 
     def show_database(self, name: Union[str, Keyspace]):
-        if self.connection:
+        if self:
             if isinstance(name, Keyspace):
                 name = name.name
-            self.connection.send(f"DESCRIBE KEYSPACE {name};")
+            self.t.send(f"DESCRIBE KEYSPACE {name};")
             # while len(self.t.recv(2048)) > 0:
             self.t.recv = mock.MagicMock(return_value='table1 table2 table3')
-            self._return_data = self.t.recv(2048)
-            if not self:
-                raise DatabaseError(f'Request error: {self.return_data}')
-            return MyDBResponse(self.return_data.split())
+            if self.t.recv(2048) == 'DB_ERROR':
+                raise DatabaseError(f'Request error: {self.t.recv(2048)}')
+            return MyDBResponse(self.t.recv(2048).split())
         else:
             raise ConnectError(f"Server isn't connected")
 
 
 class MyDBSession(nosqlapi.columndb.ColumnSession):
 
-    def __init__(self, connection, database=None):
-        super().__init__()
-        self.session = connection
-        self.session.send("SHOW_DESC")
-        self.session.recv = mock.MagicMock(return_value="server=mycolumndb.local\nport=12345\ndatabase=test_db"
-                                                        "\nusername=admin")
-        self._description = tuple([item.split('=')[1]
-                                   for item in self.session.recv(2048).split('\n')])
-        self._database = database
-
     @property
     def acl(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request some ACLs')
-        self.session.send(f"LIST ALL PERMISSIONS OF {self.description[2]}")
-        self.session.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
+        self.connection.send(f"LIST ALL PERMISSIONS OF {self.description[2]}")
+        self.connection.recv = mock.MagicMock(return_value=f"test,user_read;admin,admins;root,admins")
         return MyDBResponse(
             data={item.split(',')[0]: item.split(',')[1]
-                  for item in self.session.recv(2048).split(';')}
+                  for item in self.connection.recv(2048).split(';')}
         )
 
     @property
     def indexes(self):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before request indexes')
-        self.session.send('SELECT * FROM "IndexInfo";')
-        self.session.recv = mock.MagicMock(return_value=f"index1,index2")
+        self.connection.send('SELECT * FROM "IndexInfo";')
+        self.connection.recv = mock.MagicMock(return_value=f"index1,index2")
         return MyDBResponse(
-            data=[item for item in self.session.recv(2048).split(',')]
+            data=[item for item in self.connection.recv(2048).split(',')]
         )
 
+    @property
+    def item_count(self):
+        return self._item_count
+
+    @property
+    def description(self):
+        self.connection.recv = mock.MagicMock(return_value="server=mycolumndb.local\nport=12345\ndatabase=test_db"
+                                                           "\nusername=admin")
+        self._description = tuple([item.split('=')[1]
+                                   for item in self.connection.recv(2048).split('\n')])
+        return self._description
+
     def get(self, table: Union[str, Table], *columns: Union[str, Column]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -170,11 +159,11 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                 cols.append(column.name)
             else:
                 cols.append(column)
-        self.session.send(f"SELECT {','.join(col for col in cols)} FROM {table}")
-        self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
-        if self.session.recv != 'NOT_FOUND':
+        self.connection.send(f"SELECT {','.join(col for col in cols)} FROM {table}")
+        self.connection.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
+        if self.connection.recv != 'NOT_FOUND':
             out = [tuple(row.split(','))
-                   for row in self.session.recv(2048).split('\n')]
+                   for row in self.connection.recv(2048).split('\n')]
             self._item_count = len(out)
             return MyDBResponse(out)
         else:
@@ -187,7 +176,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                ttl=None,
                timestamp: Union[int, Timestamp] = None,
                not_exists: bool = False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -208,10 +197,11 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         if bool(not_exists):
             query += f'\nIF NOT EXISTS'
         query += ';'
-        self.session.send(query)
-        self.session.recv = mock.MagicMock(return_value="INSERT_OK")
-        if self.session.recv(2048) != "INSERT_OK":
-            raise SessionInsertingError(f'insert into {columns} with value {values} failure: {self.session.recv(2048)}')
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="INSERT_OK")
+        if self.connection.recv(2048) != "INSERT_OK":
+            raise SessionInsertingError(
+                f'insert into {columns} with value {values} failure: {self.connection.recv(2048)}')
         self._item_count = 1
 
     def insert_many(self,
@@ -221,7 +211,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                     ttl=None,
                     timestamp: Union[int, Timestamp] = None,
                     not_exists: bool = False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -266,7 +256,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         raise NotImplementedError('For this operation only for this test, use Batch object')
 
     def delete(self, table: Union[str, Table], conditions: list, exists: bool = False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
@@ -274,79 +264,79 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         if bool(exists):
             query += f'\nIF EXISTS'
         query += ';'
-        self.session.send(query)
-        self.session.recv = mock.MagicMock(return_value="DELETION:1")
-        if "DELETION" not in self.session.recv(2048):
-            raise SessionDeletingError(f'deleting from {table} failure: {self.session.recv(2048)}')
-        self._item_count = int(self.session.recv(2048).split(':')[1])
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="DELETION:1")
+        if "DELETION" not in self.connection.recv(2048):
+            raise SessionDeletingError(f'deleting from {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
 
     def close(self):
-        self.session.close()
-        if not self.session:
+        self.connection.close()
+        if not self.connection:
             SessionClosingError('session was not closed')
         self._database = None
 
     def find(self, selector: nosqlapi.columndb.ColumnSelector):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(selector, nosqlapi.columndb.ColumnSelector):
-            self.session.send(selector.build())
-            self.session.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
+            self.connection.send(selector.build())
+            self.connection.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
         else:
             raise SessionFindingError('selector is incompatible')
         out = [tuple(row.split(','))
-               for row in self.session.recv(2048).split('\n')]
+               for row in self.connection.recv(2048).split('\n')]
         self._item_count = len(out)
         return MyDBResponse(out)
 
     def grant(self, database, user, role):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"GRANT {user} ON {database} TO {role};")
-        self.session.recv = mock.MagicMock(return_value="GRANT_OK")
-        if self.session.recv(2048) != "GRANT_OK":
-            raise SessionACLError(f'grant {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        self.connection.send(f"GRANT {user} ON {database} TO {role};")
+        self.connection.recv = mock.MagicMock(return_value="GRANT_OK")
+        if self.connection.recv(2048) != "GRANT_OK":
+            raise SessionACLError(f'grant {user} with role {role} on {database} failed: {self.connection.recv(2048)}')
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "GRANT_OK"})
 
     def revoke(self, database, user, role=None):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"REVOKE {user} ON {database} TO {role};")
-        self.session.recv = mock.MagicMock(return_value="REVOKE_OK")
-        if self.session.recv(2048) != "REVOKE_OK":
-            raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.session.recv(2048)}')
+        self.connection.send(f"REVOKE {user} ON {database} TO {role};")
+        self.connection.recv = mock.MagicMock(return_value="REVOKE_OK")
+        if self.connection.recv(2048) != "REVOKE_OK":
+            raise SessionACLError(f'revoke {user} with role {role} on {database} failed: {self.connection.recv(2048)}')
         return MyDBResponse({'user': user, 'role': role, 'db': database, 'status': "REVOKE_OK"})
 
     def new_user(self, role, password, login=True, super_user=False):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"CREATE ROLE {role} WITH PASSWORD = {password} "
-                          f"AND SUPERUSER = {super_user} AND LOGIN = {login};")
-        self.session.recv = mock.MagicMock(return_value="CREATION_OK")
-        if self.session.recv(2048) != "CREATION_OK":
-            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+        self.connection.send(f"CREATE ROLE {role} WITH PASSWORD = {password} "
+                             f"AND SUPERUSER = {super_user} AND LOGIN = {login};")
+        self.connection.recv = mock.MagicMock(return_value="CREATION_OK")
+        if self.connection.recv(2048) != "CREATION_OK":
+            raise SessionACLError(f'create role {role} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.connection.recv(2048)})
 
     def set_user(self, role, password):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"ALTER ROLE {role} WITH PASSWORD = {password}")
-        self.session.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
-        if self.session.recv(2048) != "PASSWORD_CHANGED":
-            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+        self.connection.send(f"ALTER ROLE {role} WITH PASSWORD = {password}")
+        self.connection.recv = mock.MagicMock(return_value="PASSWORD_CHANGED")
+        if self.connection.recv(2048) != "PASSWORD_CHANGED":
+            raise SessionACLError(f'create role {role} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.connection.recv(2048)})
 
     def delete_user(self, role):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
-        self.session.send(f"DROP ROLE {role}")
-        self.session.recv = mock.MagicMock(return_value="ROLE_DELETED")
-        if self.session.recv(2048) != "ROLE_DELETED":
-            raise SessionACLError(f'create role {role} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'role': role, 'status': self.session.recv(2048)})
+        self.connection.send(f"DROP ROLE {role}")
+        self.connection.recv = mock.MagicMock(return_value="ROLE_DELETED")
+        if self.connection.recv(2048) != "ROLE_DELETED":
+            raise SessionACLError(f'create role {role} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'role': role, 'status': self.connection.recv(2048)})
 
     def add_index(self, name: Union[str, Index], table=None, column=None):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(name, Index):
             column = name.column
@@ -354,22 +344,22 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             name = name.name
         if table is None and column is None:
             raise SessionInsertingError('table name and column name is mandatory to create an index.')
-        self.session.send(f"CREATE INDEX {name} ON {table} ({column});")
-        self.session.recv = mock.MagicMock(return_value="INDEX_CREATED")
-        if self.session.recv(2048) != "INDEX_CREATED":
-            raise SessionACLError(f'create index {name} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'index': name, 'status': self.session.recv(2048)})
+        self.connection.send(f"CREATE INDEX {name} ON {table} ({column});")
+        self.connection.recv = mock.MagicMock(return_value="INDEX_CREATED")
+        if self.connection.recv(2048) != "INDEX_CREATED":
+            raise SessionACLError(f'create index {name} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'index': name, 'status': self.connection.recv(2048)})
 
     def delete_index(self, name: Union[str, Index]):
-        if not self.database:
+        if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(name, Index):
             name = name.name
-        self.session.send(f"DROP INDEX IF EXISTS {self.database}.{name};")
-        self.session.recv = mock.MagicMock(return_value="INDEX_DELETED")
-        if self.session.recv(2048) != "INDEX_DELETED":
-            raise SessionACLError(f'create index {name} failed: {self.session.recv(2048)}')
-        return MyDBResponse({'index': name, 'status': self.session.recv(2048)})
+        self.connection.send(f"DROP INDEX IF EXISTS {self.database}.{name};")
+        self.connection.recv = mock.MagicMock(return_value="INDEX_DELETED")
+        if self.connection.recv(2048) != "INDEX_DELETED":
+            raise SessionACLError(f'create index {name} failed: {self.connection.recv(2048)}')
+        return MyDBResponse({'index': name, 'status': self.connection.recv(2048)})
 
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
@@ -449,67 +439,63 @@ class MyDBSelector(nosqlapi.columndb.ColumnSelector):
 
 class ColumnConnectionTest(unittest.TestCase):
     def test_columndb_connect(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
 
     def test_columndb_close(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
 
     def test_columndb_create_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.create_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.create_database(Keyspace('test_db'))
-        self.assertEqual(myconn.return_data, 'DB_CREATED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
     def test_columndb_exists_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         self.assertTrue(myconn.has_database('test_db'))
         self.assertTrue(myconn.has_database(Keyspace('test_db')))
         self.assertFalse(myconn.has_database('casual'))
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.has_database, 'test_db')
 
     def test_columndb_delete_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         myconn.delete_database('test_db')
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
         myconn.delete_database(Keyspace('test_db'))
-        self.assertEqual(myconn.return_data, 'DB_DELETED')
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.delete_database, 'test_db')
 
     def test_columndb_get_all_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.databases()
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
     def test_columndb_show_database(self):
-        myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+        myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
         myconn.connect()
-        self.assertEqual(myconn.return_data, 'OK_PACKET')
+        self.assertTrue(myconn)
         dbs = myconn.show_database('test_db')
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['table1', 'table2', 'table3'])
@@ -517,12 +503,12 @@ class ColumnConnectionTest(unittest.TestCase):
         self.assertIsInstance(dbs, MyDBResponse)
         self.assertEqual(dbs.data, ['table1', 'table2', 'table3'])
         myconn.close()
-        self.assertEqual(myconn.return_data, 'CLOSED')
+        self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
 
 
 class ColumnSessionTest(unittest.TestCase):
-    myconn = MyDBConnection('mycolumndb.local', 12345, username='admin', password='pass', database='test_db')
+    myconn = MyDBConnection('mycolumndb.local', port=12345, user='admin', password='pass', database='test_db')
     mysess = myconn.connect()
 
     def test_session_instance(self):
@@ -662,17 +648,17 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 3)
 
-    def test_get_acl_connection(self):
+    def test_get_aclconnection(self):
         self.assertIn('root', self.mysess.acl)
         self.assertIn('admin', self.mysess.acl)
         self.assertIn('test', self.mysess.acl)
 
-    def test_grant_user_connection(self):
+    def test_grant_userconnection(self):
         resp = self.mysess.grant('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'GRANT_OK')
 
-    def test_revoke_user_connection(self):
+    def test_revoke_userconnection(self):
         resp = self.mysess.revoke('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'REVOKE_OK')
