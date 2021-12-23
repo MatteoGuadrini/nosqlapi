@@ -341,7 +341,7 @@ This read-only attribute represents a string information (header) of an operatio
 
 `.error`
 
-This read-only attribute represents a string error of an operation.
+This read-only attribute that throw an `Exception` if it has been set.
 
 `.dict`
 

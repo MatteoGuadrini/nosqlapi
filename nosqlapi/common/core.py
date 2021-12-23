@@ -463,7 +463,10 @@ class Response(ABC):
     @property
     def error(self):
         """Error of an operation"""
-        return self._error
+        if isinstance(self._error, Exception):
+            raise self._error
+        else:
+            return self._error
 
     @property
     def dict(self):
@@ -475,9 +478,9 @@ class Response(ABC):
         return d
 
     def __bool__(self):
-        if self.error:
+        if self._error:
             return False
-        if self.data:
+        if self._data:
             return True
 
     def __str__(self):
