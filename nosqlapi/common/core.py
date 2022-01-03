@@ -541,6 +541,9 @@ class Batch(ABC):
     def __setitem__(self, key, value):
         self._batch[key] = value
 
+    def __delitem__(self, key):
+        del self._batch[key]
+
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 

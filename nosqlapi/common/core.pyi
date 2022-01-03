@@ -29,13 +29,15 @@ class Batch:
 
     def __init__(self, batch: Any, session: Any = None) -> None:
         self._session: Session = session
-        self._batch: str = batch
+        self._batch: Union[tuple, list, dict, set] = batch
 
     def execute(self, *args, **kwargs) -> Union[tuple, Response]: ...
 
     def __getitem__(self, item: Any) -> Any: ...
 
     def __setitem__(self, key: Union[tuple, int, float, str], value: Any) -> None: ...
+
+    def __delitem__(self, key: Union[tuple, int, float, str]) -> None: ...
 
     def __repr__(self) -> str: ...
 
