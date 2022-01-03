@@ -538,6 +538,9 @@ class Batch(ABC):
     def __getitem__(self, item):
         return self._batch[item]
 
+    def __setitem__(self, key, value):
+        self._batch[key] = value
+
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
