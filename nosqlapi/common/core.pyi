@@ -29,7 +29,7 @@ class Batch:
 
     def __init__(self, batch: Any, session: Any = None) -> None:
         self._session: Session = session
-        self._query: str = batch
+        self._batch: str = batch
 
     def execute(self, *args, **kwargs) -> Union[tuple, Response]: ...
 
