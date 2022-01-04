@@ -568,7 +568,7 @@ class MyDBBatch(nosqlapi.graphdb.GraphBatch):
     req = mock.Mock()
 
     def execute(self):
-        stm = {'statements': self.batch}
+        stm = {'statements': '\n'.join(self.batch)}
         self.req.post = mock.MagicMock(return_value={'body': '{"matteo.name": "Matteo",'
                                                              '"matteo.age": 35}',
                                                      'status': 200,
@@ -801,12 +801,28 @@ class GraphSessionTest(unittest.TestCase):
         GraphSessionTest.mysess = GraphSessionTest.myconn.connect()
 
     def test_batch(self):
-        b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
-    SET rel.startYear = date({year: 2018})
-    RETURN p"""
+        b = ["MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})",
+             "SET rel.startYear = date({year: 2018})", "RETURN p"]
         batch = MyDBBatch(b)
         resp = batch.execute()
         self.assertEqual(resp.data, {'matteo.name': 'Matteo', 'matteo.age': 35})
+
+    def test_batch_add_remove_modify(self):
+        b = ["MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})",
+             "SET rel.startYear = date({year: 2018})"]
+        batch = MyDBBatch(b)
+        # Add element
+        batch.batch.append("RETURN p")
+        self.assertEqual(len(batch.batch), 3)
+        # Modify element
+        batch.batch[1] = "SET rel.startYear = date({year: 2019})"
+        self.assertEqual(batch.batch[1], "SET rel.startYear = date({year: 2019})")
+        # Delete element
+        batch.batch.append("UNUSEFUL;")
+        self.assertEqual(len(batch.batch), 4)
+        del batch.batch[-1]
+        self.assertEqual(len(batch.batch), 3)
+        batch.execute()
 
     def test_call_batch(self):
         b = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
