@@ -216,6 +216,9 @@ class Column:
     def __iter__(self):
         return (item for item in self.data)
 
+    def __len__(self):
+        return len(self.data)
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, name={self.name} type={self.of_type.__class__.__name__}>'
 
