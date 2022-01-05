@@ -105,8 +105,8 @@ class Table:
 
         :return: List[tuple]
         """
-        return [tuple([col[i] for col in self.columns])
-                for i in range(len(self.columns))]
+        return [tuple([column[index] for column in self.columns])
+                for index in range(len(self.columns[0]))]
 
     def add_index(self, index):
         """Adding index to index property
@@ -137,7 +137,7 @@ class Table:
         return (column for column in self.columns)
 
     def __repr__(self):
-        return f'{self.__class__.__name__} object, name={self.name}>'
+        return f'<{self.__class__.__name__} object, name={self.name}>'
 
     def __str__(self):
         return f'{self.columns}'
@@ -148,7 +148,7 @@ class Column:
 
     def __init__(self, name, of_type=None, max_len=None):
         self.name = name
-        self._of_type = of_type
+        self._of_type = of_type if of_type is not None else object
         self.max_len = max_len
         self._data = []
         self._auto_increment = False
@@ -217,7 +217,7 @@ class Column:
         return (item for item in self.data)
 
     def __repr__(self):
-        return f'{self.__class__.__name__} object, name={self.name} type={self.of_type.__class__.__name__}>'
+        return f'<{self.__class__.__name__} object, name={self.name} type={self.of_type.__class__.__name__}>'
 
     def __str__(self):
         return f'{self.data}'
