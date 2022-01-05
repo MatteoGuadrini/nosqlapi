@@ -90,7 +90,7 @@ class Table:
         :param index: number of index
         :return: None
         """
-        del self[index]
+        self._columns.pop(index)
 
     def set_option(self, option):
         """Update options
