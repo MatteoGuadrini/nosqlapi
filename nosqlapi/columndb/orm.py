@@ -76,13 +76,13 @@ class Table:
         """List of indexes"""
         return self._index
 
-    def add_column(self, column):
-        """Adding one column to table
+    def add_column(self, *columns):
+        """Adding one or more column object to table
 
-        :param column: column name or object
+        :param columns: column objects
         :return: None
         """
-        self._columns.append(column)
+        self._columns.extend(columns)
 
     def delete_column(self, index=-1):
         """Deleting one column to table
