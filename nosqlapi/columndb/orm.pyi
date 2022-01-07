@@ -30,7 +30,7 @@ class Keyspace(Ks): ...
 
 class Table:
     name: str
-    columns: List[str, Column]
+    columns: List[Column]
     options: dict
     index: list
 
@@ -40,11 +40,13 @@ class Table:
         self._options: dict = options
         self._index: list = []
 
-    def add_column(self, column: Column) -> None: ...
+    def add_column(self, *columns: Column) -> None: ...
 
     def delete_column(self, index: int = -1) -> None: ...
 
     def set_option(self, option: dict) -> None: ...
+
+    def add_rows(self, *rows: Union[list, tuple, set]) -> None: ...
 
     def get_rows(self) -> List[tuple]: ...
 

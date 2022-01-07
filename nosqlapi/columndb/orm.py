@@ -100,6 +100,19 @@ class Table:
         """
         self._options.update(option)
 
+    def add_rows(self, *rows):
+        """Add one or more row into columns
+
+        :param rows: tuple of objects
+        :return: None
+        """
+        for row in rows:
+            # Check length of columns and row
+            if len(row) != len(self.columns):
+                raise ValueError(f"length of row {row} is different of length of columns {len(self.columns)}")
+            for element, column in zip(row, self.columns):
+                column.append(element)
+
     def get_rows(self):
         """Getting all rows
 
