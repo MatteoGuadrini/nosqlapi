@@ -113,6 +113,15 @@ class Table:
             for element, column in zip(row, self.columns):
                 column.append(element)
 
+    def delete_row(self, row=-1):
+        """Delete one row into columns
+
+        :param row: index of row
+        :return: None
+        """
+        for column in self.columns:
+            column.pop(row)
+
     def get_rows(self):
         """Getting all rows
 
