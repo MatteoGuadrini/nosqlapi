@@ -100,7 +100,7 @@ class Table:
         """
         self._options.update(option)
 
-    def add_rows(self, *rows):
+    def add_row(self, *rows):
         """Add one or more row into columns
 
         :param rows: tuple of objects
