@@ -156,7 +156,8 @@ class Table:
         self._columns.pop(key)
 
     def __iter__(self):
-        return (column for column in self.columns)
+        return (tuple([column[index] for column in self.columns])
+                for index in range(len(self.columns[0])))
 
     def __repr__(self):
         return f'<{self.__class__.__name__} object, name={self.name}>'
