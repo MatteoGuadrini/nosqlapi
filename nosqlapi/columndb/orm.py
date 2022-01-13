@@ -127,8 +127,7 @@ class Table:
 
         :return: List[tuple]
         """
-        return [tuple([column[index] for column in self.columns])
-                for index in range(len(self.columns[0]))]
+        return [dataset for dataset in self]
 
     def add_index(self, index):
         """Adding index to index property
