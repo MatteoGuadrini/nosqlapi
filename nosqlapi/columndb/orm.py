@@ -76,6 +76,10 @@ class Table:
         """List of indexes"""
         return self._index
 
+    @property
+    def header(self):
+        return tuple([column.name for column in self.columns])
+
     def add_column(self, *columns):
         """Adding one or more column object to table
 

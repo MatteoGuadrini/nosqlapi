@@ -33,6 +33,7 @@ class Table:
     columns: List[Column]
     options: dict
     index: list
+    header: tuple
 
     def __init__(self, name: str, *columns: Column, **options: Any) -> None:
         self._name: str = name
