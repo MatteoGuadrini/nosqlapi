@@ -215,7 +215,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
             table = table.name
-        query = "BEGIN BATCH\n"
+        query = ["BEGIN BATCH"]
         for value in values:
             cols = []
             for column in columns:
@@ -224,16 +224,16 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                 else:
                     cols.append(column)
             columns = tuple(cols)
-            query += f"INSERT INTO {table} {columns} VALUES {value}"
+            query.append(f"INSERT INTO {table} {columns} VALUES {value}")
             if ttl and isinstance(ttl, int):
-                query += f'\nUSING TTL {ttl}'
+                query.append(f'USING TTL {ttl}')
             if timestamp and ttl and isinstance(timestamp, int):
-                query += f' AND TIMESTAMP {timestamp}'
+                query.append(f'AND TIMESTAMP {timestamp}')
             if bool(not_exists):
-                query += f'\nIF NOT EXISTS'
-            query += ';\n'
-        query += 'APPLY BATCH;'
-        batch = MyDBBatch(self, query)
+                query.append(f'IF NOT EXISTS')
+            query.append(';')
+        query.append('APPLY BATCH;')
+        batch = MyDBBatch(query, self)
         batch.execute()
         self._item_count = len(values)
 
@@ -372,7 +372,7 @@ class MyDBBatch(nosqlapi.columndb.ColumnBatch):
     t.send = mock.MagicMock()
 
     def execute(self):
-        self.t.send(self.batch)
+        self.t.send('\n'.join(self.batch))
         self.t.recv = mock.MagicMock(return_value="BATCH_OK")
         if self.t.recv(2048) != "BATCH_OK":
             raise SessionError(f'batch error: {self.t.recv(2048)}')
@@ -669,22 +669,30 @@ class ColumnSessionTest(unittest.TestCase):
         ColumnSessionTest.mysess = ColumnSessionTest.myconn.connect()
 
     def test_batch(self):
-        query = """
-        BEGIN BATCH
-            UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;
-        APPLY BATCH ;
-        """
-        batch = MyDBBatch(self.mysess, query)
+        query = ['BEGIN BATCH', "UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;", "APPLY BATCH ;"]
+        batch = MyDBBatch(query, self.mysess)
         batch.execute()
 
     def test_call_batch(self):
-        query = """
-        BEGIN BATCH
-            UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;
-        APPLY BATCH ;
-        """
-        batch = MyDBBatch(self.mysess, query)
+        query = ['BEGIN BATCH', "UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;", "APPLY BATCH ;"]
+        batch = MyDBBatch(query, self.mysess)
         self.mysess.call(batch)
+
+    def test_batch_add_remove_modify(self):
+        query = ['BEGIN BATCH', "UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;"]
+        batch = MyDBBatch(query, self.mysess)
+        # Add element
+        batch.batch.append("APPLY BATCH ;")
+        self.assertEqual(len(batch.batch), 3)
+        # Modify element
+        batch.batch[1] = "UPDATE table SET name = 'Matteo' WHERE name=Matteo AND age=35;"
+        self.assertEqual(batch.batch[1], "UPDATE table SET name = 'Matteo' WHERE name=Matteo AND age=35;")
+        # Delete element
+        batch.batch.append("UNUSEFUL;")
+        self.assertEqual(len(batch.batch), 4)
+        del batch.batch[-1]
+        self.assertEqual(len(batch.batch), 3)
+        batch.execute()
 
     def test_new_user(self):
         resp = self.mysess.new_user('myrole', 'mypassword')

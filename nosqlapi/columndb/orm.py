@@ -76,13 +76,17 @@ class Table:
         """List of indexes"""
         return self._index
 
-    def add_column(self, column):
-        """Adding one column to table
+    @property
+    def header(self):
+        return tuple([column.name for column in self.columns])
 
-        :param column: column name or object
+    def add_column(self, *columns):
+        """Adding one or more column object to table
+
+        :param columns: column objects
         :return: None
         """
-        self._columns.append(column)
+        self._columns.extend(columns)
 
     def delete_column(self, index=-1):
         """Deleting one column to table
@@ -90,7 +94,7 @@ class Table:
         :param index: number of index
         :return: None
         """
-        del self[index]
+        self._columns.pop(index)
 
     def set_option(self, option):
         """Update options
@@ -100,13 +104,34 @@ class Table:
         """
         self._options.update(option)
 
+    def add_row(self, *rows):
+        """Add one or more row into columns
+
+        :param rows: tuple of objects
+        :return: None
+        """
+        for row in rows:
+            # Check length of columns and row
+            if len(row) != len(self.columns):
+                raise ValueError(f"length of row {row} is different of length of columns {len(self.columns)}")
+            for element, column in zip(row, self.columns):
+                column.append(element)
+
+    def delete_row(self, row=-1):
+        """Delete one row into columns
+
+        :param row: index of row
+        :return: None
+        """
+        for column in self.columns:
+            column.pop(row)
+
     def get_rows(self):
         """Getting all rows
 
         :return: List[tuple]
         """
-        return [tuple([col[i] for col in self.columns])
-                for i in range(len(self.columns))]
+        return [dataset for dataset in self]
 
     def add_index(self, index):
         """Adding index to index property
@@ -134,10 +159,11 @@ class Table:
         self._columns.pop(key)
 
     def __iter__(self):
-        return (column for column in self.columns)
+        return (tuple([column[index] for column in self.columns])
+                for index in range(len(self.columns[0])))
 
     def __repr__(self):
-        return f'{self.__class__.__name__} object, name={self.name}>'
+        return f'<{self.__class__.__name__} object, name={self.name}>'
 
     def __str__(self):
         return f'{self.columns}'
@@ -148,7 +174,7 @@ class Column:
 
     def __init__(self, name, of_type=None, max_len=None):
         self.name = name
-        self._of_type = of_type
+        self._of_type = of_type if of_type is not None else object
         self.max_len = max_len
         self._data = []
         self._auto_increment = False
@@ -216,8 +242,11 @@ class Column:
     def __iter__(self):
         return (item for item in self.data)
 
+    def __len__(self):
+        return len(self.data)
+
     def __repr__(self):
-        return f'{self.__class__.__name__} object, name={self.name} type={self.of_type.__class__.__name__}>'
+        return f'<{self.__class__.__name__} object, name={self.name} type={self.of_type.__class__.__name__}>'
 
     def __str__(self):
         return f'{self.data}'

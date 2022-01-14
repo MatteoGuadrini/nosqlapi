@@ -503,7 +503,7 @@ class Batch(ABC):
 
     def __init__(self, batch, session=None):
         self._session = session
-        self._query = batch
+        self._batch = batch
 
     @property
     def session(self):
@@ -520,12 +520,12 @@ class Batch(ABC):
     @property
     def batch(self):
         """String batch operation"""
-        return self._query
+        return self._batch
 
     @batch.setter
     def batch(self, value):
         """String batch operation"""
-        self._query = value
+        self._batch = value
 
     @abstractmethod
     def execute(self, *args, **kwargs):
@@ -534,6 +534,15 @@ class Batch(ABC):
         :return: Union[tuple, Response]
         """
         pass
+
+    def __getitem__(self, item):
+        return self._batch[item]
+
+    def __setitem__(self, key, value):
+        self._batch[key] = value
+
+    def __delitem__(self, key):
+        del self._batch[key]
 
     def __repr__(self):
         return f"<{API_NAME} {self.__class__.__name__} object>"

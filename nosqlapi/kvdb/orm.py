@@ -67,6 +67,15 @@ class Transaction:
         """
         self._commands.pop(index)
 
+    def __getitem__(self, item):
+        return self._commands[item]
+
+    def __setitem__(self, key, value):
+        self._commands[key] = value
+
+    def __delitem__(self, key):
+        del self._commands[key]
+
     def __repr__(self):
         return f'<{self.__class__.__name__} object, commands={len(self.commands)}>'
 

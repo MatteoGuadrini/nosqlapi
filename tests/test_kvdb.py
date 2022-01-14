@@ -561,13 +561,13 @@ class KVSessionTest(unittest.TestCase):
         UPDATE=key3,value3;
         end ;
         """
-        batch = MyDBBatch(self.mysess, query)
+        batch = MyDBBatch(query, self.mysess)
         batch.execute()
         tr = Transaction()
         tr.add('UPDATE=key1,value1;')
         tr.add('UPDATE=key2,value2;')
         tr.add('UPDATE=key3,value3;')
-        batch = MyDBBatch(self.mysess, tr)
+        batch = MyDBBatch(tr, self.mysess)
         batch.execute()
 
     def test_call_batch(self):
@@ -575,8 +575,24 @@ class KVSessionTest(unittest.TestCase):
         tr.add('UPDATE=key1,value1;')
         tr.add('UPDATE=key2,value2;')
         tr.add('UPDATE=key3,value3;')
-        batch = MyDBBatch(self.mysess, tr)
+        batch = MyDBBatch(tr, self.mysess)
         self.mysess.call(batch)
+
+    def test_batch_add_remove_modify(self):
+        query = ["begin", "UPDATE=key1,value1;", "UPDATE=key2,value2;", "UPDATE=key3,value3;"]
+        batch = MyDBBatch(query, self.mysess)
+        # Add element
+        batch.batch.append("end ;")
+        self.assertEqual(len(batch.batch), 5)
+        # Modify element
+        batch.batch[3] = "UPDATE=key4,value4;"
+        self.assertEqual(batch.batch[3], "UPDATE=key4,value4;")
+        # Delete element
+        batch.batch.append("UNUSEFUL;")
+        self.assertEqual(len(batch.batch), 6)
+        del batch.batch[-1]
+        self.assertEqual(len(batch.batch), 5)
+        batch.execute()
 
     def test_get_acl_connection(self):
         self.assertIn('root', self.mysess.acl)
