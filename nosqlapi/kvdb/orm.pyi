@@ -22,8 +22,8 @@
 
 from typing import Iterator, Any, Union
 
-class Transaction:
 
+class Transaction:
     commands: list
 
     def __init__(self, commands: list = None) -> None:
@@ -33,6 +33,12 @@ class Transaction:
 
     def delete(self, index=-1) -> None: ...
 
+    def __getitem__(self, item: int) -> Any: ...
+
+    def __setitem__(self, key: int, value: Any) -> None: ...
+
+    def __delitem__(self, key: int) -> None: ...
+
     def __repr__(self) -> str: ...
 
     def __str__(self) -> str: ...
@@ -41,7 +47,6 @@ class Transaction:
 
 
 class Keyspace:
-
     name: str
     exists: bool
     store: list
@@ -76,7 +81,6 @@ class Subspace(Keyspace):
 
 
 class Item:
-
     key: Union[str, int, float, tuple]
     value: Any
 
@@ -101,7 +105,6 @@ class Item:
 
 
 class ExpiredItem(Item):
-
     ttl: int
 
     def __init__(self, key: Union[str, int, float, tuple], value: Any = None, ttl: int = None) -> None:
