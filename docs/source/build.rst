@@ -124,7 +124,7 @@ Now let's all define methods that operate at the database level.
             req.add_header('Content-Type', 'application/json')
             response = urllib.request.urlopen(req)
             if response.status_code == 200:
-                return Response(data=json.loads(response.read()),
+                return Response(data=bool(json.loads(response.read())),
                                 code=response.status_code,
                                 error=None,
                                 header=response.header_items())
