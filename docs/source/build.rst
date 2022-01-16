@@ -266,7 +266,7 @@ Each *CRUD* method is created to directly manage the data in the database to whi
         def insert(self, name, data=None, attachment=None, partition=None):
              url = self.database + f'/{name}'
              if attachment:
-                 url += url + f"/{attachment}"
+                 url += f"/{attachment}"
              id = f"{partition}:{name}" if partition else name
              data = {"_id": id}
              if data:
