@@ -20,7 +20,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, Union, List, Iterator
+from typing import Any, Union, List, Iterator, Callable
 
 from nosqlapi.kvdb.orm import Keyspace as Ks
 
@@ -74,13 +74,19 @@ class Column:
     of_type: Any
     data: list
     auto_increment: Any
+    default: Callable
 
-    def __init__(self, name: str, of_type: Any = None, max_len: int = None) -> None:
+    def __init__(self, name: str,
+                 of_type: Any = None,
+                 max_len: int = None,
+                 auto_increment: bool = False,
+                 default: Callable = None) -> None:
         self.name: str = name
         self._of_type: Any = of_type
         self.max_len: int = max_len
         self._data: list = []
-        self._auto_increment: bool = False
+        self._default = default
+        self._auto_increment: bool = auto_increment
 
     def append(self, data: Any = None): ...
 
