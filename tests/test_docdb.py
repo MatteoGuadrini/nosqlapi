@@ -135,6 +135,26 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
         else:
             raise ConnectError("server isn't connected")
 
+    def copy_database(self, source, destination, host='localhost', user=None, password=None):
+        self.req.post = mock.MagicMock(return_value={'body': '{"result": "ok"}',
+                                                       'status': 201,
+                                                       'header': '"Content-Type": [ "application/json" ]'})
+        if self:
+            if not self.port:
+                self.port = 27017
+            scheme = 'https://' if self.ssl else 'http://'
+            scheme += f'{user}:{password}@' if user and not password else f'{self.user}:{self.password}@'
+            url = f'{scheme}{self.host if not host else host}:{self.port}'
+            doc = {'fromdb': source, 'todb': destination}
+            ret = self.req.post(url, json.dumps(doc))
+            if ret.get('status') != 201:
+                raise DatabaseError(f'Database copy error: {ret.get("status")}')
+            return MyDBResponse(json.loads(ret['body']),
+                                ret['status'],
+                                ret['header'])
+        else:
+            raise ConnectError("server isn't connected")
+
 
 class MyDBSession(nosqlapi.docdb.DocSession):
     # Simulate http requests
@@ -515,6 +535,16 @@ class DocConnectionTest(unittest.TestCase):
         myconn.close()
         self.assertFalse(myconn)
         self.assertRaises(ConnectError, myconn.databases)
+
+    def test_docdb_copy_database(self):
+        myconn = MyDBConnection('mydocdb.local', port=12345, user='admin', password='test')
+        mysess = myconn.connect()
+        self.assertEqual(mysess.connection, 'http://admin:test@mydocdb.local:12345')
+        resp = myconn.copy_database('test_db', 'test_db2')
+        self.assertEqual(resp.data['result'], 'ok')
+        myconn.close()
+        self.assertFalse(myconn)
+        self.assertRaises(ConnectError, myconn.create_database, 'test_db')
 
 
 class DocSessionTest(unittest.TestCase):
