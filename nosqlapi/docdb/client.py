@@ -23,7 +23,7 @@
 """Client module for document NOSQL database."""
 
 # region imports
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from ..common.core import Connection, Session, Selector, Response, Batch
 
@@ -41,6 +41,14 @@ class DocConnection(Connection, ABC):
 
     def __init__(self, *args, **kwargs):
         Connection.__init__(self, *args, **kwargs)
+
+    @abstractmethod
+    def copy_database(self, *args, **kwargs):
+        """Copy database
+
+        :return : Union[Any, Response]
+        """
+        pass
 
 
 class DocSession(Session, ABC):
