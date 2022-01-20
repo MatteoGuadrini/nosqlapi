@@ -26,7 +26,6 @@ from ..common.core import Connection, Selector, Session, Response, Batch
 
 
 class KVConnection(Connection):
-    return_data: Union[str, tuple, Response]
 
     def __init__(self, *args, **kwargs) -> None:
         self._return_data: Union[str, tuple, Response] = None
@@ -45,7 +44,9 @@ class KVSelector(Selector):
     def __str__(self) -> str: ...
 
 
-class KVSession(Session): ...
+class KVSession(Session):
+
+    def copy(self, *args, **kwargs) -> Union[bool, Response]: ...
 
 
 class KVResponse(Response): ...

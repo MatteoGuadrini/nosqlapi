@@ -89,7 +89,12 @@ class KVSelector(Selector, ABC):
 class KVSession(Session, ABC):
     """Key-value NOSQL database Session class"""
 
-    pass
+    @abstractmethod
+    def copy(self, *args, **kwargs):
+        """Copy key to other key
+
+        :return: Union[bool, Response]
+        """
 
 
 class KVResponse(Response, ABC):
