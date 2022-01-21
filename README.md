@@ -367,6 +367,9 @@ This read/write attribute represents a _batch_ operation.
 
 Executing a _batch_ operation with position and keyword arguments.
 
+> Each database type may contain unique method names for the database type itself. For example, in the abstract class `nosqlapi.docdb.DocumentConnection` there is the `copy_database` method which is not present in the other types.
+These characteristics distinguish the substantial differences between the four databases.
+
 ## nosqlapi package
 
 The package _nosqlapi_ is a collection of interface and utility class and functions for build your own NOSQL python package.
