@@ -172,12 +172,13 @@ class Table:
 class Column:
     """Represents column as container of values"""
 
-    def __init__(self, name, of_type=None, max_len=None, auto_increment=False, default=None):
+    def __init__(self, name, of_type=None, max_len=None, auto_increment=False, primary_key=False, default=None):
         self.name = name
         self._of_type = of_type if of_type is not None else object
         self.max_len = max_len
         self._data = []
         self._default = default
+        self._primary_key = primary_key
         self._auto_increment = auto_increment
 
     @property
@@ -205,6 +206,10 @@ class Column:
     @property
     def default(self):
         return self._default
+
+    @property
+    def primary_key(self):
+        return bool(self._primary_key)
 
     def append(self, data=None):
         """Appending data to column.

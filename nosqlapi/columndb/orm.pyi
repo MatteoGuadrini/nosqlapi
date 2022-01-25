@@ -74,18 +74,21 @@ class Column:
     of_type: Any
     data: list
     auto_increment: Any
+    primary_key: bool
     default: Callable
 
     def __init__(self, name: str,
                  of_type: Any = None,
                  max_len: int = None,
                  auto_increment: bool = False,
+                 primary_key: bool = False,
                  default: Callable = None) -> None:
         self.name: str = name
         self._of_type: Any = of_type
         self.max_len: int = max_len
         self._data: list = []
         self._default = default
+        self._primary_key = primary_key
         self._auto_increment: bool = auto_increment
 
     def append(self, data: Any = None): ...
