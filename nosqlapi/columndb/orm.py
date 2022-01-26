@@ -80,6 +80,11 @@ class Table:
     def header(self):
         return tuple([column.name for column in self.columns])
 
+    @property
+    def primary_key(self):
+        pk = [column.name for column in self.columns if column.primary_key]
+        return pk[0]
+
     def add_column(self, *columns):
         """Adding one or more column object to table
 

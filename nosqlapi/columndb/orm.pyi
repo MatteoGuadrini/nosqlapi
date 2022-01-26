@@ -34,6 +34,7 @@ class Table:
     options: dict
     index: list
     header: tuple
+    primary_key: str
 
     def __init__(self, name: str, *columns: Column, **options: Any) -> None:
         self._name: str = name
