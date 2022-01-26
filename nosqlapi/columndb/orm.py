@@ -216,6 +216,10 @@ class Column:
     def primary_key(self):
         return bool(self._primary_key)
 
+    @primary_key.setter
+    def primary_key(self, value):
+        self._primary_key = bool(value)
+
     def append(self, data=None):
         """Appending data to column.
         If auto_increment is True, the value is incremented automatically.
