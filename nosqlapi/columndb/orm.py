@@ -85,6 +85,12 @@ class Table:
         pk = [column.name for column in self.columns if column.primary_key]
         return pk[0]
 
+    @primary_key.setter
+    def primary_key(self, value: str):
+        for column in self.columns:
+            if column.name == value:
+                column.primary_key = True
+
     def add_column(self, *columns):
         """Adding one or more column object to table
 
