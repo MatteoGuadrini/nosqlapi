@@ -80,6 +80,17 @@ class Table:
     def header(self):
         return tuple([column.name for column in self.columns])
 
+    @property
+    def primary_key(self):
+        pk = [column.name for column in self.columns if column.primary_key]
+        return pk[0]
+
+    @primary_key.setter
+    def primary_key(self, value: str):
+        for column in self.columns:
+            if column.name == value:
+                column.primary_key = True
+
     def add_column(self, *columns):
         """Adding one or more column object to table
 
@@ -172,12 +183,14 @@ class Table:
 class Column:
     """Represents column as container of values"""
 
-    def __init__(self, name, of_type=None, max_len=None):
+    def __init__(self, name, of_type=None, max_len=None, auto_increment=False, primary_key=False, default=None):
         self.name = name
         self._of_type = of_type if of_type is not None else object
         self.max_len = max_len
         self._data = []
-        self._auto_increment = False
+        self._default = default
+        self._primary_key = primary_key
+        self._auto_increment = auto_increment
 
     @property
     def of_type(self):
@@ -201,6 +214,18 @@ class Column:
             raise TypeError('auto_increment must be a bool value')
         self._auto_increment = value
 
+    @property
+    def default(self):
+        return self._default
+
+    @property
+    def primary_key(self):
+        return bool(self._primary_key)
+
+    @primary_key.setter
+    def primary_key(self, value):
+        self._primary_key = bool(value)
+
     def append(self, data=None):
         """Appending data to column.
         If auto_increment is True, the value is incremented automatically.
@@ -219,6 +244,10 @@ class Column:
                     self._data.append(last + 1)
                 except IndexError:
                     self._data.append(1)
+        elif self.default:
+            if not callable(self.default):
+                raise ValueError('default value must be callable without args')
+            self._data.append(self.default())
         else:
             self._data.append(data)
 

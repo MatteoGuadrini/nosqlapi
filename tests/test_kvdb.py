@@ -290,6 +290,15 @@ class MyDBSession(nosqlapi.kvdb.KVSession):
         else:
             raise SessionError(f'index not removed: {name}')
 
+    def copy(self, source, destination):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        self.connection.send(f"COPY={source},{destination}")
+        self.connection.recv = mock.MagicMock(return_value="COPY_KEY_OK")
+        if self.connection.recv(2048) != "COPY_KEY_OK":
+            raise SessionInsertingError(f'copy key {source} to {destination} failure')
+        self._item_count = 1
+
 
 class MyDBResponse(nosqlapi.kvdb.KVResponse):
     pass
@@ -650,6 +659,10 @@ class KVSessionTest(unittest.TestCase):
     def test_get_indexes(self):
         self.assertIn('index1', self.mysess.indexes)
         self.assertIn('index2', self.mysess.indexes)
+
+    def test_copy_keys(self):
+        self.mysess.insert('key', 'key1')
+        self.assertEqual(self.mysess.item_count, 1)
 
 
 if __name__ == '__main__':

@@ -42,6 +42,8 @@ class DocConnection(Connection):
         self.connection: Any = None
         self._return_data: Union[str, tuple, Response] = None
 
+    def copy_database(self, *args, **kwargs) -> Union[bool, Response]: ...
+
 
 class DocSession(Session): ...
 

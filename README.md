@@ -18,7 +18,7 @@ This document describes the Python NOSQL database API specification.
 
 ### Constructors
 
-Access to the database is made available through connection objects. The module must provide the following constructor for these:
+Access to the database is made available through _connection_ objects. The module must provide the following constructor for these:
 
 `Connection(parameters...)`
 
@@ -35,11 +35,11 @@ Currently, only the strings _"1.0"_.
 
 `CONNECTION`
 
-Connection object global variable.
+_Connection_ object global variable.
 
 `SESSION`
 
-Session object global variable.
+_Session_ object global variable.
 
 ### Exceptions
 
@@ -194,7 +194,7 @@ Show an information of a specific database
 
 `.connection`
 
-This read-only attribute contains the connection object.
+This read-only attribute contains the _connection_ object or other object to serve connection (like sockets).
 
 `.description`
 
@@ -366,6 +366,9 @@ This read/write attribute represents a _batch_ operation.
 `.execute(parameters...)`
 
 Executing a _batch_ operation with position and keyword arguments.
+
+> Each database type may contain unique method names for the database type itself. For example, in the abstract class `nosqlapi.docdb.DocumentConnection` there is the `copy_database` method which is not present in the other types.
+These characteristics distinguish the substantial differences between the four databases.
 
 ## nosqlapi package
 
