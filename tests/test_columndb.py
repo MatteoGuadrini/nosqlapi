@@ -361,6 +361,23 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionACLError(f'create index {name} failed: {self.connection.recv(2048)}')
         return MyDBResponse({'index': name, 'status': self.connection.recv(2048)})
 
+    def compact(self, table: Union[str, Table], strategy):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        compaction_strategy = ('TimeWindowCompactionStrategy',
+                               'SizeTieredCompactionStrategy',
+                               'LeveledCompactionStrategy')
+        if strategy not in compaction_strategy:
+            raise ValueError(f'{strategy} is not a compaction strategy!')
+        query = f" ALTER TABLE {table} WITH compaction = {{ 'class' : '{strategy}' }}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="COMPACT:1")
+        if "COMPACT" not in self.connection.recv(2048):
+            raise SessionError(f'compact {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -730,6 +747,13 @@ class ColumnSessionTest(unittest.TestCase):
     def test_get_indexes(self):
         self.assertIn('index1', self.mysess.indexes)
         self.assertIn('index2', self.mysess.indexes)
+
+    def test_compact_table(self):
+        self.mysess.compact('table', 'TimeWindowCompactionStrategy')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.compact(Table('table'), 'TimeWindowCompactionStrategy')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.assertRaises(ValueError, self.mysess.compact, 'table', 'OtherCompactionStrategy')
 
 
 if __name__ == '__main__':
