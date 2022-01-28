@@ -88,7 +88,9 @@ class ColumnSelector(Selector, ABC):
 class ColumnSession(Session, ABC):
     """Column NOSQL database Session class"""
 
-    pass
+    @abstractmethod
+    def compact(self, *args, **kwargs):
+        """Compact data or database"""
 
 
 class ColumnResponse(Response, ABC):
