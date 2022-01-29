@@ -160,6 +160,37 @@ Now let's all define methods that operate at the database level.
                                 error=noslapi.DatabaseError(f'Database not found: {name}'),
                                 header=response.header_items())
 
+        def copy_database(self, source, target, host, user=None, password=None, create_target=True, continuous=True):
+            data = {
+                "_id": f"{source}to{target}",
+                "source": source,
+                "target": {
+                    "url": target,
+                    "auth": {
+                        "basic": {
+                            "username": f"{user}",
+                            "password": f"{password}"
+                        }
+                    }
+                },
+                "create_target":  create_target,
+                "continuous": continuous
+            }
+            req = urllib.request.Request(self.url + '/_replicator', data=json.dumps(data).encode('utf8'), method='POST')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req)
+            if response.status_code == 200:
+                return Response(data=json.loads(response.read()),
+                                code=response.status_code,
+                                error=None,
+                                header=response.header_items())
+            else:
+                return Response(data=None,
+                                code=response.status_code,
+                                error=noslapi.DatabaseError(f'Database copy error: {name}'),
+                                header=response.header_items())
+
+
 Response class
 **************
 
