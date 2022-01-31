@@ -92,6 +92,8 @@ class ColumnSession(Session, ABC):
     def compact(self, *args, **kwargs):
         """Compact data or database"""
 
+        pass
+
 
 class ColumnResponse(Response, ABC):
     """Column NOSQL database Response class"""
