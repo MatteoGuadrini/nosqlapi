@@ -94,6 +94,12 @@ class ColumnSession(Session, ABC):
 
         pass
 
+    @abstractmethod
+    def alter(self, *args, **kwargs):
+        """Alter table or rename"""
+
+        pass
+
 
 class ColumnResponse(Response, ABC):
     """Column NOSQL database Response class"""
