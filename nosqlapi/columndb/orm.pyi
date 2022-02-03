@@ -75,7 +75,7 @@ class Column:
     of_type: Any
     data: list
     auto_increment: Any
-    primary_key: bool
+    primary_key: Any
     default: Callable
 
     def __init__(self, name: str,
