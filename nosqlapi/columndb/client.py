@@ -89,8 +89,20 @@ class ColumnSession(Session, ABC):
     """Column NOSQL database Session class"""
 
     @abstractmethod
+    def create_table(self, *args, **kwargs):
+        """Create table on database"""
+
+        pass
+
+    @abstractmethod
+    def delete_table(self, *args, **kwargs):
+        """Create table on database"""
+
+        pass
+
+    @abstractmethod
     def compact(self, *args, **kwargs):
-        """Compact data or database"""
+        """Compact table or database"""
 
         pass
 
