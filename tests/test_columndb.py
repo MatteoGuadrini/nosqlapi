@@ -398,6 +398,37 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionError(f'alter table {table} failure: {self.connection.recv(2048)}')
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
+    def create_table(self, table: Union[str, Table], columns: Union[List[tuple], List[Column]] = None, primary_key=None,
+                     not_exists=True):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"CREATE TABLE {'IF NOT EXISTS' if not_exists else ''} {self.database}.{table} (\n"
+        if columns:
+            form = []
+            for column in columns:
+                if isinstance(column, Column):
+                    form += f'{column.name} {column.of_type}'
+                else:
+                    form += f'{column[0]} {column[1]}'
+            query += ',\n'.join(form)
+        if primary_key:
+            query += f"PRIMARY KEY (\n"
+            form = []
+            for column in primary_key:
+                if isinstance(column, Column):
+                    form += f'{column.name}'
+                else:
+                    form += f'{column}'
+            query += ','.join(form) + f")"
+        query += ')'
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="CREATE_TABLE:1")
+        if "CREATE_TABLE" not in self.connection.recv(2048):
+            raise SessionError(f'create table {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -561,6 +592,14 @@ class ColumnSessionTest(unittest.TestCase):
         d = self.mysess.get(Table('table'), Column('name'), Column('age'))
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn(('name', 'age'), d)
+
+    def test_create_table(self):
+        self.mysess.create_table('table', columns=[('name', 'Varchar'), ('age', 'Varint')], primary_key=('name',))
+        self.assertEqual(self.mysess.item_count, 1)
+        name = Column('name', of_type=Varchar)
+        age = Column('age', of_type=Varint)
+        self.mysess.create_table('table', columns=[name, age], primary_key=('name',))
+        self.assertEqual(self.mysess.item_count, 1)
 
     def test_insert_data(self):
         self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'))
