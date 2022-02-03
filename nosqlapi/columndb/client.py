@@ -101,14 +101,14 @@ class ColumnSession(Session, ABC):
         pass
 
     @abstractmethod
-    def compact(self, *args, **kwargs):
-        """Compact table or database"""
+    def alter_table(self, *args, **kwargs):
+        """Alter table or rename"""
 
         pass
 
     @abstractmethod
-    def alter(self, *args, **kwargs):
-        """Alter table or rename"""
+    def compact(self, *args, **kwargs):
+        """Compact table or database"""
 
         pass
 

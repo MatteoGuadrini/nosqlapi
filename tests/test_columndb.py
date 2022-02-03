@@ -378,7 +378,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionError(f'compact {table} failure: {self.connection.recv(2048)}')
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
-    def alter(self, table: Union[str, Table], add_columns=None, drop_columns=None, properties=None):
+    def alter_table(self, table: Union[str, Table], add_columns=None, drop_columns=None, properties=None):
         if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(table, Table):
@@ -833,11 +833,11 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertRaises(ValueError, self.mysess.compact, 'table', 'OtherCompactionStrategy')
 
     def test_alter_table(self):
-        self.mysess.alter('table', add_columns=['col1', 'col2'], drop_columns=['col6'])
+        self.mysess.alter_table('table', add_columns=['col1', 'col2'], drop_columns=['col6'])
         self.assertEqual(self.mysess.item_count, 1)
-        self.mysess.alter(Table('table'), add_columns=['col1', 'col2'], drop_columns=['col6'])
+        self.mysess.alter_table(Table('table'), add_columns=['col1', 'col2'], drop_columns=['col6'])
         self.assertEqual(self.mysess.item_count, 1)
-        self.assertRaises(ValueError, self.mysess.alter, 'table')
+        self.assertRaises(ValueError, self.mysess.alter_table, 'table')
 
 
 if __name__ == '__main__':
