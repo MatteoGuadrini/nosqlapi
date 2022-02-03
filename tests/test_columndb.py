@@ -371,11 +371,31 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
                                'LeveledCompactionStrategy')
         if strategy not in compaction_strategy:
             raise ValueError(f'{strategy} is not a compaction strategy!')
-        query = f" ALTER TABLE {table} WITH compaction = {{ 'class' : '{strategy}' }}"
+        query = f"ALTER TABLE {table} WITH compaction = {{ 'class' : '{strategy}' }}"
         self.connection.send(query)
         self.connection.recv = mock.MagicMock(return_value="COMPACT:1")
         if "COMPACT" not in self.connection.recv(2048):
             raise SessionError(f'compact {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
+    def alter(self, table: Union[str, Table], add_columns=None, drop_columns=None, properties=None):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"ALTER TABLE {self.database}.{table}\n"
+        if not add_columns and not drop_columns and not properties:
+            raise ValueError('populate one of these args: add_columns, drop_columns or properties')
+        if add_columns:
+            query += f"ADD {add_columns}\n"
+        if drop_columns:
+            query += f"DROP {drop_columns}\n"
+        if properties:
+            query += f"WITH {properties}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="ALTER_TABLE:1")
+        if "ALTER_TABLE" not in self.connection.recv(2048):
+            raise SessionError(f'alter table {table} failure: {self.connection.recv(2048)}')
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
 
@@ -754,6 +774,13 @@ class ColumnSessionTest(unittest.TestCase):
         self.mysess.compact(Table('table'), 'TimeWindowCompactionStrategy')
         self.assertEqual(self.mysess.item_count, 1)
         self.assertRaises(ValueError, self.mysess.compact, 'table', 'OtherCompactionStrategy')
+
+    def test_alter_table(self):
+        self.mysess.alter('table', add_columns=['col1', 'col2'], drop_columns=['col6'])
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.alter(Table('table'), add_columns=['col1', 'col2'], drop_columns=['col6'])
+        self.assertEqual(self.mysess.item_count, 1)
+        self.assertRaises(ValueError, self.mysess.alter, 'table')
 
 
 if __name__ == '__main__':
