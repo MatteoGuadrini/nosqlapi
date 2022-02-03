@@ -429,6 +429,18 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionError(f'create table {table} failure: {self.connection.recv(2048)}')
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
+    def delete_table(self, table: Union[str, Table], exists=True):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"CREATE TABLE {'IF EXISTS' if exists else ''} {self.database}.{table}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="DROP_TABLE:1")
+        if "DROP_TABLE" not in self.connection.recv(2048):
+            raise SessionError(f'delete table {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -599,6 +611,12 @@ class ColumnSessionTest(unittest.TestCase):
         name = Column('name', of_type=Varchar)
         age = Column('age', of_type=Varint)
         self.mysess.create_table('table', columns=[name, age], primary_key=('name',))
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_delete_table(self):
+        self.mysess.delete_table('table')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.delete_table(Table('table'))
         self.assertEqual(self.mysess.item_count, 1)
 
     def test_insert_data(self):
