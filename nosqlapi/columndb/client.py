@@ -112,6 +112,12 @@ class ColumnSession(Session, ABC):
 
         pass
 
+    @abstractmethod
+    def truncate(self, *args, **kwargs):
+        """Delete all data into a table"""
+
+        pass
+
 
 class ColumnResponse(Response, ABC):
     """Column NOSQL database Response class"""
