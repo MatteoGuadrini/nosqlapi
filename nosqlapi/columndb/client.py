@@ -88,7 +88,35 @@ class ColumnSelector(Selector, ABC):
 class ColumnSession(Session, ABC):
     """Column NOSQL database Session class"""
 
-    pass
+    @abstractmethod
+    def create_table(self, *args, **kwargs):
+        """Create table on database"""
+
+        pass
+
+    @abstractmethod
+    def delete_table(self, *args, **kwargs):
+        """Create table on database"""
+
+        pass
+
+    @abstractmethod
+    def alter_table(self, *args, **kwargs):
+        """Alter table or rename"""
+
+        pass
+
+    @abstractmethod
+    def compact(self, *args, **kwargs):
+        """Compact table or database"""
+
+        pass
+
+    @abstractmethod
+    def truncate(self, *args, **kwargs):
+        """Delete all data into a table"""
+
+        pass
 
 
 class ColumnResponse(Response, ABC):

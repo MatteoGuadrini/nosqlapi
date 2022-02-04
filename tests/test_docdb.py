@@ -1,6 +1,6 @@
 import unittest
 import nosqlapi.docdb
-from nosqlapi.docdb.orm import Database, Document, Index
+from nosqlapi.docdb.orm import Database, Document, Index, Collection
 from typing import Union
 import json
 from unittest import mock
@@ -437,6 +437,22 @@ class MyDBSession(nosqlapi.docdb.DocSession):
                             ret['status'],
                             ret['header'])
 
+    def compact(self, obj: Union[str, Database, Collection], force=False, comment=None):
+        if not self.connection:
+            raise ConnectError('connect to a server before some request')
+        if isinstance(obj, (Collection, Database)):
+            obj = obj.name
+        dict_req = {"compact": obj, "force": force, "comment": comment}
+        self.req.post = mock.MagicMock(return_value={'body': '{"compaction": true}',
+                                                     'status': 200,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
+        ret = self.req.post(f"{self.connection}/compact", json.dumps(dict_req))
+        if ret.get('status') != 200:
+            raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        return MyDBResponse(json.loads(ret.get('body')),
+                            ret['status'],
+                            ret['header'])
+
 
 class MyDBResponse(nosqlapi.docdb.DocResponse):
     pass
@@ -681,6 +697,12 @@ class DocSessionTest(unittest.TestCase):
         indexes = self.mysess.indexes
         self.assertIn('index1', indexes.data[0]['name'])
         self.assertIn('index2', indexes.data[1]['name'])
+
+    def test_compact_collection(self):
+        ret = self.mysess.compact('col1', force=True, comment='Test compaction')
+        self.assertEqual(ret.data, {'compaction': True})
+        ret = self.mysess.compact(Collection('test'))
+        self.assertEqual(ret.data, {'compaction': True})
 
 
 if __name__ == '__main__':

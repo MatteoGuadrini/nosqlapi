@@ -54,7 +54,11 @@ class DocConnection(Connection, ABC):
 class DocSession(Session, ABC):
     """Document NOSQL database Session class"""
 
-    pass
+    @abstractmethod
+    def compact(self, *args, **kwargs):
+        """Compact data or database"""
+
+        pass
 
 
 class DocSelector(Selector, ABC):

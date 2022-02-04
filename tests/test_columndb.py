@@ -361,6 +361,97 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionACLError(f'create index {name} failed: {self.connection.recv(2048)}')
         return MyDBResponse({'index': name, 'status': self.connection.recv(2048)})
 
+    def compact(self, table: Union[str, Table], strategy):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        compaction_strategy = ('TimeWindowCompactionStrategy',
+                               'SizeTieredCompactionStrategy',
+                               'LeveledCompactionStrategy')
+        if strategy not in compaction_strategy:
+            raise ValueError(f'{strategy} is not a compaction strategy!')
+        query = f"ALTER TABLE {table} WITH compaction = {{ 'class' : '{strategy}' }}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="COMPACT:1")
+        if "COMPACT" not in self.connection.recv(2048):
+            raise SessionError(f'compact {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
+    def alter_table(self, table: Union[str, Table], add_columns=None, drop_columns=None, properties=None):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"ALTER TABLE {self.database}.{table}\n"
+        if not add_columns and not drop_columns and not properties:
+            raise ValueError('populate one of these args: add_columns, drop_columns or properties')
+        if add_columns:
+            query += f"ADD {add_columns}\n"
+        if drop_columns:
+            query += f"DROP {drop_columns}\n"
+        if properties:
+            query += f"WITH {properties}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="ALTER_TABLE:1")
+        if "ALTER_TABLE" not in self.connection.recv(2048):
+            raise SessionError(f'alter table {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
+    def create_table(self, table: Union[str, Table], columns: Union[List[tuple], List[Column]] = None, primary_key=None,
+                     not_exists=True):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"CREATE TABLE {'IF NOT EXISTS' if not_exists else ''} {self.database}.{table} (\n"
+        if columns:
+            form = []
+            for column in columns:
+                if isinstance(column, Column):
+                    form += f'{column.name} {column.of_type}'
+                else:
+                    form += f'{column[0]} {column[1]}'
+            query += ',\n'.join(form)
+        if primary_key:
+            query += f"PRIMARY KEY (\n"
+            form = []
+            for column in primary_key:
+                if isinstance(column, Column):
+                    form += f'{column.name}'
+                else:
+                    form += f'{column}'
+            query += ','.join(form) + f")"
+        query += ')'
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="CREATE_TABLE:1")
+        if "CREATE_TABLE" not in self.connection.recv(2048):
+            raise SessionError(f'create table {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
+    def delete_table(self, table: Union[str, Table], exists=True):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"CREATE TABLE {'IF EXISTS' if exists else ''} {self.database}.{table}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="DROP_TABLE:1")
+        if "DROP_TABLE" not in self.connection.recv(2048):
+            raise SessionError(f'delete table {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
+
+    def truncate(self, table: Union[str, Table]):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"TRUNCATE {self.database}.{table}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="TRUNCATE:1")
+        if "TRUNCATE" not in self.connection.recv(2048):
+            raise SessionError(f'delete table {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -524,6 +615,20 @@ class ColumnSessionTest(unittest.TestCase):
         d = self.mysess.get(Table('table'), Column('name'), Column('age'))
         self.assertIsInstance(d, MyDBResponse)
         self.assertIn(('name', 'age'), d)
+
+    def test_create_table(self):
+        self.mysess.create_table('table', columns=[('name', 'Varchar'), ('age', 'Varint')], primary_key=('name',))
+        self.assertEqual(self.mysess.item_count, 1)
+        name = Column('name', of_type=Varchar)
+        age = Column('age', of_type=Varint)
+        self.mysess.create_table('table', columns=[name, age], primary_key=('name',))
+        self.assertEqual(self.mysess.item_count, 1)
+
+    def test_delete_table(self):
+        self.mysess.delete_table('table')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.delete_table(Table('table'))
+        self.assertEqual(self.mysess.item_count, 1)
 
     def test_insert_data(self):
         self.mysess.insert('table', columns=('name', 'age'), values=('Matteo', '35'))
@@ -730,6 +835,26 @@ class ColumnSessionTest(unittest.TestCase):
     def test_get_indexes(self):
         self.assertIn('index1', self.mysess.indexes)
         self.assertIn('index2', self.mysess.indexes)
+
+    def test_compact_table(self):
+        self.mysess.compact('table', 'TimeWindowCompactionStrategy')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.compact(Table('table'), 'TimeWindowCompactionStrategy')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.assertRaises(ValueError, self.mysess.compact, 'table', 'OtherCompactionStrategy')
+
+    def test_alter_table(self):
+        self.mysess.alter_table('table', add_columns=['col1', 'col2'], drop_columns=['col6'])
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.alter_table(Table('table'), add_columns=['col1', 'col2'], drop_columns=['col6'])
+        self.assertEqual(self.mysess.item_count, 1)
+        self.assertRaises(ValueError, self.mysess.alter_table, 'table')
+
+    def test_truncate_table(self):
+        self.mysess.truncate('table')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.truncate(Table('table'))
+        self.assertEqual(self.mysess.item_count, 1)
 
 
 if __name__ == '__main__':
