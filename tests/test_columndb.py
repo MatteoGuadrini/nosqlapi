@@ -441,6 +441,17 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionError(f'delete table {table} failure: {self.connection.recv(2048)}')
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
+    def truncate(self, table: Union[str, Table]):
+        if not self.connection:
+            raise ConnectError('connect to a database before some request')
+        if isinstance(table, Table):
+            table = table.name
+        query = f"TRUNCATE {self.database}.{table}"
+        self.connection.send(query)
+        self.connection.recv = mock.MagicMock(return_value="TRUNCATE:1")
+        if "TRUNCATE" not in self.connection.recv(2048):
+            raise SessionError(f'delete table {table} failure: {self.connection.recv(2048)}')
+        self._item_count = int(self.connection.recv(2048).split(':')[1])
 
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
@@ -838,6 +849,12 @@ class ColumnSessionTest(unittest.TestCase):
         self.mysess.alter_table(Table('table'), add_columns=['col1', 'col2'], drop_columns=['col6'])
         self.assertEqual(self.mysess.item_count, 1)
         self.assertRaises(ValueError, self.mysess.alter_table, 'table')
+
+    def test_truncate_table(self):
+        self.mysess.truncate('table')
+        self.assertEqual(self.mysess.item_count, 1)
+        self.mysess.truncate(Table('table'))
+        self.assertEqual(self.mysess.item_count, 1)
 
 
 if __name__ == '__main__':
