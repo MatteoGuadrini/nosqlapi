@@ -33,7 +33,8 @@ from nosqlapi.common.exception import ConnectError
 API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 'delete_database', 'databases',
                          'show_database', 'copy_database', 'get', 'insert', 'insert_many', 'update', 'update_many',
                          'delete', 'find', 'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index',
-                         'add_index', 'call', 'build', 'execute', 'link', 'detach', 'copy', 'compact', 'truncate')
+                         'add_index', 'call', 'build', 'execute', 'link', 'detach', 'copy', 'compact', 'truncate',
+                         'create_table', 'delete_table', 'alter_table')
 __all__ = ['api', 'global_session', 'Manager']
 
 
