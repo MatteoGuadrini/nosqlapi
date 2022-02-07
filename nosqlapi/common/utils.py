@@ -90,9 +90,9 @@ class Manager:
     def __init__(self, connection, *args, **kwargs):
         # Check if connection is a compliant API connection object
         if not hasattr(connection, 'connect'):
-            raise ConnectError('connection is not a valid connection object')
+            raise ConnectError(f'{connection} is not valid api connection')
         self.connection = connection
-        self.session = self.connection.connect(*args, **kwargs)
+        self.session = connection.connect(*args, **kwargs)
         # Set session properties
         self._database = self.session.database
         self._acl = self.session.acl
