@@ -1,7 +1,8 @@
 import unittest
+
 import nosqlapi
-from test_kvdb import MyDBConnection as KVConn, MyDBResponse
-from test_docdb import MyDBConnection as DocConn
+from test_docdb import MyDBConnection as DocConn, MyDBResponse as DocResp
+from test_kvdb import MyDBConnection as KVConn, MyDBResponse as KVResp
 
 
 # Mock of pymongo Connection object with some method (not all)
@@ -63,11 +64,11 @@ class TestUtils(unittest.TestCase):
         man.delete_database('test_db')
         # All databases
         dbs = man.databases()
-        self.assertIsInstance(dbs, MyDBResponse)
+        self.assertIsInstance(dbs, KVResp)
         self.assertEqual(dbs.data, ['test_db', 'db1', 'db2'])
         # Show database
         db = man.show_database('test_db')
-        self.assertIsInstance(db, MyDBResponse)
+        self.assertIsInstance(db, KVResp)
         self.assertEqual(db.data, 'name=test_db, size=0.4GB')
 
     def test_change_connection(self):
@@ -79,11 +80,16 @@ class TestUtils(unittest.TestCase):
         self.assertEqual('mydocdb.local', man.description['host'])
 
     def test_global_session(self):
-        man = nosqlapi.Manager(KVConn(host='mykvdb.local', user='test', password='pass', database='test_db'))
-        self.assertIsInstance(man.connection, KVConn)
-        self.assertIn('mykvdb.local', man.description)
         nosqlapi.global_session(DocConn('mydocdb.local', port=12345, user='admin', password='test'))
         self.assertEqual('mydocdb.local', nosqlapi.SESSION.description['host'])
+
+    def test_cursor_response(self):
+        conn = DocConn('mydocdb.local', port=12345, user='admin', password='test')
+        sess = conn.connect()
+        resp = sess.get('db/doc1')
+        self.assertIsInstance(resp, DocResp)
+        cur_resp = nosqlapi.cursor_response(resp)
+        self.assertTrue(all(isinstance(item, tuple) for item in cur_resp))
 
 
 if __name__ == '__main__':
