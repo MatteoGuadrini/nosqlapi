@@ -80,6 +80,26 @@ def global_session(connection, *args, **kwargs):
     nosqlapi.SESSION = nosqlapi.CONNECTION.connect(*args, **kwargs)
 
 
+def cursor_response(response):
+    """Transform nosql Response object to list of tuple,
+    like a response of sql cursor object
+
+    :param response: Response object
+    :return: List[tuple]
+    """
+    if all(isinstance(item, tuple) for item in response.data):
+        data = response.data
+    elif isinstance(response.data, dict):
+        data = list(response.data.items())
+    elif isinstance(response.data, tuple):
+        data = [response.data]
+    elif isinstance(response.data, list):
+        data = [tuple(response.data)]
+    else:
+        data = [(response.data,)]
+    return data
+
+
 # endregion
 
 
