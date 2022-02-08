@@ -137,8 +137,8 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
 
     def copy_database(self, source, destination, host='localhost', user=None, password=None):
         self.req.post = mock.MagicMock(return_value={'body': '{"result": "ok"}',
-                                                       'status': 201,
-                                                       'header': '"Content-Type": [ "application/json" ]'})
+                                                     'status': 201,
+                                                     'header': '"Content-Type": [ "application/json" ]'})
         if self:
             if not self.port:
                 self.port = 27017
@@ -159,7 +159,7 @@ class MyDBConnection(nosqlapi.docdb.DocConnection):
 class MyDBSession(nosqlapi.docdb.DocSession):
     # Simulate http requests
     req = mock.Mock()
-    
+
     @property
     def item_count(self):
         return self._item_count
