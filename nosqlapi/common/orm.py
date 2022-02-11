@@ -43,6 +43,7 @@ __all__ = ['Null', 'List', 'Map', 'Int', 'Inet', 'Ascii', 'Time', 'SmallInt', 'D
 
 # region Classes
 class Null:
+
     """Represents None"""
 
     def __repr__(self):
@@ -50,16 +51,21 @@ class Null:
 
 
 class List(list):
+
     """Represents list of objects"""
+
     pass
 
 
 class Map(dict):
+
     """Represents dict of objects"""
+
     pass
 
 
 class Ascii(str):
+
     """Represents ASCII string"""
 
     def __init__(self, value=''):
@@ -69,11 +75,14 @@ class Ascii(str):
 
 
 class Blob(bytes):
+
     """Represents bytes"""
+
     pass
 
 
 class Boolean:
+
     """Represents bool"""
 
     def __init__(self, value):
@@ -87,6 +96,7 @@ class Boolean:
 
 
 class Counter:
+
     """Represents integer counter"""
 
     def __init__(self, value=0):
@@ -119,6 +129,7 @@ class Counter:
 
 
 class Date(date):
+
     """Represents date in format %Y-%m-%d"""
 
     def __repr__(self):
@@ -126,16 +137,21 @@ class Date(date):
 
 
 class Decimal(Dc):
+
     """Represents decimal number"""
+
     pass
 
 
 class Double(float):
+
     """Represents float"""
+
     pass
 
 
 class Duration(timedelta):
+
     """Represents duration ISO 8601 format: P[n]Y[n]M[n]DT[n]H[n]M[n]S"""
 
     def string_format(self):
@@ -152,11 +168,14 @@ class Duration(timedelta):
 
 
 class Float(float):
+
     """Represents float"""
+
     pass
 
 
 class Inet:
+
     """Represents ip address version 4 or 6 like string"""
 
     def __init__(self, ip):
@@ -167,6 +186,7 @@ class Inet:
 
 
 class Int(int):
+
     """Represents integer"""
 
     def __init__(self, number):
@@ -177,6 +197,7 @@ class Int(int):
 
 
 class SmallInt(Int):
+
     """Represents small integer: -32767 to 32767"""
 
     def __init__(self, number):
@@ -186,11 +207,14 @@ class SmallInt(Int):
 
 
 class Text(str):
+
     """Represents str"""
+
     pass
 
 
 class Time(time):
+
     """Represents time"""
 
     def __repr__(self):
@@ -198,6 +222,7 @@ class Time(time):
 
 
 class Timestamp(datetime):
+
     """Represents datetime timestamp"""
 
     def __repr__(self):
@@ -205,6 +230,7 @@ class Timestamp(datetime):
 
 
 class Uuid:
+
     """Represents uuid version 1"""
 
     def __init__(self):

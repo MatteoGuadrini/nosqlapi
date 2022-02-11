@@ -37,6 +37,7 @@ __all__ = ['KVConnection', 'KVSelector', 'KVSession', 'KVResponse', 'KVBatch']
 
 # region classes
 class KVConnection(Connection, ABC):
+
     """Key-value NOSQL database Connection class"""
 
     def __init__(self, *args, **kwargs):
@@ -44,6 +45,7 @@ class KVConnection(Connection, ABC):
 
 
 class KVSelector(Selector, ABC):
+
     """Key-value NOSQL database Selector class"""
 
     @abstractmethod
@@ -87,6 +89,7 @@ class KVSelector(Selector, ABC):
 
 
 class KVSession(Session, ABC):
+
     """Key-value NOSQL database Session class"""
 
     @abstractmethod
@@ -98,12 +101,14 @@ class KVSession(Session, ABC):
 
 
 class KVResponse(Response, ABC):
+
     """Key-value NOSQL database Response class"""
 
     pass
 
 
 class KVBatch(Batch, ABC):
+
     """Key-value NOSQL database Batch class"""
 
     pass

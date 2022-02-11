@@ -105,6 +105,7 @@ def cursor_response(response):
 
 # region classes
 class Manager:
+
     """Manager class for api compliant nosql database connection"""
 
     def __init__(self, connection, *args, **kwargs):

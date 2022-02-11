@@ -37,6 +37,7 @@ __all__ = ['DocConnection', 'DocSelector', 'DocSession', 'DocResponse', 'DocBatc
 
 # region classes
 class DocConnection(Connection, ABC):
+
     """Document NOSQL database Connection class"""
 
     def __init__(self, *args, **kwargs):
@@ -52,6 +53,7 @@ class DocConnection(Connection, ABC):
 
 
 class DocSession(Session, ABC):
+
     """Document NOSQL database Session class"""
 
     @abstractmethod
@@ -62,18 +64,21 @@ class DocSession(Session, ABC):
 
 
 class DocSelector(Selector, ABC):
+
     """Document NOSQL database Selector class"""
 
     pass
 
 
 class DocResponse(Response, ABC):
+
     """Document NOSQL database Response class"""
 
     pass
 
 
 class DocBatch(Batch, ABC):
+
     """Document NOSQL database Batch class"""
 
     pass

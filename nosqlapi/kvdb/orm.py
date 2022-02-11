@@ -35,6 +35,7 @@ __all__ = ['Keyspace', 'Subspace', 'Transaction', 'Item', 'ExpiredItem', 'Index'
 
 # region Classes
 class Transaction:
+
     """Represents group of commands in a single step"""
 
     def __init__(self, commands=None):
@@ -87,6 +88,7 @@ class Transaction:
 
 
 class Keyspace:
+
     """Represents keyspace like database"""
 
     def __init__(self, name):
@@ -153,6 +155,7 @@ class Keyspace:
 
 
 class Subspace(Keyspace):
+
     """Represents subspace of the keyspace"""
 
     def __init__(self, name, sub=None, sep='.'):
@@ -162,6 +165,7 @@ class Subspace(Keyspace):
 
 
 class Item:
+
     """Represents key/value like a dictionary"""
 
     def __init__(self, key, value=None):
@@ -217,6 +221,7 @@ class Item:
 
 
 class ExpiredItem(Item):
+
     """Represents Item object with ttl expired time"""
 
     def __init__(self, key, value=None, ttl=None):
