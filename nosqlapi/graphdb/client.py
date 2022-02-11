@@ -38,6 +38,7 @@ __all__ = ['GraphConnection', 'GraphSelector', 'GraphSession', 'GraphResponse', 
 # region classes
 
 class GraphConnection(Connection, ABC):
+
     """Graph NOSQL database Connection class"""
 
     def __init__(self, *args, **kwargs):
@@ -45,6 +46,7 @@ class GraphConnection(Connection, ABC):
 
 
 class GraphSession(Session, ABC):
+
     """Graph NOSQL database Session class"""
 
     @abstractmethod
@@ -65,18 +67,21 @@ class GraphSession(Session, ABC):
 
 
 class GraphSelector(Selector, ABC):
+
     """Graph NOSQL database Selector class"""
 
     pass
 
 
 class GraphResponse(Response, ABC):
+
     """Response NOSQL database Session class"""
 
     pass
 
 
 class GraphBatch(Batch, ABC):
+
     """Batch NOSQL database Session class"""
 
     pass

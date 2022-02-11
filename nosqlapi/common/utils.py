@@ -33,8 +33,9 @@ from nosqlapi.common.exception import ConnectError
 API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 'delete_database', 'databases',
                          'show_database', 'copy_database', 'get', 'insert', 'insert_many', 'update', 'update_many',
                          'delete', 'find', 'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index',
-                         'add_index', 'call', 'build', 'execute', 'link', 'detach', 'copy')
-__all__ = ['api', 'global_session', 'Manager']
+                         'add_index', 'call', 'build', 'execute', 'link', 'detach', 'copy', 'compact', 'truncate',
+                         'create_table', 'delete_table', 'alter_table')
+__all__ = ['api', 'global_session', 'Manager', 'cursor_response']
 
 
 # endregion
@@ -79,19 +80,40 @@ def global_session(connection, *args, **kwargs):
     nosqlapi.SESSION = nosqlapi.CONNECTION.connect(*args, **kwargs)
 
 
+def cursor_response(response):
+    """Transform nosql Response object to list of tuple,
+    like a response of sql cursor object
+
+    :param response: Response object
+    :return: List[tuple]
+    """
+    if all(isinstance(item, tuple) for item in response.data):
+        data = response.data
+    elif isinstance(response.data, dict):
+        data = list(response.data.items())
+    elif isinstance(response.data, tuple):
+        data = [response.data]
+    elif isinstance(response.data, list):
+        data = [tuple(response.data)]
+    else:
+        data = [(response.data,)]
+    return data
+
+
 # endregion
 
 
 # region classes
 class Manager:
+
     """Manager class for api compliant nosql database connection"""
 
     def __init__(self, connection, *args, **kwargs):
         # Check if connection is a compliant API connection object
         if not hasattr(connection, 'connect'):
-            raise ConnectError('connection is not a valid connection object')
+            raise ConnectError(f'{connection} is not valid api connection')
         self.connection = connection
-        self.session = self.connection.connect(*args, **kwargs)
+        self.session = connection.connect(*args, **kwargs)
         # Set session properties
         self._database = self.session.database
         self._acl = self.session.acl

@@ -39,11 +39,14 @@ __all__ = ['Database', 'Collection', 'Document', 'Index']
 
 # region Classes
 class Database(Keyspace):
+
     """Represents database"""
+
     pass
 
 
 class Collection:
+
     """Represents collection of documents"""
 
     def __init__(self, name, *docs):
@@ -96,6 +99,7 @@ class Collection:
 
 
 class Document:
+
     """Represents document"""
 
     def __init__(self, value=None, oid=None, **values):
@@ -159,6 +163,7 @@ class Document:
 
 
 class Index:
+
     """Represents document index"""
 
     def __init__(self, name, data):

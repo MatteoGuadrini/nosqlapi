@@ -39,11 +39,14 @@ __all__ = ['Label', 'Property', 'RelationshipType', 'Database', 'Node', 'Relatio
 
 # region Classes
 class Label(Text):
+
     """Label of node"""
+
     pass
 
 
 class Property(dict):
+
     """Property of node"""
 
     def __repr__(self):
@@ -59,11 +62,14 @@ class Property(dict):
 
 
 class RelationshipType(Label):
+
     """Type of relationship like a label"""
+
     pass
 
 
 class Database(Keyspace):
+
     """Represents database"""
 
     def __init__(self, name, address=None, role=None, status=None, default=False):
@@ -83,6 +89,7 @@ class Database(Keyspace):
 
 
 class Node:
+
     """Represents node"""
 
     def __init__(self, labels, properties=None, var=''):
@@ -126,6 +133,8 @@ class Node:
 
 
 class Relationship(Node):
+
+    """Represents relationship among nodes"""
 
     def __str__(self):
         return f'[{self.var}:{":".join(self.labels)} {self.properties}]'

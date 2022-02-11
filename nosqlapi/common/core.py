@@ -38,6 +38,7 @@ __all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
 
 # region classes
 class Connection(ABC):
+
     """Server connection abstract class"""
 
     def __init__(self,
@@ -155,6 +156,7 @@ class Connection(ABC):
 
 
 class Selector(ABC):
+
     """Selector abstract class"""
 
     def __init__(self, selector=None, fields=None, partition=None, condition=None, order=None, limit=None):
@@ -245,6 +247,7 @@ class Selector(ABC):
 
 
 class Session(ABC):
+
     """Server session abstract class"""
 
     def __init__(self, connection, database=None):
@@ -435,6 +438,7 @@ class Session(ABC):
 
 
 class Response(ABC):
+
     """Server response abstract class"""
 
     __slots__ = ('_data', '_code', '_header', '_error')
@@ -499,6 +503,7 @@ class Response(ABC):
 
 
 class Batch(ABC):
+
     """Batch abstract class"""
 
     def __init__(self, batch, session=None):

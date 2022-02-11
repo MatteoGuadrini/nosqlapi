@@ -20,7 +20,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union, Any
+from typing import Union, Any, List
 
 from nosqlapi import Response, Batch, Connection
 
@@ -29,6 +29,9 @@ def api(**methods: str) -> type: ...
 
 
 def global_session(connection: Any, *args, **kwargs) -> None: ...
+
+
+def cursor_response(response: Response) -> List[tuple]: ...
 
 
 class Manager:

@@ -38,6 +38,7 @@ __all__ = ['ColumnConnection', 'ColumnSelector', 'ColumnSession', 'ColumnRespons
 
 # region classes
 class ColumnConnection(Connection, ABC):
+
     """Column NOSQL database Connection class"""
 
     def __init__(self, *args, **kwargs):
@@ -45,6 +46,7 @@ class ColumnConnection(Connection, ABC):
 
 
 class ColumnSelector(Selector, ABC):
+
     """Column NOSQL database Selector class"""
 
     def __init__(self):
@@ -86,6 +88,7 @@ class ColumnSelector(Selector, ABC):
 
 
 class ColumnSession(Session, ABC):
+
     """Column NOSQL database Session class"""
 
     @abstractmethod
@@ -120,12 +123,14 @@ class ColumnSession(Session, ABC):
 
 
 class ColumnResponse(Response, ABC):
+
     """Column NOSQL database Response class"""
 
     pass
 
 
 class ColumnBatch(Batch, ABC):
+
     """Column NOSQL database Batch class"""
 
     pass
