@@ -2,6 +2,9 @@
 
 _nosqlapi_ is a library for building standard NOSQL python libraries.
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/69fa15d33f9c4f26b14ffe8403327140)](https://www.codacy.com/gh/MatteoGuadrini/nosqlapi/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MatteoGuadrini/nosqlapi&amp;utm_campaign=Badge_Grade)
+[![CircleCI](https://circleci.com/gh/MatteoGuadrini/nosqlapi.svg?style=svg)](https://circleci.com/gh/MatteoGuadrini/nosqlapi)
+
 Full documentation: [Read the docs](https://nosqlapi.rtfd.io/)
 
 > ATTENTION: This is **WIP** in _RC_ version
