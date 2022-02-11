@@ -152,7 +152,7 @@ The ``api`` decorator function allows you to return existing classes so that the
     import pymongo
 
     @nosqlapi.common.utils.api(database_names='databases', drop_database='delete_database', close_cursor='close')
-    class Connection(pymongo.Connection): ...
+    class ApiConnection(pymongo.Connection): ...
 
     connection = ApiConnection('localhost', 27017, 'test_database')
 
@@ -170,3 +170,16 @@ The ``global_session`` function allows you to instantiate a global connection an
 
     print(nosqlapi.CONNECTION)  # Connection object
     print(nosqlapi.SESSION)     # Session object
+
+The ``cursor_response`` function allows you to convert a Response object into a classic list of tuples.
+
+.. code-block:: python
+
+    import nosqlapi
+    import mymodule
+
+    connection = mymodule.Connection('server.local', 1241, 'new_db', username='admin', password='pa$$w0rd', ssl=True)
+    resp = connection.databases()
+
+    print(resp)                     # Response object
+    print(cursor_response(resp))    # [('db1', 'db2')]
