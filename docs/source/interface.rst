@@ -47,26 +47,26 @@ All defined exceptions derive from the general exception ``Error`` based on ``Ex
 
     >>> raise Error("Don't use this, but its subclasses!")
 
-======================= =============   ===========
-Name                    Base            Description
-======================= =============   ===========
-Error                   Exception       Exception that is the base class of all other error exceptions. Use only for checks.
-UnknownError            Error           Exception raised when an unspecified error occurred.
-ConnectError            Error           Exception raised for errors that are related to the database connection.
-CloseError              Error           Exception raised for errors that are related to the database close connection.
-DatabaseError           Error           Exception raised for errors that are related to the database, generally.
-DatabaseCreationError   DatabaseError   Exception raised for errors that are related to the creation of a database.
-DatabaseDeletionError   DatabaseError   Exception raised for errors that are related to the deletion of a database.
-SessionError            Error           Exception raised for errors that are related to the session, generally.
-SessionInsertingError   SessionError    Exception raised for errors that are related to the inserting data on a database session.
-SessionUpdatingError    SessionError    Exception raised for errors that are related to the updating data on a database session.
-SessionDeletingError    SessionError    Exception raised for errors that are related to the deletion data on a database session.
-SessionClosingError     SessionError    Exception raised for errors that are related to the closing database session.
-SessionFindingError     SessionError    Exception raised for errors that are related to the finding data on a database session.
-SessionACLError         SessionError    Exception raised for errors that are related to the grant or revoke permission on a database.
-SelectorError           Error           Exception raised for errors that are related to the selectors in general.
-SelectorAttributeError  SelectorError   Exception raised for errors that are related to the selectors attribute.
-======================= =============   ===========
+========================== ================= ===========
+Name                       Base              Description
+========================== ================= ===========
+``Error``                  ``Exception``     Exception that is the base class of all other error exceptions. Use only for checks.
+``UnknownError``           ``Error``         Exception raised when an unspecified error occurred.
+``ConnectError``           ``Error``         Exception raised for errors that are related to the database connection.
+``CloseError``             ``Error``         Exception raised for errors that are related to the database close connection.
+``DatabaseError``          ``Error``         Exception raised for errors that are related to the database, generally.
+``DatabaseCreationError``  ``DatabaseError`` Exception raised for errors that are related to the creation of a database.
+``DatabaseDeletionError``  ``DatabaseError`` Exception raised for errors that are related to the deletion of a database.
+``SessionError``           ``Error``         Exception raised for errors that are related to the session, generally.
+``SessionInsertingError``  ``SessionError``  Exception raised for errors that are related to the inserting data on a database session.
+``SessionUpdatingError``   ``SessionError``  Exception raised for errors that are related to the updating data on a database session.
+``SessionDeletingError``   ``SessionError``  Exception raised for errors that are related to the deletion data on a database session.
+``SessionClosingError``    ``SessionError``  Exception raised for errors that are related to the closing database session.
+``SessionFindingError``    ``SessionError``  Exception raised for errors that are related to the finding data on a database session.
+``SessionACLError``        ``SessionError``  Exception raised for errors that are related to the grant or revoke permission on a database.
+``SelectorError``          ``Error``         Exception raised for errors that are related to the selectors in general.
+``SelectorAttributeError`` ``SelectorError`` Exception raised for errors that are related to the selectors attribute.
+========================== ================= ===========
 
 The tree of exceptions:
 
