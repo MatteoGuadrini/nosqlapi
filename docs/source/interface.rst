@@ -34,9 +34,9 @@ Globals
 
 ``api_level`` is a global variable to check compatibility with the names defined in this document. Currently the level is *1.0*.
 
-``CONNECTION`` is a global variable where to save a ``Connection`` object.
+``CONNECTION`` is a global variable where to save a global ``Connection`` object.
 
-``SESSION`` is a global variable where to save a ``Session`` object.
+``SESSION`` is a global variable where to save a global ``Session`` object.
 
 Exceptions
 **********
