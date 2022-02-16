@@ -34,6 +34,9 @@ def global_session(connection: Any, *args, **kwargs) -> None: ...
 def cursor_response(response: Response) -> List[tuple]: ...
 
 
+def apply_vendor(name: str) -> None: ...
+
+
 class Manager:
     item_count: int
     description: tuple

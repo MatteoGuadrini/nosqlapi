@@ -35,7 +35,7 @@ API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 
                          'delete', 'find', 'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index',
                          'add_index', 'call', 'build', 'execute', 'link', 'detach', 'copy', 'compact', 'truncate',
                          'create_table', 'delete_table', 'alter_table')
-__all__ = ['api', 'global_session', 'Manager', 'cursor_response']
+__all__ = ['api', 'global_session', 'cursor_response', 'apply_vendor', 'Manager']
 
 
 # endregion
@@ -98,6 +98,15 @@ def cursor_response(response):
     else:
         data = [(response.data,)]
     return data
+
+
+def apply_vendor(name):
+    """Apply new name of api name
+
+    :param name: name of vendor
+    :return: None
+    """
+    nosqlapi.common.core.__dict__['API_NAME'] = name
 
 
 # endregion
