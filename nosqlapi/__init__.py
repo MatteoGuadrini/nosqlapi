@@ -27,7 +27,7 @@ from nosqlapi.common import Connection, Session, Selector, Response, Batch
 from nosqlapi.common import (Int, Inet, Ascii, Time, SmallInt, Decimal, Timestamp, Counter, Date, Text, Blob,
                              Boolean, Double, Uuid, Duration, Float, Varint, Varchar)
 from nosqlapi.common.exception import *
-from nosqlapi.common.utils import api, Manager, global_session, cursor_response
+from nosqlapi.common.utils import api, Manager, global_session, cursor_response, apply_vendor
 from nosqlapi.docdb import DocConnection, DocSelector, DocSession, DocResponse, DocBatch
 from nosqlapi.graphdb import GraphConnection, GraphSelector, GraphSession, GraphResponse, GraphBatch
 from nosqlapi.kvdb import KVConnection, KVSelector, KVSession, KVResponse, KVBatch
