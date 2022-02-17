@@ -39,6 +39,10 @@ class Transaction:
     """Represents group of commands in a single step"""
 
     def __init__(self, commands=None):
+        """Transaction object
+
+        :param commands: List of commands
+        """
         if commands is None:
             commands = []
         self._commands = commands
@@ -51,8 +55,8 @@ class Transaction:
     def add(self, command, index=-1):
         """Add command to commands list
 
-        :param command: command string
-        :param index: index to append command
+        :param command: Command string
+        :param index: Index to append command
         :return: None
         """
         if index == -1:
@@ -63,7 +67,7 @@ class Transaction:
     def delete(self, index=-1):
         """Remove command to command list
 
-        :param index: index to remove command
+        :param index: Index to remove command
         :return: None
         """
         self._commands.pop(index)
@@ -91,9 +95,14 @@ class Keyspace:
 
     """Represents keyspace like database"""
 
-    def __init__(self, name):
+    def __init__(self, name, exists=False):
+        """Keyspace object
+
+        :param name: Name of keyspace
+        :param exists: Existing keyspace (default False)
+        """
         self._name = name
-        self._exists = False
+        self._exists = exists
         self._store = []
 
     @property
@@ -119,7 +128,7 @@ class Keyspace:
     def append(self, item):
         """Append item into store
 
-        :param item: key/value item
+        :param item: Key/value item
         :return: None
         """
         self._store.append(item)
@@ -127,7 +136,7 @@ class Keyspace:
     def pop(self, item=-1):
         """Remove item from the store
 
-        :param item: index of item to remove
+        :param item: Index of item to remove
         :return: None
         """
         self._store.pop(item)
@@ -159,6 +168,12 @@ class Subspace(Keyspace):
     """Represents subspace of the keyspace"""
 
     def __init__(self, name, sub=None, sep='.'):
+        """Subspace object
+
+        :param name: Name of keyspace
+        :param sub: Subname of keyspace
+        :param sep: Separation character
+        """
         super().__init__(name)
         if sub:
             self.name += sep + sub
@@ -169,6 +184,11 @@ class Item:
     """Represents key/value like a dictionary"""
 
     def __init__(self, key, value=None):
+        """Item object
+
+        :param key: Key of item
+        :param value: Value of item
+        """
         self._key = key
         self._value = value
         self.__dict = {}
@@ -194,8 +214,8 @@ class Item:
     def set(self, key, value=None):
         """Set item
 
-        :param key: key of item
-        :param value: value of the key
+        :param key: Key of item
+        :param value: Value of the key
         :return: None
         """
         self[key] = value
@@ -225,6 +245,12 @@ class ExpiredItem(Item):
     """Represents Item object with ttl expired time"""
 
     def __init__(self, key, value=None, ttl=None):
+        """ExpiredItem object
+
+        :param key: Key of item
+        :param value: Value of item
+        :param ttl: Time to live of item
+        """
         super().__init__(key, value)
         self._ttl = ttl
         self['ttl'] = self._ttl
