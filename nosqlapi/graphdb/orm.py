@@ -72,7 +72,15 @@ class Database(Keyspace):
 
     """Represents database"""
 
-    def __init__(self, name, address=None, role=None, status=None, default=False):
+    def __init__(self, name, address=None, role=None, status='online', default=False):
+        """Database object
+
+        :param name: Name of database
+        :param address: Address of database server
+        :param role: Role of database
+        :param status: Status of database (default online)
+        :param default: Default value or function
+        """
         super().__init__(name=name)
         self.address = address
         self.role = role
@@ -93,6 +101,12 @@ class Node:
     """Represents node"""
 
     def __init__(self, labels, properties=None, var=''):
+        """Node object
+
+        :param labels: Label of node
+        :param properties: Properties of Node
+        :param var: Name variable
+        """
         self.labels = []
         self.labels.extend(labels)
         self.properties = Property()
@@ -103,7 +117,7 @@ class Node:
     def add_label(self, label):
         """Add label to node
 
-        :param label: label string or object
+        :param label: Label string or object
         :return: None
         """
         self.labels.append(label)
@@ -111,7 +125,7 @@ class Node:
     def delete_label(self, index=-1):
         """Delete label
 
-        :param index: number of index
+        :param index: Number of index
         :return: None
         """
         self.labels.pop(index)
