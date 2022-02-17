@@ -69,7 +69,7 @@ def api(**methods):
 def global_session(connection, *args, **kwargs):
     """Global session
 
-    :param connection: Connection object
+    :param connection: Connection object or other compliant object
     :param args: positional arguments of connect method on Connection object
     :param kwargs: keywords arguments of connect method on Connection object
     :return: None
@@ -84,7 +84,7 @@ def cursor_response(response):
     """Transform nosql Response object to list of tuple,
     like a response of sql cursor object
 
-    :param response: Response object
+    :param response: Response object or other compliant object
     :return: List[tuple]
     """
     if all(isinstance(item, tuple) for item in response.data):
