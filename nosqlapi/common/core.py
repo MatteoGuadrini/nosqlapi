@@ -58,6 +58,24 @@ class Connection(ABC):
                  ssl_verify_cert=None,
                  max_allowed_packet=None
                  ):
+        """Instantiate Connection object
+
+        :param host: Name of host that contains database
+        :param user: Username for connect to the host
+        :param password: Password for connect to the host
+        :param database: Name of database
+        :param port: Tcp port
+        :param bind_address: Hostname or an IP address for multiple network interfaces
+        :param read_timeout: Timeout for reading from the connection in seconds
+        :param write_timeout: Timeout for writing from the connection in seconds
+        :param ssl: Ssl connection established
+        :param ssl_ca: Ssl CA file specified
+        :param ssl_cert: Ssl certificate file specified
+        :param tls: Tls connection established
+        :param ssl_key: Ssl private key file specified
+        :param ssl_verify_cert: Verify certificate file
+        :param max_allowed_packet: Max size of packet sent to server in bytes
+        """
         self.host = host
         self.user = user
         self.password = password
@@ -160,6 +178,15 @@ class Selector(ABC):
     """Selector abstract class"""
 
     def __init__(self, selector=None, fields=None, partition=None, condition=None, order=None, limit=None):
+        """Instantiate Selector object
+
+        :param selector: Selector part of the query string
+        :param fields: Return fields
+        :param partition: Partition or collection of data
+        :param condition: Condition of query
+        :param order: Order by specific selector
+        :param limit: Limit result
+        """
         self.selector = selector
         self.fields = fields
         self.partition = partition
@@ -251,6 +278,11 @@ class Session(ABC):
     """Server session abstract class"""
 
     def __init__(self, connection, database=None):
+        """Instantiate Session object
+
+        :param connection: Connection object or other object to serve connection
+        :param database: database name
+        """
         self._item_count = 0
         self._description = ()
         self._database = database
@@ -444,6 +476,13 @@ class Response(ABC):
     __slots__ = ('_data', '_code', '_header', '_error')
 
     def __init__(self, data, code=None, header=None, error=None):
+        """Instantiate Response object
+
+        :param data: Data from operation
+        :param code: Exit code of operation
+        :param header: Header of operation
+        :param error: Error string or Exception class
+        """
         self._data = data
         self._code = code
         self._header = header
@@ -507,6 +546,11 @@ class Batch(ABC):
     """Batch abstract class"""
 
     def __init__(self, batch, session=None):
+        """Instantiate Batch object
+
+        :param batch: List of commands
+        :param session: Session object or other compliant object
+        """
         self._session = session
         self._batch = batch
 
