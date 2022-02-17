@@ -80,7 +80,11 @@ class ColumnSelector(Selector, ABC):
 
     @filtering.setter
     def filtering(self, value: bool):
-        """Filter data"""
+        """Set filtering data
+
+        :param value: Boolean value
+        :return: None
+        """
         value_ = bool(value)
         if not isinstance(value_, bool):
             raise ValueError(f'{value_} must be bool')
