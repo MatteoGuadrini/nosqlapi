@@ -98,6 +98,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(repr(resp), '<myapi MyDBResponse object>')
         nosqlapi.apply_vendor('nosqlapi')
 
+    def test_simple_response(self):
+        resp = nosqlapi.response('some data')
+        self.assertIsInstance(resp, nosqlapi.Response)
+
 
 if __name__ == '__main__':
     unittest.main()
