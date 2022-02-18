@@ -35,7 +35,7 @@ API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 
                          'delete', 'find', 'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index',
                          'add_index', 'call', 'build', 'execute', 'link', 'detach', 'copy', 'compact', 'truncate',
                          'create_table', 'delete_table', 'alter_table')
-__all__ = ['api', 'global_session', 'cursor_response', 'apply_vendor', 'Manager']
+__all__ = ['api', 'global_session', 'cursor_response', 'apply_vendor', 'response', 'Manager']
 
 
 # endregion
