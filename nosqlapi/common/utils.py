@@ -80,23 +80,23 @@ def global_session(connection, *args, **kwargs):
     nosqlapi.SESSION = nosqlapi.CONNECTION.connect(*args, **kwargs)
 
 
-def cursor_response(response):
+def cursor_response(resp):
     """Transform nosql Response object to list of tuple,
     like a response of sql cursor object
 
-    :param response: Response object or other compliant object
+    :param resp: Response object or other compliant object
     :return: List[tuple]
     """
-    if all(isinstance(item, tuple) for item in response.data):
-        data = response.data
-    elif isinstance(response.data, dict):
-        data = list(response.data.items())
-    elif isinstance(response.data, tuple):
-        data = [response.data]
-    elif isinstance(response.data, list):
-        data = [tuple(response.data)]
+    if all(isinstance(item, tuple) for item in resp.data):
+        data = resp.data
+    elif isinstance(resp.data, dict):
+        data = list(resp.data.items())
+    elif isinstance(resp.data, tuple):
+        data = [resp.data]
+    elif isinstance(resp.data, list):
+        data = [tuple(resp.data)]
     else:
-        data = [(response.data,)]
+        data = [(resp.data,)]
     return data
 
 
@@ -107,6 +107,15 @@ def apply_vendor(name):
     :return: None
     """
     nosqlapi.common.core.__dict__['API_NAME'] = name
+
+
+def response(data):
+    """Simple response with data only
+
+    :param data: Data
+    :return: Response
+    """
+    return nosqlapi.Response(data)
 
 
 # endregion
