@@ -87,6 +87,8 @@ def cursor_response(resp):
     :param resp: Response object or other compliant object
     :return: List[tuple]
     """
+    if not hasattr(resp, 'data'):
+        raise ValueError(f'{resp} is not a valid Response object')
     if all(isinstance(item, tuple) for item in resp.data):
         data = resp.data
     elif isinstance(resp.data, dict):
