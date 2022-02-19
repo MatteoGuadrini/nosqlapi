@@ -48,6 +48,12 @@ class Table:
     """Represents table as container of columns"""
 
     def __init__(self, name, *columns, **options):
+        """Table object
+
+        :param name: Name of table
+        :param columns: Columns
+        :param options: Options
+        """
         self._name = name
         self._columns = [column for column in columns]
         self._options = options
@@ -96,7 +102,7 @@ class Table:
     def add_column(self, *columns):
         """Adding one or more column object to table
 
-        :param columns: column objects
+        :param columns: Column objects
         :return: None
         """
         self._columns.extend(columns)
@@ -104,7 +110,7 @@ class Table:
     def delete_column(self, index=-1):
         """Deleting one column to table
 
-        :param index: number of index
+        :param index: Number of index
         :return: None
         """
         self._columns.pop(index)
@@ -112,7 +118,7 @@ class Table:
     def set_option(self, option):
         """Update options
 
-        :param option: dict options
+        :param option: Dict options
         :return: None
         """
         self._options.update(option)
@@ -120,7 +126,7 @@ class Table:
     def add_row(self, *rows):
         """Add one or more row into columns
 
-        :param rows: tuple of objects
+        :param rows: Tuple of objects
         :return: None
         """
         for row in rows:
@@ -133,7 +139,7 @@ class Table:
     def delete_row(self, row=-1):
         """Delete one row into columns
 
-        :param row: index of row
+        :param row: Index of row
         :return: None
         """
         for column in self.columns:
@@ -149,7 +155,7 @@ class Table:
     def add_index(self, index):
         """Adding index to index property
 
-        :param index: name or Index object
+        :param index: Name or Index object
         :return: None
         """
         self._index.append(index)
@@ -157,7 +163,7 @@ class Table:
     def delete_index(self, index=-1):
         """Deleting index to index property
 
-        :param index: name or Index object
+        :param index: Name or Index object
         :return: None
         """
         self._index.pop(index)
@@ -187,6 +193,15 @@ class Column:
     """Represents column as container of values"""
 
     def __init__(self, name, of_type=None, max_len=None, auto_increment=False, primary_key=False, default=None):
+        """Column object
+
+        :param name: Name of column
+        :param of_type: Type of column
+        :param max_len: Max length of column
+        :param auto_increment: Boolean value (default False)
+        :param primary_key: Set this column like a primary key
+        :param default: Default function for generate data
+        """
         self.name = name
         self._of_type = of_type if of_type is not None else object
         self.max_len = max_len
@@ -233,7 +248,7 @@ class Column:
         """Appending data to column.
         If auto_increment is True, the value is incremented automatically.
 
-        :param data: any type of data
+        :param data: Any type of data
         :return: None
         """
         if self.max_len and len(self._data) >= self.max_len:
@@ -257,7 +272,7 @@ class Column:
     def pop(self, index=-1):
         """Deleting value
 
-        :param index: number of index
+        :param index: Number of index
         :return: None
         """
         self._data.pop(index)

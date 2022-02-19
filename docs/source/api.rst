@@ -70,6 +70,10 @@ The ``Session`` object represents the *session* to a database. With this object 
 Session attributes
 ------------------
 
+.. py:attribute:: connection
+
+``Connection`` or other compliant object of server in current session
+
 .. py:attribute:: description
 
 This read-only attribute contains the *session* parameters (can be ``str``, ``tuple`` or ``dict``).

@@ -35,7 +35,7 @@ API_COMPLIANT_METHODS = ('close', 'connect', 'create_database', 'has_database', 
                          'delete', 'find', 'grant', 'revoke', 'new_user', 'set_user', 'delete_user', 'add_index',
                          'add_index', 'call', 'build', 'execute', 'link', 'detach', 'copy', 'compact', 'truncate',
                          'create_table', 'delete_table', 'alter_table')
-__all__ = ['api', 'global_session', 'Manager', 'cursor_response']
+__all__ = ['api', 'global_session', 'cursor_response', 'apply_vendor', 'response', 'Manager']
 
 
 # endregion
@@ -69,7 +69,7 @@ def api(**methods):
 def global_session(connection, *args, **kwargs):
     """Global session
 
-    :param connection: Connection object
+    :param connection: Connection object or other compliant object
     :param args: positional arguments of connect method on Connection object
     :param kwargs: keywords arguments of connect method on Connection object
     :return: None
@@ -80,24 +80,44 @@ def global_session(connection, *args, **kwargs):
     nosqlapi.SESSION = nosqlapi.CONNECTION.connect(*args, **kwargs)
 
 
-def cursor_response(response):
+def cursor_response(resp):
     """Transform nosql Response object to list of tuple,
     like a response of sql cursor object
 
-    :param response: Response object
+    :param resp: Response object or other compliant object
     :return: List[tuple]
     """
-    if all(isinstance(item, tuple) for item in response.data):
-        data = response.data
-    elif isinstance(response.data, dict):
-        data = list(response.data.items())
-    elif isinstance(response.data, tuple):
-        data = [response.data]
-    elif isinstance(response.data, list):
-        data = [tuple(response.data)]
+    if not hasattr(resp, 'data'):
+        raise ValueError(f'{resp} is not a valid Response object')
+    if all(isinstance(item, tuple) for item in resp.data):
+        data = resp.data
+    elif isinstance(resp.data, dict):
+        data = list(resp.data.items())
+    elif isinstance(resp.data, tuple):
+        data = [resp.data]
+    elif isinstance(resp.data, list):
+        data = [tuple(resp.data)]
     else:
-        data = [(response.data,)]
+        data = [(resp.data,)]
     return data
+
+
+def apply_vendor(name):
+    """Apply new name of api name
+
+    :param name: name of vendor
+    :return: None
+    """
+    nosqlapi.common.core.__dict__['API_NAME'] = name
+
+
+def response(data):
+    """Simple response with data only
+
+    :param data: Data
+    :return: Response
+    """
+    return nosqlapi.Response(data)
 
 
 # endregion

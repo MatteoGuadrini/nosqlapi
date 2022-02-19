@@ -50,6 +50,11 @@ class Collection:
     """Represents collection of documents"""
 
     def __init__(self, name, *docs):
+        """Collection object
+
+        :param name: Name of collection
+        :param docs: Documents like dict
+        """
         self.name = name
         self._docs = []
         if docs:
@@ -63,7 +68,7 @@ class Collection:
     def append(self, doc):
         """Append document to collection
 
-        :param doc: document
+        :param doc: Documents like dict
         :return: None
         """
         self._docs.append(doc)
@@ -71,7 +76,7 @@ class Collection:
     def pop(self, doc=-1):
         """Delete document from collection
 
-        :param doc: number of document to remove
+        :param doc: Number of document to remove
         :return: None
         """
         self._docs.pop(doc)
@@ -103,6 +108,12 @@ class Document:
     """Represents document"""
 
     def __init__(self, value=None, oid=None, **values):
+        """Document object
+
+        :param value: Body of document like dict
+        :param oid: String id (default uuid1 string)
+        :param values: Additional values of body
+        """
         self._body = {}
         if not oid:
             self._id = Uuid()
@@ -135,7 +146,7 @@ class Document:
     def to_json(self, indent=2):
         """Transform document into json
 
-        :param indent: number of indentation
+        :param indent: Number of indentation
         :return: str
         """
         return dumps(self.body, indent=indent)
@@ -167,6 +178,11 @@ class Index:
     """Represents document index"""
 
     def __init__(self, name, data):
+        """Index object
+
+        :param name: Name of index
+        :param data: Data of index like dict
+        """
         self.name = name
         self.data = {}
         self.data.update(data)

@@ -1,7 +1,12 @@
 nosqlapi package
 ================
 
-The package nosqlapi is a collection of interface and utility class and functions for build your own NOSQL python package.
+The package nosqlapi is a collection of interface, utility class and functions for build your own NOSQL python package.
+
+This library offers API-based interfaces described above, helping to build a more coherent and integrated python library
+for a NOSQL database, with names similar to another library using the same interfaces.
+
+The benefit of using ``nosqlapi`` is to standardize the names and syntax for the end user, so as to make as few changes as possible to your software.
 
 Installation
 ------------

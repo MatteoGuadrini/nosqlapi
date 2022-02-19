@@ -69,6 +69,10 @@ class Ascii(str):
     """Represents ASCII string"""
 
     def __init__(self, value=''):
+        """ASCII string
+
+        :param value: String printable characters
+        """
         for char in value:
             if char not in string.printable:
                 raise ValueError(f'The string "{value}" contains non-ASCII characters: {char}')
@@ -86,6 +90,10 @@ class Boolean:
     """Represents bool"""
 
     def __init__(self, value):
+        """Boolean object
+
+        :param value: True of False
+        """
         self.value = bool(value)
 
     def __repr__(self):
@@ -100,12 +108,16 @@ class Counter:
     """Represents integer counter"""
 
     def __init__(self, value=0):
+        """Counter object
+
+        :param value: Integer (default 0)
+        """
         self.value = int(value)
 
     def increment(self, value=1):
         """Increment number
 
-        :param value: number. Default 1.
+        :param value: Number (default 1)
         :return: None
         """
         self.value += value
@@ -113,7 +125,7 @@ class Counter:
     def decrement(self, value=1):
         """Decrement number
 
-        :param value: number. Default 1.
+        :param value: Number (default 1)
         :return: None
         """
         self.value -= value
@@ -179,6 +191,10 @@ class Inet:
     """Represents ip address version 4 or 6 like string"""
 
     def __init__(self, ip):
+        """Network ip address object
+
+        :param ip: String ip value
+        """
         self.ip = ip
 
     def __repr__(self):
@@ -190,6 +206,10 @@ class Int(int):
     """Represents integer"""
 
     def __init__(self, number):
+        """Integer object
+
+        :param number: Integer
+        """
         self.number = number
 
     def __repr__(self):
@@ -201,6 +221,10 @@ class SmallInt(Int):
     """Represents small integer: -32767 to 32767"""
 
     def __init__(self, number):
+        """Integer number from -32767 to 32767
+
+        :param number: Integer
+        """
         if number > 32767 or number < -32767:
             raise ValueError('the number must be between 32767 and -32767')
         super().__init__(number)
@@ -234,6 +258,7 @@ class Uuid:
     """Represents uuid version 1"""
 
     def __init__(self):
+        """Uuid1 object"""
         self.uuid = uuid1()
 
     def __repr__(self):

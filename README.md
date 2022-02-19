@@ -191,7 +191,7 @@ Show an information of a specific database
 
 `Session` objects should respond to the following methods.
 
-> ATTENTION: Session object it will come instantiated if the Connection object contains a `connection` value. `database` value is optional.
+> ATTENTION: Session object it will come instantiated if the `connection` value contains a compliant API Connection object. `database` value is optional.
 
 #### Session attributes
 

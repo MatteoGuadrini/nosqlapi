@@ -183,3 +183,16 @@ The ``cursor_response`` function allows you to convert a Response object into a 
 
     print(resp)                     # Response object
     print(cursor_response(resp))    # [('db1', 'db2')]
+
+The ``apply_vendor`` function allows you to rename representation object from *nosqlapi* to other name
+
+.. code-block:: pycon
+
+    >>> import nosqlapi
+    >>> class Response(nosqlapi.Response): ...
+    >>> resp = Response('some data')
+    >>> resp
+    <nosqlapi Response object>
+    >>> nosqlapi.apply_vendor('pymongo')
+    >>> resp
+    <pymongo Response object>
