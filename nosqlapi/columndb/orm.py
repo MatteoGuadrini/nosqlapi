@@ -38,13 +38,11 @@ __all__ = ['Keyspace', 'Table', 'Column', 'Index']
 
 # region Classes
 class Keyspace(Ks):
-
     """Represents keyspace like database"""
     pass
 
 
 class Table:
-
     """Represents table as container of columns"""
 
     def __init__(self, name, *columns, **options):
@@ -189,13 +187,19 @@ class Table:
 
 
 class Column:
-
     """Represents column as container of values"""
 
-    def __init__(self, name, of_type=None, max_len=None, auto_increment=False, primary_key=False, default=None):
+    def __init__(self, name,
+                 data=None,
+                 of_type=None,
+                 max_len=None,
+                 auto_increment=False,
+                 primary_key=False,
+                 default=None):
         """Column object
 
         :param name: Name of column
+        :param data. Data list or tuple
         :param of_type: Type of column
         :param max_len: Max length of column
         :param auto_increment: Boolean value (default False)
@@ -205,7 +209,7 @@ class Column:
         self.name = name
         self._of_type = of_type if of_type is not None else object
         self.max_len = max_len
-        self._data = []
+        self._data = [] if not data else list(data)
         self._default = default
         self._primary_key = primary_key
         self._auto_increment = auto_increment
