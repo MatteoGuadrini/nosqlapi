@@ -113,3 +113,5 @@ class Column:
 
 
 Index: Any
+
+def column(func: Callable) -> Column: ...
