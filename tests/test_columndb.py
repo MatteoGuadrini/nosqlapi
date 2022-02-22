@@ -453,6 +453,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionError(f'delete table {table} failure: {self.connection.recv(2048)}')
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
+
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
 
@@ -855,6 +856,19 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.item_count, 1)
         self.mysess.truncate(Table('table'))
         self.assertEqual(self.mysess.item_count, 1)
+
+    def test_column_decorator(self):
+        # Simple function
+        @nosqlapi.columndb.column
+        def ids(start=0, end=10):
+            return list(range(start, end))
+
+        col = ids()
+        self.assertIsInstance(col, Column)
+        col2 = ids(2, 20)
+        self.assertIsInstance(col2, Column)
+        print(col2)
+        self.assertEqual(col2[0], 2)
 
 
 if __name__ == '__main__':
