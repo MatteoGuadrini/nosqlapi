@@ -321,8 +321,8 @@ def column(func):
     :return: Column object
     """
     @wraps(func)
-    def inner(name=func.__name__, *args, **kwargs):
-        return Column(name=name, data=func(*args, **kwargs))
+    def inner(*args, **kwargs):
+        return Column(name=func.__name__, data=func(*args, **kwargs))
 
     return inner
 
