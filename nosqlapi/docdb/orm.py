@@ -23,6 +23,7 @@
 """ORM module for document NOSQL database."""
 
 # region Imports
+from functools import wraps
 from json import dumps
 
 from nosqlapi.common.orm import Uuid
@@ -201,5 +202,24 @@ class Index:
 
     def __repr__(self):
         return f"Index({', '.join(f'{key}={value}' for key, value in self.data.items())})"
+
+# endregion
+
+
+# region Functions
+def document(func):
+    """Decorator function to transform dictionary object to Document object
+
+    :param func: function to decorate
+    :return: Document object
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if not isinstance(data, dict):
+            raise ValueError(f"function {func.__name__} doesn't return a dict")
+        return Document(value=data)
+
+    return inner
 
 # endregion

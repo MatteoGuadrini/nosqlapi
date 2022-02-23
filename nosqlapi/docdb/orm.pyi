@@ -20,7 +20,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union, Any, Iterator
+from typing import Union, Any, Iterator, Callable
 
 from nosqlapi.common.orm import Uuid
 from nosqlapi.kvdb.orm import Keyspace
@@ -95,3 +95,6 @@ class Index:
     def __str__(self) -> str: ...
 
     def __repr__(self) -> str: ...
+
+
+def document(func: Callable) -> Document: ...
