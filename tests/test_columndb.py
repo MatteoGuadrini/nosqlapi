@@ -867,7 +867,6 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertIsInstance(col, Column)
         col2 = ids(2, 20)
         self.assertIsInstance(col2, Column)
-        print(col2)
         self.assertEqual(col2[0], 2)
 
 

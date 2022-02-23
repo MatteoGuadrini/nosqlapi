@@ -322,7 +322,10 @@ def column(func):
     """
     @wraps(func)
     def inner(*args, **kwargs):
-        return Column(name=func.__name__, data=func(*args, **kwargs))
+        data = func(*args, **kwargs)
+        if not isinstance(data, (list, tuple)):
+            raise ValueError(f"function {func.__name__} doesn't return a list or a tuple")
+        return Column(name=func.__name__, data=data)
 
     return inner
 
