@@ -33,7 +33,7 @@ from nosqlapi.kvdb.orm import Keyspace
 # endregion
 
 # region global variable
-__all__ = ['Database', 'Collection', 'Document', 'Index']
+__all__ = ['Database', 'Collection', 'Document', 'Index', 'document']
 
 
 # endregion
