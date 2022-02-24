@@ -704,6 +704,20 @@ class DocSessionTest(unittest.TestCase):
         ret = self.mysess.compact(Collection('test'))
         self.assertEqual(ret.data, {'compaction': True})
 
+    def test_document_decorator(self):
+        # Simple function
+        @nosqlapi.docdb.document
+        def monitor(**values):
+            data = {}
+            data.update(values)
+            return data
+
+        col = monitor(cpu=72, ram=16)
+        self.assertIsInstance(col, Document)
+        col2 = monitor(cpu=72, ram=16)
+        self.assertIsInstance(col2, Document)
+        self.assertEqual(col2['cpu'], 72)
+
 
 if __name__ == '__main__':
     unittest.main()
