@@ -871,6 +871,18 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIn('index1', self.mysess.indexes)
         self.assertIn('index2', self.mysess.indexes)
 
+    def test_prop_decorator(self):
+        # Simple function
+        @nosqlapi.graphdb.prop
+        def person_node(name, age, title):
+            return {'name': name.title(), 'age': int(age), 'title': title.title()}
+
+        pro = person_node('Matteo', 36, 'DevOps')
+        self.assertIsInstance(pro, Property)
+        pro2 = person_node('Arthur', 42, 'hitchhikers')
+        self.assertIsInstance(pro2, Property)
+        self.assertEqual(pro2['title'], 'Hitchhikers')
+
 
 if __name__ == '__main__':
     unittest.main()
