@@ -24,6 +24,7 @@
 
 # region Imports
 from collections import namedtuple
+from functools import wraps
 
 from nosqlapi.kvdb.orm import Keyspace
 from ..common.orm import Text
@@ -161,5 +162,24 @@ class Relationship(Node):
 
 # region Other objects
 Index = namedtuple('Index', ['name', 'node', 'properties', 'options'], defaults=(None,))
+
+# endregion
+
+
+# region Functions
+def prop(func):
+    """Decorator function to transform dictionary object to Property object
+
+    :param func: function to decorate
+    :return: Property object
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if not isinstance(data, dict):
+            raise ValueError(f"function {func.__name__} doesn't return a dict")
+        return Property(**data)
+
+    return inner
 
 # endregion

@@ -21,7 +21,7 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from typing import Any, Union
+from typing import Any, Union, Callable
 
 from nosqlapi.kvdb.orm import Keyspace
 from ..common.orm import Text
@@ -79,3 +79,5 @@ class Relationship(Node):
 
 
 Index: Any
+
+def prop(func: Callable) -> Property: ...
