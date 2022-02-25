@@ -32,7 +32,7 @@ from ..common.orm import Text
 # endregion
 
 # region global variable
-__all__ = ['Label', 'Property', 'RelationshipType', 'Database', 'Node', 'Relationship', 'Index']
+__all__ = ['Label', 'Property', 'RelationshipType', 'Database', 'Node', 'Relationship', 'Index', 'prop']
 
 
 # endregion
