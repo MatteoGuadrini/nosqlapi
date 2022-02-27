@@ -77,6 +77,12 @@ These objects represent the respective *document* in databases.
     # Add documents to database
     db.append(doc1)
     db.append(doc2)
+    # Create Column object from document decorator
+    @nosqlapi.docdb.document
+    def user(name, age, salary):
+        return {'name': name, 'age': age, 'salary': salary}
 
     # Create database with docs
     mydocdb.conn.create_database(db)
+    # Add more doc
+    mydocdb.sess.insert(user('Matteo Guadrini', 36, 25000))
