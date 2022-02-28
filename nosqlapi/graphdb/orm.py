@@ -182,4 +182,20 @@ def prop(func):
 
     return inner
 
+
+def node(func):
+    """Decorator function to transform dictionary object to Node object
+
+    :param func: function to decorate
+    :return: Node object
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if not isinstance(data, dict):
+            raise ValueError(f"function {func.__name__} doesn't return a dict")
+        return Node(labels=[func.__name__], properties=data)
+
+    return inner
+
 # endregion
