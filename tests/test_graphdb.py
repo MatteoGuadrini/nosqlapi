@@ -883,6 +883,18 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIsInstance(pro2, Property)
         self.assertEqual(pro2['title'], 'Hitchhikers')
 
+    def test_node_decorator(self):
+        # Simple function
+        @nosqlapi.graphdb.node
+        def person(name, age, title):
+            return {'name': name.title(), 'age': int(age), 'title': title.title()}
+
+        node1 = person('Matteo', 36, 'DevOps')
+        self.assertIsInstance(node1, Node)
+        node2 = person('Arthur', 42, 'hitchhikers')
+        self.assertIsInstance(node2, Node)
+        self.assertEqual(node2.labels[0], 'person')
+
 
 if __name__ == '__main__':
     unittest.main()
