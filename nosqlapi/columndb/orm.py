@@ -39,11 +39,14 @@ __all__ = ['Keyspace', 'Table', 'Column', 'Index', 'column']
 
 # region Classes
 class Keyspace(Ks):
+
     """Represents keyspace like database"""
+
     pass
 
 
 class Table:
+
     """Represents table as container of columns"""
 
     def __init__(self, name, *columns, **options):
@@ -188,6 +191,7 @@ class Table:
 
 
 class Column:
+
     """Represents column as container of values"""
 
     def __init__(self, name,
