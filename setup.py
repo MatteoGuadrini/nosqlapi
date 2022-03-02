@@ -1,4 +1,5 @@
 from setuptools import setup
+
 import __info__
 
 with open("README.md") as fh:
@@ -24,9 +25,16 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
-            "Programming Language :: Python :: 3",
-            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-            "Operating System :: OS Independent",
-        ],
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: OS Independent",
+        "Development Status :: 5 - Production/Stable",
+        "Topic :: Database",
+        "Topic :: Database :: Database Engines/Servers",
+        "Topic :: Database :: Front-Ends",
+        "Topic :: Software Development :: User Interfaces",
+        "Typing :: Stubs Only"
+    ],
     python_requires='>=3.6'
 )
