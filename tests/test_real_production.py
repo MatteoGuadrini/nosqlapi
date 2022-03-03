@@ -34,4 +34,4 @@ def test_connect_cassandra_database():
 
 
 if __name__ == '__main__':
-    pytest.main(['-v'])
+    pytest.main()
