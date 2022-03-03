@@ -271,7 +271,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
     def close(self):
-        self.connection.close()
+        self._connection = None
         if not self.connection:
             SessionClosingError('session was not closed')
         self._database = None
