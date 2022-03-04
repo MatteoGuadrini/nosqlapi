@@ -5,7 +5,15 @@ import nosqlapi
 
 
 # ------------------Cassandra------------------
-def test_connect_cassandra_database():
+def connect(*args, **kwargs):
+    """Return connection and session"""
+    from .test_columndb import MyDBConnection as CassandraCon
+    connection = CassandraCon(*args, **kwargs)
+    session = connection.connect()
+    return connection, session
+
+
+def test_cassandra_connect_database():
     """Test connection on production Cassandra database"""
     from .test_columndb import (MyDBConnection as CassandraCon,
                                 MyDBSession as CassandraSess)
