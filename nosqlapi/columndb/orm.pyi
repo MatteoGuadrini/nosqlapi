@@ -79,7 +79,7 @@ class Column:
     default: Callable
 
     def __init__(self, name: str,
-                 data: Union[list, tuple],
+                 data: Union[list, tuple] = None,
                  of_type: Any = None,
                  max_len: int = None,
                  auto_increment: bool = False,
