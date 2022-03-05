@@ -5,7 +5,7 @@ import nosqlapi
 
 
 # ------------------Cassandra------------------
-def connect(*args, **kwargs):
+def cassandra_connect(*args, **kwargs):
     """Return connection and session"""
     from .test_columndb import MyDBConnection as CassandraCon
     connection = CassandraCon(*args, **kwargs)
@@ -44,13 +44,13 @@ def test_cassandra_connect_database():
 
 def test_cassandra_create_database_and_table():
     """Test create database and table"""
-    connection, session = connect('mycolumndb.local', 'admin', 'password')
+    connection, session = cassandra_connect('mycolumndb.local', 'admin', 'password')
     # Make a new database
     connection.create_database("db1")
     assert connection.has_database("db1")
     assert "db1" in connection.databases()
     # New session with new database db1
-    _, session_db1 = connect('mycolumndb.local', 'admin', 'password', 'db1')
+    _, session_db1 = cassandra_connect('mycolumndb.local', 'admin', 'password', 'db1')
     # Create new table into database db1: without ORM objects
     session_db1.create_table('table1', columns=[('id', int), ('name', str), ('age', int)], primary_key='id')
     assert session_db1.item_count == 1
@@ -67,6 +67,19 @@ def test_cassandra_create_database_and_table():
                              primary_key='id',
                              not_exists=False)
     assert session_db1.item_count == 1
+
+
+def test_cassandra_insert_data():
+    """Test insert data into table"""
+    _, session = cassandra_connect('mycolumndb.local', 'admin', 'password', 'db1')
+    # Insert data into table table1 on database db1: without ORM objects
+    session.insert('table1', columns=('name', 'age'), values=('Matteo', '35'))
+    assert session.item_count == 1
+    # Insert data into table table1 on database db1: with ORM objects
+    name = nosqlapi.columndb.Column('name', of_type=nosqlapi.Varchar)
+    age = nosqlapi.columndb.Column('age', of_type=nosqlapi.Varint)
+    session.insert('table1', columns=(name, age), values=(nosqlapi.Varchar('Matteo'), nosqlapi.Varint(35)))
+    assert session.item_count == 1
 
 
 if __name__ == '__main__':
