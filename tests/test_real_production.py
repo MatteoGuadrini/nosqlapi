@@ -80,6 +80,16 @@ def test_cassandra_insert_data():
     age = nosqlapi.columndb.Column('age', of_type=nosqlapi.Varint)
     session.insert('table1', columns=(name, age), values=(nosqlapi.Varchar('Matteo'), nosqlapi.Varint(35)))
     assert session.item_count == 1
+    # Insert many data into table table1 on database db1: without ORM objects
+    values = [('Matteo', '35'), ('Arthur', '42')]
+    session.insert('table1', columns=('name', 'age'), values=values)
+    assert session.item_count == 1
+    # Insert many data into table table1 on database db1: with ORM objects
+    values = [(nosqlapi.Varchar('Matteo'), nosqlapi.Varint(35)), (nosqlapi.Varchar('Arthur'), nosqlapi.Varint(42))]
+    name = nosqlapi.columndb.Column('name', of_type=nosqlapi.Varchar)
+    age = nosqlapi.columndb.Column('age', of_type=nosqlapi.Varint)
+    session.insert('table1', columns=(name, age), values=values)
+    assert session.item_count == 1
 
 
 if __name__ == '__main__':
