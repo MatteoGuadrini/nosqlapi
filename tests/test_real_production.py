@@ -13,7 +13,6 @@ from .test_graphdb import MyDBConnection as GraphCon, MyDBSession as GraphSes
 
 # ------------------Common Task------------------
 def connect(of_type, *args, **kwargs):
-
     """Return connection and session"""
     db_type = {
         'column': ColumnCon,
@@ -49,6 +48,14 @@ def test_connect_database():
     # Close also Connection
     connection.close()
     assert connection.connected is False
+    # Now, connect other database
+    doccon, docses = connect('doc', 'prod-db.test.com', 'admin', 'password')
+    kvcon, kvses = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    graphcon, graphses = connect('graph', 'prod-db.test.com', 'admin', 'password')
+    for con in (doccon, kvcon, graphcon):
+        assert isinstance(con, nosqlapi.Connection)
+    for con in (docses, kvses, graphses):
+        assert isinstance(con, nosqlapi.Session)
 
 
 def test_create_database_and_table():
