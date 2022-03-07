@@ -1,33 +1,43 @@
-"""Real production test with pytest."""
+"""Real production test with pytest.
+
+This test suites is based on simple implementations of library for all four type of databases.
+"""
 
 import pytest
 import nosqlapi
+from .test_columndb import MyDBConnection as ColumnCon, MyDBSession as ColumnSes
+from .test_docdb import MyDBConnection as DocCon, MyDBSession as DocSes
+from .test_kvdb import MyDBConnection as KVCon, MyDBSession as KVSes
+from .test_graphdb import MyDBConnection as GraphCon, MyDBSession as GraphSes
 
 
-# ------------------Cassandra------------------
-def cassandra_connect(*args, **kwargs):
+# ------------------Common Task------------------
+def connect(of_type, *args, **kwargs):
+
     """Return connection and session"""
-    from .test_columndb import MyDBConnection as CassandraCon
-    connection = CassandraCon(*args, **kwargs)
+    db_type = {
+        'column': ColumnCon,
+        'doc': DocCon,
+        'kv': KVCon,
+        'graph': GraphCon
+    }
+    connection = db_type[of_type](*args, **kwargs)
     session = connection.connect()
     return connection, session
 
 
-def test_cassandra_connect_database():
+def test_connect_database():
     """Test connection on production Cassandra database"""
-    from .test_columndb import (MyDBConnection as CassandraCon,
-                                MyDBSession as CassandraSess)
     # Create Connection object
-    connection = CassandraCon('prod-db.test.com', 'admin', 'password', 'db_users')
+    connection, _ = connect('column', 'prod-db.test.com', 'admin', 'password', 'db_users')
     assert isinstance(connection, nosqlapi.Connection)
     assert isinstance(connection, nosqlapi.ColumnConnection)
-    assert isinstance(connection, CassandraCon)
-    assert connection.connected is False
+    assert isinstance(connection, ColumnCon)
     # Connect to database via Connection object
     session = connection.connect()
     assert isinstance(session, nosqlapi.Session)
     assert isinstance(session, nosqlapi.ColumnSession)
-    assert isinstance(session, CassandraSess)
+    assert isinstance(session, ColumnSes)
     assert connection.connected is True
     assert session.database == 'db_users'
     assert session.connection is not None
@@ -39,18 +49,17 @@ def test_cassandra_connect_database():
     # Close also Connection
     connection.close()
     assert connection.connected is False
-    return connection, session
 
 
-def test_cassandra_create_database_and_table():
+def test_create_database_and_table():
     """Test create database and table"""
-    connection, session = cassandra_connect('mycolumndb.local', 'admin', 'password')
+    connection, session = connect('column', 'mycolumndb.local', 'admin', 'password')
     # Make a new database
     connection.create_database("db1")
     assert connection.has_database("db1")
     assert "db1" in connection.databases()
     # New session with new database db1
-    _, session_db1 = cassandra_connect('mycolumndb.local', 'admin', 'password', 'db1')
+    _, session_db1 = connect('column', 'mycolumndb.local', 'admin', 'password', 'db1')
     # Create new table into database db1: without ORM objects
     session_db1.create_table('table1', columns=[('id', int), ('name', str), ('age', int)], primary_key='id')
     assert session_db1.item_count == 1
@@ -70,9 +79,9 @@ def test_cassandra_create_database_and_table():
     assert session_db1.item_count == 1
 
 
-def test_cassandra_insert_data():
+def test_crud():
     """Test insert data into table"""
-    _, session = cassandra_connect('mycolumndb.local', 'admin', 'password', 'db1')
+    _, session = connect('column', 'mycolumndb.local', 'admin', 'password', 'db1')
     # Insert data into table table1 on database db1: without ORM objects
     session.insert('table1', columns=('name', 'age'), values=('Matteo', '35'))
     assert session.item_count == 1
