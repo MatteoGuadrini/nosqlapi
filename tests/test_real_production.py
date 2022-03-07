@@ -57,6 +57,7 @@ def test_cassandra_create_database_and_table():
     # Create new table into database db1: with ORM objects
     ids = nosqlapi.columndb.Column('id', of_type=nosqlapi.Varint, primary_key=True)
     assert isinstance(ids, nosqlapi.columndb.Column)
+    assert issubclass(ids.of_type, (int, nosqlapi.Int, nosqlapi.Varint))
     assert ids.primary_key
     name = nosqlapi.columndb.Column('name', of_type=nosqlapi.Varchar)
     age = nosqlapi.columndb.Column('age', of_type=nosqlapi.Varint)
