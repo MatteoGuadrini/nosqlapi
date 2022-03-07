@@ -6,9 +6,9 @@ This test suites is based on simple implementations of library for all four type
 import pytest
 import nosqlapi
 from .test_columndb import MyDBConnection as ColumnCon, MyDBSession as ColumnSes
-from .test_docdb import MyDBConnection as DocCon, MyDBSession as DocSes
-from .test_kvdb import MyDBConnection as KVCon, MyDBSession as KVSes
-from .test_graphdb import MyDBConnection as GraphCon, MyDBSession as GraphSes
+from .test_docdb import MyDBConnection as DocCon
+from .test_kvdb import MyDBConnection as KVCon
+from .test_graphdb import MyDBConnection as GraphCon
 
 
 # ------------------Common Task------------------
@@ -84,10 +84,23 @@ def test_create_database_and_table():
                              primary_key='id',
                              not_exists=False)
     assert session_db1.item_count == 1
+    # New database for other databases
+    doccon, _ = connect('doc', 'prod-db.test.com', 'admin', 'password')
+    kvcon, _ = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    graphcon, _ = connect('graph', 'prod-db.test.com', 'admin', 'password')
+    doccon.create_database("db1")
+    assert doccon.has_database("db1")
+    assert "db1" in doccon.databases()
+    kvcon.create_database("db1")
+    assert kvcon.has_database("db1")
+    assert "db1" in kvcon.databases()
+    graphcon.create_database("db1")
+    assert graphcon.has_database("db1")
+    assert "db1" in graphcon.databases()
 
 
 def test_crud():
-    """Test insert data into table"""
+    """Test crud"""
     _, session = connect('column', 'mycolumndb.local', 'admin', 'password', 'db1')
     # Insert data into table table1 on database db1: without ORM objects
     session.insert('table1', columns=('name', 'age'), values=('Matteo', '35'))
