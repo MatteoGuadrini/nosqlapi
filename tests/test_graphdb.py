@@ -250,6 +250,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -274,6 +275,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -304,6 +306,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(json.loads(ret.get('body')))
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -332,6 +335,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -360,6 +364,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionDeletingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(json.loads(ret.get('body')))
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -382,6 +387,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
             ret = self.req.post(self.connection, selector)
         if ret.get('status') != 200:
             raise SessionFindingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(json.loads(ret.get('body')))
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
