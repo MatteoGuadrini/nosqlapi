@@ -227,6 +227,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         ret = self.req.post(f"{self.connection}/{path}", doc)
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -242,6 +243,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         ret = self.req.post(f"{self.connection}/{path}", f"{[doc for doc in docs]}")
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(docs)
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -263,6 +265,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         ret = self.req.post(f"{self.connection}/{path}", doc)
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -279,6 +282,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
         ret = self.req.post(f"{self.connection}/{path}", json.dumps(doc_with_rev))
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(docs)
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -296,6 +300,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
             ret = self.req.delete(f"{self.connection}/{path}?revision={rev}")
         if ret.get('status') != 200:
             raise SessionDeletingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -316,6 +321,7 @@ class MyDBSession(nosqlapi.docdb.DocSession):
             ret = self.req.post(f"{self.connection}/find", selector)
         if ret.get('status') != 200:
             raise SessionFindingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(ret.get("body"))
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
