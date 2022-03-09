@@ -4,6 +4,7 @@ This test suites is based on simple implementations of library for all four type
 """
 
 import pytest
+
 import nosqlapi
 
 
@@ -101,13 +102,13 @@ def test_crud():
     """Test Create, Read, Update, Delete"""
     _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
     # Document type: insert data into database db1: without ORM objects
-    ret = docsession.insert('db/doc1', '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}')
+    ret = docsession.insert('db1/doc1', '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}')
     assert docsession.item_count == 1
     assert isinstance(ret, (nosqlapi.Response, nosqlapi.DocResponse))
     assert ret.data == {'_id': '5099803df3f4948bd2f98391', 'revision': 1}
     # Document type: insert data into database db1: with ORM objects
     doc1 = nosqlapi.docdb.Document({"name": "Matteo", "age": 35})
-    docsession.insert('db/doc1', doc1)
+    docsession.insert('db1/doc1', doc1)
     assert docsession.item_count == 1
     assert ret.data == {'_id': '5099803df3f4948bd2f98391', 'revision': 1}
     # Graph type: get data into from db1
@@ -124,6 +125,29 @@ def test_crud():
     _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password')
     colsession.delete(table='table1', conditions=['name=Matteo', 'id=1'])
     assert colsession.item_count == 1
+
+
+def test_many_data_operation():
+    """Test many inserts and many updates"""
+    # Graph type: get data into from db1
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    ret = graphsession.insert_many(['matteo:Person', 'arthur:Person'],
+                                   [{'name': 'Matteo', 'age': 35}, {'name': 'Arthur', 'age': 42}])
+    assert graphsession.item_count == 2
+    assert ret.data == [{'matteo.name': 'Matteo', 'matteo.age': 35}, {'arthur.name': 'Arthur', 'arthur.age': 42}]
+    assert isinstance(ret, (nosqlapi.Response, nosqlapi.GraphResponse))
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    # Document type: update many data into database db1
+    ret = docsession.update_many('db1',
+                                 'name="Matteo"',
+                                 '{"_id": "5099803df3f4948bd2f98391", "rev": 1, "name": "Matteo", "age": 35}',
+                                 '{"_id": "5099803df3f4948bd2f98392", "rev": 1, "name": "Matteo", "age": 36}',
+                                 '{"_id": "5099803df3f4948bd2f98393", "rev": 1, "name": "Matteo", "age": 37}')
+    assert docsession.item_count == 3
+    assert isinstance(ret, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert ret.data == {'insertedIds': ['5099803df3f4948bd2f98391',
+                                        '5099803df3f4948bd2f98392',
+                                        '5099803df3f4948bd2f98393']}
 
 
 if __name__ == '__main__':
