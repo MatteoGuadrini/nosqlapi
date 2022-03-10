@@ -122,7 +122,7 @@ def test_crud():
     kvsession.update('key', 'new-value')
     assert kvsession.item_count == 1
     # Column type: delete record with conditions
-    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password')
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
     colsession.delete(table='table1', conditions=['name=Matteo', 'id=1'])
     assert colsession.item_count == 1
 
@@ -148,6 +148,27 @@ def test_many_data_operation():
     assert ret.data == {'insertedIds': ['5099803df3f4948bd2f98391',
                                         '5099803df3f4948bd2f98392',
                                         '5099803df3f4948bd2f98393']}
+
+
+# ------------------Permissions------------------
+def test_permission():
+    """Test permission on database session"""
+    # Column type: get permission after session
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    assert 'admin' in colsession.acl
+    assert colsession.acl['admin'] == 'admins'
+    # Document type: get permission after session
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    assert 'admin' == docsession.acl['user']
+    assert docsession.acl['roles'] == ['administrator', 'all']
+    # Graph type: get permission after session
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    assert 'admin' in graphsession.acl[0]
+    assert graphsession.acl[0] == ['admin', 'GRANTED', 'access', 'database']
+    # KeyValue type: update a record
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    assert 'admin' in kvsession.acl
+    assert kvsession.acl['admin'] == 'admins'
 
 
 if __name__ == '__main__':
