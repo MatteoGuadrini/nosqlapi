@@ -165,10 +165,50 @@ def test_permission():
     _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
     assert 'admin' in graphsession.acl[0]
     assert graphsession.acl[0] == ['admin', 'GRANTED', 'access', 'database']
-    # KeyValue type: update a record
+    # KeyValue type: get permission after session
     _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
     assert 'admin' in kvsession.acl
     assert kvsession.acl['admin'] == 'admins'
+
+
+def test_assign_permission():
+    """Test assign permission to database"""
+    # KeyValue type: create new user and grant database
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    new = kvsession.new_user('test', 'mypassword')
+    grant = kvsession.grant('db1', user='test', role='read_users')
+    assert isinstance(new, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert new['user'] == 'test'
+    assert new['status'] == 'CREATION_OK'
+    assert isinstance(grant, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert grant['role'] == 'read_users'
+    assert grant['status'] == 'GRANT_OK'
+    # Graph type: create new user and grant database
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    new = graphsession.new_user('test', 'mypassword')
+    grant = graphsession.grant('db1', user='test', role='read_users')
+    assert isinstance(new, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert new.data == '0 rows, System updates: 1'
+    assert isinstance(grant, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert grant.data == '0 rows, System updates: 1'
+    # Document type: create new user and grant database
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    new = docsession.new_user('test', 'mypassword')
+    grant = docsession.grant('db1', user='test', role='read_users')
+    assert isinstance(new, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert new['user'] == 'test'
+    assert isinstance(grant, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert new.code == 200
+    # Column type: create new user and grant database
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    new = colsession.new_user('test', 'mypassword')
+    grant = colsession.grant('db1', user='test', role='read_users')
+    assert isinstance(new, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert new['role'] == 'test'
+    assert new['status'] == 'CREATION_OK'
+    assert isinstance(grant, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert grant['role'] == 'read_users'
+    assert grant['status'] == 'GRANT_OK'
 
 
 if __name__ == '__main__':
