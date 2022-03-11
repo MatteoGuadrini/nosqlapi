@@ -392,10 +392,10 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def grant(self, user, role):
+    def grant(self, database, user, role):
         if not self:
             raise ConnectError('connect to a server before some request')
-        cypher = f"GRANT ROLE {role} TO {user}"
+        cypher = f"GRANT ACCESS ON DATABASE {database} TO {role};GRANT ROLE {role} TO {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
@@ -406,10 +406,10 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def revoke(self, user, role):
+    def revoke(self, database, user, role):
         if not self:
             raise ConnectError('connect to a server before some request')
-        cypher = f"REVOKE ROLE {role} TO {user}"
+        cypher = f"REVOKE ACCESS ON DATABASE {database} TO {role};REVOKE ROLE {role} TO {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
@@ -777,12 +777,12 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIn(['admin', 'GRANTED', 'access', 'database'], self.mysess.acl)
 
     def test_grant_user_connection(self):
-        resp = self.mysess.grant(user='test', role='read_users')
+        resp = self.mysess.grant('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
     def test_revoke_user_connection(self):
-        resp = self.mysess.revoke(user='test', role='read_users')
+        resp = self.mysess.revoke('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
