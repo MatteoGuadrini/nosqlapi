@@ -754,17 +754,17 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 3)
 
-    def test_get_aclconnection(self):
+    def test_get_acl_connection(self):
         self.assertIn('root', self.mysess.acl)
         self.assertIn('admin', self.mysess.acl)
         self.assertIn('test', self.mysess.acl)
 
-    def test_grant_userconnection(self):
+    def test_grant_user_connection(self):
         resp = self.mysess.grant('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'GRANT_OK')
 
-    def test_revoke_userconnection(self):
+    def test_revoke_user_connection(self):
         resp = self.mysess.revoke('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'REVOKE_OK')
