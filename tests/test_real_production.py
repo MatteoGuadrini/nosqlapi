@@ -198,7 +198,7 @@ def test_assign_permission():
     assert isinstance(new, (nosqlapi.Response, nosqlapi.DocResponse))
     assert new['user'] == 'test'
     assert isinstance(grant, (nosqlapi.Response, nosqlapi.DocResponse))
-    assert new.code == 200
+    assert grant.code == 200
     # Column type: create new user and grant database
     _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
     new = colsession.new_user('test', 'mypassword')
@@ -209,6 +209,30 @@ def test_assign_permission():
     assert isinstance(grant, (nosqlapi.Response, nosqlapi.ColumnResponse))
     assert grant['role'] == 'read_users'
     assert grant['status'] == 'GRANT_OK'
+
+
+def test_revoke_permission():
+    """Test revoke permission to database"""
+    # KeyValue type: create new user and grant database
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    revoke = kvsession.revoke('db1', user='test', role='read_users')
+    assert isinstance(revoke, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert revoke['status'] == 'REVOKE_OK'
+    # Graph type: create new user and grant database
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    revoke = graphsession.revoke('db1', user='test', role='read_users')
+    assert isinstance(revoke, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert revoke.data == '0 rows, System updates: 1'
+    # Document type: create new user and grant database
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    revoke = docsession.revoke('db1', role='read_users')
+    assert isinstance(revoke, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert revoke.code == 200
+    # Column type: create new user and grant database
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    revoke = colsession.revoke('db1', user='test', role='read_users')
+    assert isinstance(revoke, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert revoke['status'] == 'REVOKE_OK'
 
 
 if __name__ == '__main__':
