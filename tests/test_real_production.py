@@ -213,26 +213,59 @@ def test_assign_permission():
 
 def test_revoke_permission():
     """Test revoke permission to database"""
-    # KeyValue type: create new user and grant database
+    # KeyValue type: revoke access on database
     _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
     revoke = kvsession.revoke('db1', user='test', role='read_users')
     assert isinstance(revoke, (nosqlapi.Response, nosqlapi.KVResponse))
     assert revoke['status'] == 'REVOKE_OK'
-    # Graph type: create new user and grant database
+    # Graph type: revoke access on database
     _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
     revoke = graphsession.revoke('db1', user='test', role='read_users')
     assert isinstance(revoke, (nosqlapi.Response, nosqlapi.GraphResponse))
     assert revoke.data == '0 rows, System updates: 1'
-    # Document type: create new user and grant database
+    # Document type: revoke access on database
     _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
     revoke = docsession.revoke('db1', role='read_users')
     assert isinstance(revoke, (nosqlapi.Response, nosqlapi.DocResponse))
     assert revoke.code == 200
-    # Column type: create new user and grant database
+    # Column type: revoke access on database
     _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
     revoke = colsession.revoke('db1', user='test', role='read_users')
     assert isinstance(revoke, (nosqlapi.Response, nosqlapi.ColumnResponse))
     assert revoke['status'] == 'REVOKE_OK'
+
+
+# ------------------Read Operation------------------
+def test_read_databases():
+    """Test read and find a database"""
+    # KeyValue type: find a database
+    kvconnection, _ = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    databases = kvconnection.databases()
+    assert databases.data == ['test_db', 'db1', 'db2']
+    assert kvconnection.has_database('db1') is True
+    db = kvconnection.show_database('test_db')
+    assert db.data == 'name=test_db, size=0.4GB'
+    # Column type: find a database
+    colconnection, _ = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    databases = colconnection.databases()
+    assert databases.data == ['test_db', 'db1', 'db2']
+    assert colconnection.has_database('db1') is True
+    db = colconnection.show_database('test_db')
+    assert db.data == ['table1', 'table2', 'table3']
+    # Document type: find a database
+    docconnection, _ = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    databases = docconnection.databases()
+    assert databases.data == ['test_db', 'db1', 'db2']
+    assert docconnection.has_database('db1') is True
+    db = docconnection.show_database('test_db')
+    assert db.data == {'name': 'test_db', 'size': '0.4GB'}
+    # Graph type: find a database
+    graphconnection, _ = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    databases = graphconnection.databases()
+    assert databases.data == ['test_db', 'db1', 'db2']
+    assert graphconnection.has_database('db1') is True
+    db = graphconnection.show_database('test_db')
+    assert db.data == {'name': 'test_db', 'size': '0.4GB'}
 
 
 if __name__ == '__main__':
