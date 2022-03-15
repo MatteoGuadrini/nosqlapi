@@ -210,7 +210,7 @@ class Selector(ABC):
         return self._fields
 
     @fields.setter
-    def fields(self, value: list):
+    def fields(self, value):
         """Key that returned from find operations"""
         self._fields = value
 

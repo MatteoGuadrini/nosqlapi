@@ -108,10 +108,10 @@ class Connection:
 
 
 class Selector:
-    selector: Union[list, str]
-    fields: Union[list, str]
+    selector: Union[tuple, list, str]
+    fields: Union[tuple, list, str]
     partition: str
-    condition: Union[list, str]
+    condition: Union[tuple, list, str]
     order: int
     limit: int
 
