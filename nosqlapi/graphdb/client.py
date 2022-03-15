@@ -70,7 +70,8 @@ class GraphSelector(Selector, ABC):
 
     """Graph NOSQL database Selector class"""
 
-    pass
+    def __init__(self, *args, **kwargs):
+        Selector.__init__(self, *args, **kwargs)
 
 
 class GraphResponse(Response, ABC):

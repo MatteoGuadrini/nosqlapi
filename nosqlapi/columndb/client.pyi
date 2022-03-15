@@ -32,8 +32,8 @@ class ColumnConnection(KVConnection): ...
 class ColumnSelector(Selector):
     filtering: Any
 
-    def __init__(self) -> None:
-        self.filtering: bool = False
+    def __init__(self, *args, **kwargs):
+        self._filtering: bool = False
 
     def all(self) -> Union[str, list, tuple]: ...
 

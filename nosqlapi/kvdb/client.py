@@ -48,6 +48,9 @@ class KVSelector(Selector, ABC):
 
     """Key-value NOSQL database Selector class"""
 
+    def __init__(self, *args, **kwargs):
+        Selector.__init__(self, *args, **kwargs)
+
     @abstractmethod
     def first_greater_or_equal(self, key):
         """First greater or equal key by selector key

@@ -67,7 +67,8 @@ class DocSelector(Selector, ABC):
 
     """Document NOSQL database Selector class"""
 
-    pass
+    def __init__(self, *args, **kwargs):
+        Selector.__init__(self, *args, **kwargs)
 
 
 class DocResponse(Response, ABC):

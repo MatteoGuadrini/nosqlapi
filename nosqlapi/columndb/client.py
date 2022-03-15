@@ -49,9 +49,9 @@ class ColumnSelector(Selector, ABC):
 
     """Column NOSQL database Selector class"""
 
-    def __init__(self):
-        super().__init__()
-        self.filtering = False
+    def __init__(self, *args, **kwargs):
+        Selector.__init__(self, *args, **kwargs)
+        self._filtering = False
 
     @abstractmethod
     def all(self):
@@ -79,7 +79,7 @@ class ColumnSelector(Selector, ABC):
         return self._filtering
 
     @filtering.setter
-    def filtering(self, value: bool):
+    def filtering(self, value):
         """Set filtering data
 
         :param value: Boolean value
