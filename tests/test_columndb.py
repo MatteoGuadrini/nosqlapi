@@ -276,11 +276,14 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             SessionClosingError('session was not closed')
         self._database = None
 
-    def find(self, selector: nosqlapi.columndb.ColumnSelector):
+    def find(self, selector: Union[str, nosqlapi.columndb.ColumnSelector]):
         if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(selector, nosqlapi.columndb.ColumnSelector):
             self.connection.send(selector.build())
+            self.connection.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
+        elif isinstance(selector, str):
+            self.connection.send(selector)
             self.connection.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
         else:
             raise SessionFindingError('selector is incompatible')
