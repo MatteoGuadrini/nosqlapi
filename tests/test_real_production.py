@@ -268,5 +268,24 @@ def test_read_databases():
     assert db.data == {'name': 'test_db', 'size': '0.4GB'}
 
 
+def test_find_data():
+    """Test find data into a database"""
+    from .test_kvdb import MyDBSelector as KVSelector
+    from .test_columndb import MyDBSelector as ColSelector
+    from .test_docdb import MyDBSelector as DocSelector
+    from .test_graphdb import MyDBSelector as GraphSelector
+    # Column type: find data with string
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    data = colsession.find('SELECT * from table1;')
+    assert isinstance(data, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert data[0] == ('name', 'age')
+    # Column type: find data with Selector object
+    sel = ColSelector(selector='table1', fields=('name', 'age'))
+    assert isinstance(sel, (nosqlapi.Selector, nosqlapi.ColumnSelector))
+    assert sel.build() == "SELECT name,age FROM table1;"
+    data = colsession.find(sel)
+    assert data[1] == ('name1', 'age1')
+
+
 if __name__ == '__main__':
     pytest.main()
