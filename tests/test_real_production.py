@@ -307,6 +307,20 @@ def test_find_data():
     assert sel.build() == '{"selector": {"name": "Matteo"}, "limit": 2}'
     data = docsession.find(sel)
     assert data['name'] == 'Matteo'
+    # Graph type: find data with string
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    data = graphsession.find('MATCH (people:Person) WHERE people.age>=35 ORDER BY age DESC LIMIT 2 RETURN '
+                             'people.name,people.age')
+    assert isinstance(data, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert data[0]['matteo.name'] == 'Matteo'
+    # Graph type: find data with Selector object
+    sel = GraphSelector(selector='people:Person', condition='people.age>=35', order='age',
+                        fields=['name', 'age'], limit=2)
+    assert isinstance(sel, (nosqlapi.Selector, nosqlapi.GraphSelector))
+    assert sel.build().split() == ['MATCH', '(people:Person)', 'WHERE', 'people.age>=35', 'ORDER', 'BY', 'age', 'DESC',
+                                   'LIMIT', '2', 'RETURN', 'people.name,people.age']
+    data = graphsession.find(sel)
+    assert data[0]['matteo.age'] == 35
 
 
 if __name__ == '__main__':
