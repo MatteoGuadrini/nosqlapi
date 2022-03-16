@@ -296,6 +296,17 @@ def test_find_data():
     assert sel.build() == '\n{selector={$eq:key}\nlimit=2}'
     data = kvsession.find(sel)
     assert data['key1'] == 'value1'
+    # Document type: find data with string
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    data = docsession.find('{"name": "Matteo"}')
+    assert isinstance(data, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert data['_id'] == '5099803df3f4948bd2f98391'
+    # Document type: find data with Selector object
+    sel = DocSelector(selector={"name": "Matteo"}, limit=2)
+    assert isinstance(sel, (nosqlapi.Selector, nosqlapi.DocSelector))
+    assert sel.build() == '{"selector": {"name": "Matteo"}, "limit": 2}'
+    data = docsession.find(sel)
+    assert data['name'] == 'Matteo'
 
 
 if __name__ == '__main__':
