@@ -285,6 +285,17 @@ def test_find_data():
     assert sel.build() == "SELECT name,age FROM table1;"
     data = colsession.find(sel)
     assert data[1] == ('name1', 'age1')
+    # KeyValue type: find data with string
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    data = kvsession.find('{selector=$like:key*}')
+    assert isinstance(data, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert data['key'] == 'value'
+    # KeyValue type: find data with Selector object
+    sel = KVSelector(selector='$eq:key', limit=2)
+    assert isinstance(sel, (nosqlapi.Selector, nosqlapi.KVSelector))
+    assert sel.build() == '\n{selector={$eq:key}\nlimit=2}'
+    data = kvsession.find(sel)
+    assert data['key1'] == 'value1'
 
 
 if __name__ == '__main__':
