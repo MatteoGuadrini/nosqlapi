@@ -380,7 +380,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                              '{"arthur.name": "Arthur",'
                                                              '"arthur.age": 42}]',
                                                      'status': 200,
-                                                     'header': selector.build()})
+                                                     'header': str(selector)})
         if isinstance(selector, nosqlapi.graphdb.GraphSelector):
             ret = self.req.post(self.connection, selector.build())
         else:
