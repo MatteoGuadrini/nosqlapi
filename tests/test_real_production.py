@@ -235,6 +235,32 @@ def test_revoke_permission():
     assert revoke['status'] == 'REVOKE_OK'
 
 
+def test_reset_password():
+    """Test reset password for existing user"""
+    # KeyValue type: create new user and grant database
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    reset = kvsession.set_user('test', 'newpassword')
+    assert isinstance(reset, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert reset['user'] == 'test'
+    assert reset['status'] == 'PASSWORD_CHANGED'
+    # Graph type: create new user and grant database
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    reset = graphsession.set_user('test', 'newpassword')
+    assert isinstance(reset, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert reset.data == '0 rows, System updates: 1'
+    # Document type: create new user and grant database
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    reset = docsession.set_user('test', 'newpassword')
+    assert isinstance(reset, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert reset['user'] == 'test'
+    # Column type: create new user and grant database
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    reset = colsession.set_user('test', 'newpassword')
+    assert isinstance(reset, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert reset['role'] == 'test'
+    assert reset['status'] == 'PASSWORD_CHANGED'
+
+
 # ------------------Read Operation------------------
 def test_read_databases():
     """Test read and find a database"""
