@@ -349,5 +349,57 @@ def test_find_data():
     assert data[0]['matteo.age'] == 35
 
 
+# ------------------Indexing------------------
+def test_new_index():
+    """Test create new index and assign it"""
+    # Column type: create new index without ORM object
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    idx = colsession.add_index('index1', 'table1', 'name')
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert idx['index'] == 'index1'
+    assert idx['status'] == 'INDEX_CREATED'
+    # Column type: create new index with ORM object
+    index = nosqlapi.columndb.Index(name='index1', table='table1', column='name')
+    idx = colsession.add_index(index)
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert idx['index'] == 'index1'
+    assert idx['status'] == 'INDEX_CREATED'
+    # KeyValue type: create new index without ORM object
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    idx = kvsession.add_index('index1', 'name')
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert idx.data == 'index1'
+    # KeyValue type: create new index with ORM object
+    index = nosqlapi.kvdb.Index(name='index1', key='name')
+    idx = kvsession.add_index(index)
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert idx.data == 'index1'
+    # Document type: create new index without ORM object
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    idx = docsession.add_index('index1', {'age': 35, 'category': 1})
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert idx.code == 200
+    assert idx['result'] == 'ok'
+    # Document type: create new index with ORM object
+    index = nosqlapi.docdb.Index(name='index1', data={'age': 35, 'category': 1})
+    idx = docsession.add_index(index)
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert idx.code == 200
+    assert idx['result'] == 'ok'
+    # Graph type: create new index without ORM object
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    idx = graphsession.add_index('index1', 'n:Person', ['n.name', 'n.age'], {'option': 'value'})
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert idx.data == '0 rows, System updates: 1'
+    # Graph type: create new index with ORM object
+    index = nosqlapi.graphdb.Index(name='index1',
+                                   node='n:Person',
+                                   properties=['n.name', 'n.age'],
+                                   options={'option': 'value'})
+    idx = graphsession.add_index(index)
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert idx.data == '0 rows, System updates: 1'
+
+
 if __name__ == '__main__':
     pytest.main()
