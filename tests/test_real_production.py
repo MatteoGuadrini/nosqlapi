@@ -401,5 +401,25 @@ def test_new_index():
     assert idx.data == '0 rows, System updates: 1'
 
 
+def test_get_index():
+    """Test get exists index"""
+    # Column type: view indexes
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    indexes = colsession.indexes
+    assert 'index1' in indexes
+    # KeyValue type: view indexes
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    indexes = kvsession.indexes
+    assert 'index1' in indexes
+    # Document type: view indexes
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    indexes = docsession.indexes
+    assert 'index1' == indexes[0]['name']
+    # Graph type: view indexes
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    indexes = graphsession.indexes
+    assert 'index1' in indexes
+
+
 if __name__ == '__main__':
     pytest.main()
