@@ -421,5 +421,30 @@ def test_get_index():
     assert 'index1' in indexes
 
 
+def test_delete_index():
+    """Test delete specific index"""
+    # Column type: delete new index
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    idx = colsession.delete_index('index1')
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.ColumnResponse))
+    assert idx['status'] == 'INDEX_DELETED'
+    # KeyValue type: delete new index
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    idx = kvsession.delete_index('index1')
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.KVResponse))
+    assert idx.data == 'index1'
+    # Document type: delete new index
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    idx = docsession.delete_index('index1')
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.DocResponse))
+    assert idx['result'] == 'ok'
+    assert idx.code == 200
+    # Graph type: delete new index
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    idx = graphsession.delete_index('index1')
+    assert isinstance(idx, (nosqlapi.Response, nosqlapi.GraphResponse))
+    assert idx.data == '0 rows, System updates: 1'
+
+
 if __name__ == '__main__':
     pytest.main()
