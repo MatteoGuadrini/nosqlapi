@@ -150,6 +150,20 @@ def test_many_data_operation():
                                         '5099803df3f4948bd2f98393']}
 
 
+def test_table_operations():
+    """Test change/delete table for column database"""
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    # Column type: alter table table1
+    colsession.alter_table('table1', add_columns=['first_name', 'last_name'], drop_columns=['name'])
+    assert colsession.item_count == 1
+    # Column type: compact table table1
+    colsession.compact('table1', 'TimeWindowCompactionStrategy')
+    assert colsession.item_count == 1
+    # Column type: truncate table table1
+    colsession.truncate('table1')
+    assert colsession.item_count == 1
+
+
 # ------------------Permissions------------------
 def test_permission():
     """Test permission on database session"""
