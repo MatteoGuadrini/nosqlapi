@@ -162,6 +162,9 @@ def test_table_operations():
     # Column type: truncate table table1
     colsession.truncate('table1')
     assert colsession.item_count == 1
+    # Column type: delete table table1
+    colsession.delete_table('table1')
+    assert colsession.item_count == 1
 
 
 # ------------------Permissions------------------
