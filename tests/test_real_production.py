@@ -492,5 +492,33 @@ def test_batch():
     assert ret['matteo.age'] == 35
 
 
+def test_call_batch():
+    """Test batch operation"""
+    from .test_columndb import MyDBBatch as ColBatch
+    from .test_kvdb import MyDBBatch as KVBatch
+    from .test_graphdb import MyDBBatch as GraphBatch
+    # Column type: batch operations
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    ops = ['BEGIN BATCH', "UPDATE table SET name = 'Arthur' WHERE name=Matteo AND age=35;", "APPLY BATCH;"]
+    batch = ColBatch(ops, colsession)
+    ret = nosqlapi.Session.call(batch)
+    assert 'BATCH_OK' in ret
+    # KeyValue type: batch operations
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    ops = "begin\nUPDATE=key1,value1;\nUPDATE=key2,value3;\nUPDATE=key3,value3;\nend;"
+    batch = KVBatch(ops, kvsession)
+    ret = nosqlapi.Session.call(batch)
+    assert 'BATCH_OK' in ret
+    # Graph type: batch operations
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    ops = """MATCH (p:Person {name: 'Matteo'})-[rel:WORKS_FOR]-(:Company {name: 'MyWork'})
+    SET rel.startYear = date({year: 2018})
+    RETURN p"""
+    batch = GraphBatch(ops, graphsession)
+    ret = nosqlapi.Session.call(batch)
+    assert ret['matteo.name'] == 'Matteo'
+    assert ret['matteo.age'] == 35
+
+
 if __name__ == '__main__':
     pytest.main()
