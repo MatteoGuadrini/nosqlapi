@@ -368,6 +368,7 @@ class MyDBBatch(nosqlapi.kvdb.KVBatch):
         self.t.recv = mock.MagicMock(return_value="BATCH_OK")
         if self.t.recv(2048) != "BATCH_OK":
             raise SessionError(f'batch error: {self.t.recv(2048)}')
+        return MyDBResponse(self.t.recv(2048))
 
 
 class KVConnectionTest(unittest.TestCase):
