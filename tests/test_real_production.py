@@ -187,6 +187,14 @@ def test_delete_database():
     assert bool(deleted) is True
 
 
+def test_copy_database():
+    """Test copy database"""
+    # Document type: find a database
+    docconnection, _ = connect('doc', 'prod-db.test.com', 'admin', 'password')
+    copied = docconnection.copy_database('db2', 'db3')
+    assert copied['result'] == 'ok'
+
+
 # ------------------Permissions------------------
 def test_permission():
     """Test permission on database session"""
