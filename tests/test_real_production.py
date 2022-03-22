@@ -195,6 +195,42 @@ def test_copy_database():
     assert copied['result'] == 'ok'
 
 
+def test_context_manager():
+    """Test Connection and Session object with context manager"""
+    # KeyValue type: use like a context manager
+    kvconnection, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    with kvconnection as conn:
+        databases = conn.databases()
+        assert databases.data == ['test_db', 'db1', 'db2']
+    with kvsession as sess:
+        indexes = sess.indexes
+        assert 'index1' in indexes
+    # Column type: use like a context manager
+    colconnection, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    with colconnection as conn:
+        databases = conn.databases()
+        assert databases.data == ['test_db', 'db1', 'db2']
+    with colsession as sess:
+        indexes = sess.indexes
+        assert 'index1' in indexes
+    # Document type: use like a context manager
+    docconnection, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    with docconnection as conn:
+        databases = conn.databases()
+        assert databases.data == ['test_db', 'db1', 'db2']
+    with docsession as sess:
+        indexes = sess.indexes
+        assert 'index1' == indexes[0]['name']
+    # Graph type: use like a context manager
+    graphconnection, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    with graphconnection as conn:
+        databases = conn.databases()
+        assert databases.data == ['test_db', 'db1', 'db2']
+    with graphsession as sess:
+        indexes = sess.indexes
+        assert 'index1' in indexes
+
+
 # ------------------Permissions------------------
 def test_permission():
     """Test permission on database session"""
