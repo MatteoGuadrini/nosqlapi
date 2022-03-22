@@ -167,6 +167,26 @@ def test_table_operations():
     assert colsession.item_count == 1
 
 
+def test_delete_database():
+    """Test delete database"""
+    # KeyValue type: find a database
+    kvconnection, _ = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    deleted = kvconnection.delete_database('test_db')
+    assert bool(deleted) is True
+    # Column type: find a database
+    colconnection, _ = connect('column', 'prod-db.test.com', 'admin', 'password')
+    deleted = colconnection.delete_database('test_db')
+    assert bool(deleted) is True
+    # Document type: find a database
+    docconnection, _ = connect('doc', 'prod-db.test.com', 'admin', 'password')
+    deleted = docconnection.delete_database('test_db')
+    assert bool(deleted) is True
+    # Graph type: find a database
+    graphconnection, _ = connect('doc', 'prod-db.test.com', 'admin', 'password')
+    deleted = graphconnection.delete_database('test_db')
+    assert bool(deleted) is True
+
+
 # ------------------Permissions------------------
 def test_permission():
     """Test permission on database session"""
