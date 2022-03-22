@@ -71,6 +71,7 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
             if self.t.recv(2048) != 'DB_DELETED':
                 raise DatabaseDeletionError(f'Database deletion error: {self.t.recv(2048)}')
+            return MyDBResponse(True)
         else:
             raise ConnectError(f"Server isn't connected")
 
