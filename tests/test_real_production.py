@@ -231,6 +231,17 @@ def test_context_manager():
         assert 'index1' in indexes
 
 
+def test_work_with_node():
+    """Test link and detach node"""
+    # Graph type: use like a context manager
+    _, graphsession = connect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+    with graphsession as sess:
+        linked = sess.link(node='matteo:Person', linking_node='open_source:JOB', rel=':WORK_IN')
+        assert linked.data == {'linked': True}
+        detached = sess.detach(node=':Person', properties={'name': 'Matteo'})
+        assert detached.data == {'detached': True}
+
+
 # ------------------Permissions------------------
 def test_permission():
     """Test permission on database session"""
