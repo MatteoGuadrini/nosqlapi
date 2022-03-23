@@ -4,7 +4,7 @@ This test suites is based on simple implementations of library for all four type
 """
 
 import pytest
-
+import asyncio
 import nosqlapi
 
 
@@ -593,6 +593,32 @@ def test_call_batch():
     ret = nosqlapi.Session.call(batch)
     assert ret['matteo.name'] == 'Matteo'
     assert ret['matteo.age'] == 35
+
+
+# ------------------asyncio------------------
+def test_async_connect():
+    """Test asynchronous connection"""
+    async def aconnect(of_type, *args, **kwargs):
+        await asyncio.sleep(0.1)
+        conn, sess = connect(of_type, *args, **kwargs)
+        return conn, sess
+
+    # Column type: async connect
+    colconnection, colsession = asyncio.run(aconnect('column', 'prod-db.test.com', 'admin', 'password', 'db1'))
+    assert isinstance(colconnection, (nosqlapi.Connection, nosqlapi.ColumnConnection))
+    assert isinstance(colsession, (nosqlapi.Session, nosqlapi.ColumnSession))
+    # KeyValue type: async connect
+    kvconnection, kvsession = asyncio.run(aconnect('kv', 'prod-db.test.com', 'admin', 'password'))
+    assert isinstance(kvconnection, (nosqlapi.Connection, nosqlapi.KVConnection))
+    assert isinstance(kvsession, (nosqlapi.Session, nosqlapi.KVSession))
+    # Document type: async connect
+    docconnection, docsession = asyncio.run(aconnect('doc', 'prod-db.test.com', 'admin', 'password', 'db1'))
+    assert isinstance(docconnection, (nosqlapi.Connection, nosqlapi.DocConnection))
+    assert isinstance(docsession, (nosqlapi.Session, nosqlapi.DocSession))
+    # Graph type: async connect
+    graphconnection, graphsession = asyncio.run(aconnect('graph', 'prod-db.test.com', 'admin', 'password', 'db1'))
+    assert isinstance(graphconnection, (nosqlapi.Connection, nosqlapi.GraphConnection))
+    assert isinstance(graphsession, (nosqlapi.Session, nosqlapi.GraphSession))
 
 
 if __name__ == '__main__':
