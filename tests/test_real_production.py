@@ -596,13 +596,14 @@ def test_call_batch():
 
 
 # ------------------asyncio------------------
+async def aconnect(of_type, *args, **kwargs):
+    await asyncio.sleep(0.1)
+    conn, sess = connect(of_type, *args, **kwargs)
+    return conn, sess
+
+
 def test_async_connect():
     """Test asynchronous connection"""
-    async def aconnect(of_type, *args, **kwargs):
-        await asyncio.sleep(0.1)
-        conn, sess = connect(of_type, *args, **kwargs)
-        return conn, sess
-
     # Column type: async connect
     colconnection, colsession = asyncio.run(aconnect('column', 'prod-db.test.com', 'admin', 'password', 'db1'))
     assert isinstance(colconnection, (nosqlapi.Connection, nosqlapi.ColumnConnection))
@@ -619,6 +620,34 @@ def test_async_connect():
     graphconnection, graphsession = asyncio.run(aconnect('graph', 'prod-db.test.com', 'admin', 'password', 'db1'))
     assert isinstance(graphconnection, (nosqlapi.Connection, nosqlapi.GraphConnection))
     assert isinstance(graphsession, (nosqlapi.Session, nosqlapi.GraphSession))
+
+
+def test_async_operation():
+    """Test asynchronous operations"""
+
+    async def doc_insert(doc, body):
+        # Document type: insert
+        _, docsession = await aconnect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+        await asyncio.sleep(0.1)
+        return docsession.insert(doc, body)
+
+    async def kv_update(key, value):
+        # KeyValue type: update
+        _, kvsession = await aconnect('kv', 'prod-db.test.com', 'admin', 'password')
+        await asyncio.sleep(0.1)
+        return kvsession.update(key, value)
+
+    async def main():
+        # Document type: insert document
+        doc = 'db1/doc1'
+        body = '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}'
+        await doc_insert(doc, body)
+        # KeyValue type: update key
+        await kv_update('key', 'new-value')
+
+    loop = asyncio.new_event_loop()
+    ops = loop.create_task(main())
+    loop.run_until_complete(ops)
 
 
 if __name__ == '__main__':
