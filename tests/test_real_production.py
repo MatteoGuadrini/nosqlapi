@@ -2,7 +2,7 @@
 
 This test suites is based on simple implementations of library for all four type of databases.
 """
-
+import sys
 import pytest
 import asyncio
 import nosqlapi
@@ -648,6 +648,41 @@ def test_async_operation():
     loop = asyncio.new_event_loop()
     ops = loop.create_task(main())
     loop.run_until_complete(ops)
+
+
+def test_multiple_parallel_task():
+    """Test parallel task with asyncio"""
+
+    async def graph_get(node):
+        # Graph type: get
+        _, graphsession = await aconnect('graph', 'prod-db.test.com', 'admin', 'password', 'db1')
+        await asyncio.sleep(0.1)
+        return graphsession.get(node)
+
+    async def column_delete(table, conditions):
+        # Column type: delete
+        _, colsession = await aconnect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+        await asyncio.sleep(0.1)
+        return colsession.update(table, conditions)
+
+    if sys.version_info.minor >= 7:
+        async def main():
+            # Graph type: get node
+            asyncio.create_task(graph_get('n:Person'))
+            # KeyValue type: delete row
+            asyncio.create_task(column_delete(table='table1', conditions=['name=Matteo', 'id=1']))
+
+        asyncio.run(main())
+    else:
+        async def main():
+            # Graph type: get node
+            await graph_get('n:Person')
+            # KeyValue type: delete row
+            await column_delete(table='table1', conditions=['name=Matteo', 'id=1'])
+
+        loop = asyncio.new_event_loop()
+        ops = loop.create_task(main())
+        loop.run_until_complete(ops)
 
 
 if __name__ == '__main__':
