@@ -685,5 +685,28 @@ def test_multiple_parallel_task():
         loop.run_until_complete(ops)
 
 
+def test_async_context_manager():
+    """Test async context manager"""
+    from .test_columndb import MyDBConnection as ColumnCon
+
+    class AColumnCon(ColumnCon):
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            self.close()
+
+    async def main():
+        acolconnession = AColumnCon('prod-db.test.com', 'admin', 'password', 'db1')
+        async with acolconnession as conn:
+            session = conn.connect()
+            conn.create_database("db1")
+            assert conn.has_database("db1")
+            assert isinstance(session, nosqlapi.Session)
+
+    asyncio.run(main())
+
+
 if __name__ == '__main__':
     pytest.main()
