@@ -161,7 +161,7 @@ class Connection(ABC):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
     def __str__(self):
-        return f"{repr(self)}, connected={self.connected}"
+        return f"host={self.host}, database={self.database}, connected={self.connected}"
 
     def __bool__(self):
         return True if self.connected else False
