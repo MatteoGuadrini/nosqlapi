@@ -456,7 +456,7 @@ class Session(ABC):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
     def __str__(self):
-        return f"database={self.database}, description={self.description}"
+        return f"connection=({self.connection}), description={self.description}"
 
     def __bool__(self):
         if self.connection:
