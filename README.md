@@ -350,6 +350,12 @@ This read-only attribute that throw an `Exception` if it has been set.
 
 This read-only attribute represents a dictionary transformation of Response object.
 
+#### Response methods
+
+`.throw()`
+
+Raise exception stored in _error_ property.
+
 ### Batch Objects
 
 `Batch` objects should respond to the following methods.

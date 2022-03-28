@@ -506,10 +506,7 @@ class Response(ABC):
     @property
     def error(self):
         """Error of an operation"""
-        if isinstance(self._error, Exception):
-            raise self._error
-        else:
-            return self._error
+        return self._error
 
     @property
     def dict(self):
@@ -518,6 +515,16 @@ class Response(ABC):
                 'code': self._code,
                 'header': self._header,
                 'error': self._error}
+
+    def throw(self):
+        """Raise or throw exception from error property
+
+        :return: Exception
+        """
+        if isinstance(self.error, Exception):
+            raise self.error
+        else:
+            raise Error(self.error)
 
     def __bool__(self):
         if self._error:
