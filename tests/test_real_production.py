@@ -242,6 +242,17 @@ def test_work_with_node():
         assert detached.data == {'detached': True}
 
 
+def test_data_migration():
+    """Test migrate data from type of database to another"""
+    # Document type: get data
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
+    ret = docsession.get('db1/doc1')
+    # KeyValue type: insert data
+    _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
+    kvsession.update(ret['_id'], ret.data)
+    assert kvsession.item_count == 1
+
+
 # ------------------Permissions------------------
 def test_permission():
     """Test permission on database session"""
