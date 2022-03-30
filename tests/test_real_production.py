@@ -100,8 +100,8 @@ def test_create_database_and_table():
 
 def test_crud():
     """Test Create, Read, Update, Delete"""
-    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
     # Document type: insert data into database db1: without ORM objects
+    _, docsession = connect('doc', 'prod-db.test.com', 'admin', 'password', 'db1')
     ret = docsession.insert('db1/doc1', '{"_id": "5099803df3f4948bd2f98391", "name": "Matteo", "age": 35}')
     assert docsession.item_count == 1
     assert isinstance(ret, (nosqlapi.Response, nosqlapi.DocResponse))
@@ -251,6 +251,17 @@ def test_data_migration():
     _, kvsession = connect('kv', 'prod-db.test.com', 'admin', 'password')
     kvsession.update(ret['_id'], ret.data)
     assert kvsession.item_count == 1
+
+
+def test_sql_to_nosql():
+    """Test data migration from SQL server to NOSQL server"""
+    # SQL migration data to NOSQL
+    cursor_ret = nosqlapi.response([('Matteo', 36), ('Arthur', 42)])
+    assert isinstance(cursor_ret, nosqlapi.Response)
+    # Column type: insert data
+    _, colsession = connect('column', 'prod-db.test.com', 'admin', 'password', 'db1')
+    colsession.insert_many('table1', columns=('name', 'age'), values=cursor_ret.data)
+    assert colsession.item_count == 2
 
 
 # ------------------Permissions------------------
