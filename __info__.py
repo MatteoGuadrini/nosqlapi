@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # __info__ -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 """Information variable used by modules on this package."""
 
-__version__ = '0.0.9.rc'
+__version__ = '1.0.0'
 __author__ = 'Matteo Guadrini'
 __email__ = 'matteo.guadrini@hotmail.it'
 __homepage__ = 'https://github.com/MatteoGuadrini/nosqlapi'
