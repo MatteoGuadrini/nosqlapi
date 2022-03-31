@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # orm -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 """ORM module for document NOSQL database."""
 
 # region Imports
+from functools import wraps
 from json import dumps
 
 from nosqlapi.common.orm import Uuid
@@ -32,7 +33,7 @@ from nosqlapi.kvdb.orm import Keyspace
 # endregion
 
 # region global variable
-__all__ = ['Database', 'Collection', 'Document', 'Index']
+__all__ = ['Database', 'Collection', 'Document', 'Index', 'document']
 
 
 # endregion
@@ -201,5 +202,24 @@ class Index:
 
     def __repr__(self):
         return f"Index({', '.join(f'{key}={value}' for key, value in self.data.items())})"
+
+# endregion
+
+
+# region Functions
+def document(func):
+    """Decorator function to transform dictionary object to Document object
+
+    :param func: function to decorate
+    :return: Document object
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if not isinstance(data, dict):
+            raise ValueError(f"function {func.__name__} doesn't return a dict")
+        return Document(value=data)
+
+    return inner
 
 # endregion

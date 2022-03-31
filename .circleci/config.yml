@@ -8,9 +8,10 @@ jobs:
     executor: python/default
     steps:
       - checkout
+      - run: pip install pytest
       - run: sudo python setup.py install
-      - run: sudo chmod -R 777 /tmp
       - run: python -m unittest discover tests
+      - run: pytest tests/test_real_production.py
 
 
 workflows:

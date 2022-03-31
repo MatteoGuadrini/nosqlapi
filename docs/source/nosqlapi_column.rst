@@ -78,9 +78,20 @@ These objects represent the respective *column* in databases.
     name.append('Matteo Guadrini')
     # Make table
     table = nosqlapi.columndb.Table('peoples', id, name)
+    # Create Column object from column decorator
+    @nosqlapi.columndb.column
+    def salary(file, limit=5000):
+        return [line
+                for line in open(file, 'rt').readlines()
+                if int(line) < 5000]
+
+    # Add column to table
+    table.add_column(id, name, salary('/tmp/salary.log'))
     # Add table to keyspace
     keyspace.append(table)
 
     # Create database and insert data
     mycolumndb.conn.create_database(keyspace)
-    mycolumndb.sess.insert(keyspace.store[0])
+    mycolumndb.sess.create_table(table)
+    # Insert new data
+    mycolumndb.sess.insert('people', (None, 'Arthur Dent', 4000))

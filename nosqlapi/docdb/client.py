@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # client -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -67,7 +67,8 @@ class DocSelector(Selector, ABC):
 
     """Document NOSQL database Selector class"""
 
-    pass
+    def __init__(self, *args, **kwargs):
+        Selector.__init__(self, *args, **kwargs)
 
 
 class DocResponse(Response, ABC):

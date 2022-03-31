@@ -86,6 +86,7 @@ class MyDBConnection(nosqlapi.columndb.ColumnConnection):
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
             if self.t.recv(2048) != 'DB_DELETED':
                 raise DatabaseDeletionError(f'Database deletion error: {self.t.recv(2048)}')
+            return MyDBResponse(True)
         else:
             raise ConnectError(f"Server isn't connected")
 
@@ -271,16 +272,19 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
     def close(self):
-        self.connection.close()
+        self._connection = None
         if not self.connection:
             SessionClosingError('session was not closed')
         self._database = None
 
-    def find(self, selector: nosqlapi.columndb.ColumnSelector):
+    def find(self, selector: Union[str, nosqlapi.columndb.ColumnSelector]):
         if not self.connection:
             raise ConnectError('connect to a database before some request')
         if isinstance(selector, nosqlapi.columndb.ColumnSelector):
             self.connection.send(selector.build())
+            self.connection.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
+        elif isinstance(selector, str):
+            self.connection.send(selector)
             self.connection.recv = mock.MagicMock(return_value="name,age\nname1,age1\nname2,age2")
         else:
             raise SessionFindingError('selector is incompatible')
@@ -453,6 +457,7 @@ class MyDBSession(nosqlapi.columndb.ColumnSession):
             raise SessionError(f'delete table {table} failure: {self.connection.recv(2048)}')
         self._item_count = int(self.connection.recv(2048).split(':')[1])
 
+
 class MyDBResponse(nosqlapi.columndb.ColumnResponse):
     pass
 
@@ -467,6 +472,7 @@ class MyDBBatch(nosqlapi.columndb.ColumnBatch):
         self.t.recv = mock.MagicMock(return_value="BATCH_OK")
         if self.t.recv(2048) != "BATCH_OK":
             raise SessionError(f'batch error: {self.t.recv(2048)}')
+        return MyDBResponse(self.t.recv(2048))
 
 
 class MyDBSelector(nosqlapi.columndb.ColumnSelector):
@@ -753,17 +759,17 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertIsInstance(data, MyDBResponse)
         self.assertEqual(self.mysess.item_count, 3)
 
-    def test_get_aclconnection(self):
+    def test_get_acl_connection(self):
         self.assertIn('root', self.mysess.acl)
         self.assertIn('admin', self.mysess.acl)
         self.assertIn('test', self.mysess.acl)
 
-    def test_grant_userconnection(self):
+    def test_grant_user_connection(self):
         resp = self.mysess.grant('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'GRANT_OK')
 
-    def test_revoke_userconnection(self):
+    def test_revoke_user_connection(self):
         resp = self.mysess.revoke('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data['status'], 'REVOKE_OK')
@@ -855,6 +861,18 @@ class ColumnSessionTest(unittest.TestCase):
         self.assertEqual(self.mysess.item_count, 1)
         self.mysess.truncate(Table('table'))
         self.assertEqual(self.mysess.item_count, 1)
+
+    def test_column_decorator(self):
+        # Simple function
+        @nosqlapi.columndb.column
+        def ids(start=0, end=10):
+            return list(range(start, end))
+
+        col = ids()
+        self.assertIsInstance(col, Column)
+        col2 = ids(2, 20)
+        self.assertIsInstance(col2, Column)
+        self.assertEqual(col2[0], 2)
 
 
 if __name__ == '__main__':

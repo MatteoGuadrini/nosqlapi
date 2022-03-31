@@ -71,6 +71,7 @@ class MyDBConnection(nosqlapi.kvdb.KVConnection):
             self.t.recv = mock.MagicMock(return_value='DB_DELETED')
             if self.t.recv(2048) != 'DB_DELETED':
                 raise DatabaseDeletionError(f'Database deletion error: {self.t.recv(2048)}')
+            return MyDBResponse(True)
         else:
             raise ConnectError(f"Server isn't connected")
 
@@ -368,6 +369,7 @@ class MyDBBatch(nosqlapi.kvdb.KVBatch):
         self.t.recv = mock.MagicMock(return_value="BATCH_OK")
         if self.t.recv(2048) != "BATCH_OK":
             raise SessionError(f'batch error: {self.t.recv(2048)}')
+        return MyDBResponse(self.t.recv(2048))
 
 
 class KVConnectionTest(unittest.TestCase):

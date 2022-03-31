@@ -7,8 +7,6 @@ _nosqlapi_ is a library for building standard NOSQL python libraries.
 
 Full documentation: [Read the docs](https://nosqlapi.rtfd.io/)
 
-> ATTENTION: This is **WIP** in _RC_ version
-
 ## Introduction
 
 This library is defined to encourage similarity between Python modules used to access NOSQL databases. 
@@ -350,6 +348,12 @@ This read-only attribute that throw an `Exception` if it has been set.
 
 This read-only attribute represents a dictionary transformation of Response object.
 
+#### Response methods
+
+`.throw()`
+
+Raise exception stored in _error_ property.
+
 ### Batch Objects
 
 `Batch` objects should respond to the following methods.
@@ -423,7 +427,7 @@ tests/test_kvdb.py:class MyDBSession(nosqlapi.kvdb.KVSession):
 ### Key-Value database
 A _key–value_ database, or key–value store, is a data storage paradigm designed for storing, retrieving, and managing associative arrays, 
 and a data structure more commonly known today as a dictionary or hash table. Dictionaries contain a collection of objects, or records, 
-which in turn have many different fields within them, each containing data. These records are stored and retrieved using a key that 
+which in turn have many fields within them, each containing data. These records are stored and retrieved using a key that 
 uniquely identifies the record, and is used to find the data within the database.
 
 ```python

@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # orm -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 # region Imports
 from collections import namedtuple
+from functools import wraps
 
 from nosqlapi.kvdb.orm import Keyspace
 from ..common.orm import Text
@@ -31,7 +32,7 @@ from ..common.orm import Text
 # endregion
 
 # region global variable
-__all__ = ['Label', 'Property', 'RelationshipType', 'Database', 'Node', 'Relationship', 'Index']
+__all__ = ['Label', 'Property', 'RelationshipType', 'Database', 'Node', 'Relationship', 'Index', 'prop', 'node']
 
 
 # endregion
@@ -161,5 +162,40 @@ class Relationship(Node):
 
 # region Other objects
 Index = namedtuple('Index', ['name', 'node', 'properties', 'options'], defaults=(None,))
+
+# endregion
+
+
+# region Functions
+def prop(func):
+    """Decorator function to transform dictionary object to Property object
+
+    :param func: function to decorate
+    :return: Property object
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if not isinstance(data, dict):
+            raise ValueError(f"function {func.__name__} doesn't return a dict")
+        return Property(**data)
+
+    return inner
+
+
+def node(func):
+    """Decorator function to transform dictionary object to Node object
+
+    :param func: function to decorate
+    :return: Node object
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if not isinstance(data, dict):
+            raise ValueError(f"function {func.__name__} doesn't return a dict")
+        return Node(labels=[func.__name__], properties=data)
+
+    return inner
 
 # endregion

@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # orm stub -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from typing import Any, Union
+from typing import Any, Union, Callable
 
 from nosqlapi.kvdb.orm import Keyspace
 from ..common.orm import Text
@@ -79,3 +79,7 @@ class Relationship(Node):
 
 
 Index: Any
+
+def prop(func: Callable) -> Property: ...
+
+def node(func: Callable) -> Node: ...

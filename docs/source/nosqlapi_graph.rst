@@ -79,5 +79,18 @@ These objects represent the respective *graph* in databases.
     db.append(node1)
     db.append(node2)
 
+    # Create Node object from node decorator
+    @nosqlapi.graphdb.node
+    def Person(name, age):
+        return {'name': name, 'age': age}
+
+    # Create Property object from prop decorator
+    @nosqlapi.graphdb.prop
+    def user(name, age):
+        return {'name': name, 'age': age}
+
     # Create database with nodes
     mydocdb.conn.create_database(db)
+    # Add other nodes
+    mydocdb.sess.insert(label='Person', properties=user('Matteo Guadrini', 36))
+    mydocdb.sess.insert(Person('Julio Artes', 29))          # Labels = ['Person']

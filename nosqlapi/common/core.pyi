@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # core stub -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -108,10 +108,10 @@ class Connection:
 
 
 class Selector:
-    selector: Union[list, str]
-    fields: Union[list, str]
+    selector: Union[tuple, list, str]
+    fields: Union[tuple, list, str]
     partition: str
-    condition: Union[list, str]
+    condition: Union[tuple, list, str]
     order: int
     limit: int
 

@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # orm stub -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union, Any, Iterator
+from typing import Union, Any, Iterator, Callable
 
 from nosqlapi.common.orm import Uuid
 from nosqlapi.kvdb.orm import Keyspace
@@ -95,3 +95,6 @@ class Index:
     def __str__(self) -> str: ...
 
     def __repr__(self) -> str: ...
+
+
+def document(func: Callable) -> Document: ...

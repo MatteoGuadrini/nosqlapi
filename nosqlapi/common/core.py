@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # core -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,11 @@ __all__ = ['Connection', 'Selector', 'Session', 'Response', 'Batch']
 # region classes
 class Connection(ABC):
 
-    """Server connection abstract class"""
+    """Server connection abstract class
+
+    The abstract class :class:`Connection` is used to create connection-type classes that will allow you to work
+    directly on the layer at the database level.
+    """
 
     def __init__(self,
                  host=None,
@@ -161,7 +165,7 @@ class Connection(ABC):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
     def __str__(self):
-        return f"{repr(self)}, connected={self.connected}"
+        return f"host={self.host}, database={self.database}, connected={self.connected}"
 
     def __bool__(self):
         return True if self.connected else False
@@ -175,7 +179,11 @@ class Connection(ABC):
 
 class Selector(ABC):
 
-    """Selector abstract class"""
+    """Selector abstract class
+
+    The abstract class :class:`Selector` is used to create selector-type classes, which represent a query in the
+    specific language of the database.
+    """
 
     def __init__(self, selector=None, fields=None, partition=None, condition=None, order=None, limit=None):
         """Instantiate Selector object
@@ -210,7 +218,7 @@ class Selector(ABC):
         return self._fields
 
     @fields.setter
-    def fields(self, value: list):
+    def fields(self, value):
         """Key that returned from find operations"""
         self._fields = value
 
@@ -275,7 +283,11 @@ class Selector(ABC):
 
 class Session(ABC):
 
-    """Server session abstract class"""
+    """Server session abstract class
+
+    The abstract class :class:`Session` is used to create session-type classes that will allow you to work
+    directly on the layer at the data level.
+    """
 
     def __init__(self, connection, database=None):
         """Instantiate Session object
@@ -456,7 +468,7 @@ class Session(ABC):
         return f"<{API_NAME} {self.__class__.__name__} object>"
 
     def __str__(self):
-        return f"database={self.database}, description={self.description}"
+        return f"connection=({self.connection}), description={self.description}"
 
     def __bool__(self):
         if self.connection:
@@ -471,7 +483,11 @@ class Session(ABC):
 
 class Response(ABC):
 
-    """Server response abstract class"""
+    """Server response abstract class
+
+    The abstract class :class:`Response` is used to create response-type classes that represent response data to
+    an operation.
+    """
 
     __slots__ = ('_data', '_code', '_header', '_error')
 
@@ -506,10 +522,7 @@ class Response(ABC):
     @property
     def error(self):
         """Error of an operation"""
-        if isinstance(self._error, Exception):
-            raise self._error
-        else:
-            return self._error
+        return self._error
 
     @property
     def dict(self):
@@ -518,6 +531,16 @@ class Response(ABC):
                 'code': self._code,
                 'header': self._header,
                 'error': self._error}
+
+    def throw(self):
+        """Raise or throw exception from error property
+
+        :return: Exception
+        """
+        if isinstance(self.error, Exception):
+            raise self.error
+        else:
+            raise Error(self.error)
 
     def __bool__(self):
         if self._error:
@@ -543,7 +566,11 @@ class Response(ABC):
 
 class Batch(ABC):
 
-    """Batch abstract class"""
+    """Batch abstract class
+
+    The abstract class :class:`Batch` is used to create batch-type classes that represent a collection of
+    operations to be performed at the same time.
+    """
 
     def __init__(self, batch, session=None):
         """Instantiate Batch object

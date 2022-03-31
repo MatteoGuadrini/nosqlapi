@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # orm -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 # region Imports
 from collections import namedtuple
+from functools import wraps
 
 from nosqlapi.common import Counter
 from nosqlapi.kvdb.orm import Keyspace as Ks
@@ -31,7 +32,7 @@ from nosqlapi.kvdb.orm import Keyspace as Ks
 # endregion
 
 # region global variable
-__all__ = ['Keyspace', 'Table', 'Column', 'Index']
+__all__ = ['Keyspace', 'Table', 'Column', 'Index', 'column']
 
 
 # endregion
@@ -40,6 +41,7 @@ __all__ = ['Keyspace', 'Table', 'Column', 'Index']
 class Keyspace(Ks):
 
     """Represents keyspace like database"""
+
     pass
 
 
@@ -55,7 +57,7 @@ class Table:
         :param options: Options
         """
         self._name = name
-        self._columns = [column for column in columns]
+        self._columns = [col for col in columns]
         self._options = options
         self._index = []
 
@@ -86,18 +88,18 @@ class Table:
 
     @property
     def header(self):
-        return tuple([column.name for column in self.columns])
+        return tuple([col.name for col in self.columns])
 
     @property
     def primary_key(self):
-        pk = [column.name for column in self.columns if column.primary_key]
+        pk = [col.name for col in self.columns if col.primary_key]
         return pk[0]
 
     @primary_key.setter
     def primary_key(self, value: str):
-        for column in self.columns:
-            if column.name == value:
-                column.primary_key = True
+        for col in self.columns:
+            if col.name == value:
+                col.primary_key = True
 
     def add_column(self, *columns):
         """Adding one or more column object to table
@@ -133,8 +135,8 @@ class Table:
             # Check length of columns and row
             if len(row) != len(self.columns):
                 raise ValueError(f"length of row {row} is different of length of columns {len(self.columns)}")
-            for element, column in zip(row, self.columns):
-                column.append(element)
+            for element, col in zip(row, self.columns):
+                col.append(element)
 
     def delete_row(self, row=-1):
         """Delete one row into columns
@@ -142,8 +144,8 @@ class Table:
         :param row: Index of row
         :return: None
         """
-        for column in self.columns:
-            column.pop(row)
+        for col in self.columns:
+            col.pop(row)
 
     def get_rows(self):
         """Getting all rows
@@ -178,7 +180,7 @@ class Table:
         self._columns.pop(key)
 
     def __iter__(self):
-        return (tuple([column[index] for column in self.columns])
+        return (tuple([col[index] for col in self.columns])
                 for index in range(len(self.columns[0])))
 
     def __repr__(self):
@@ -192,10 +194,17 @@ class Column:
 
     """Represents column as container of values"""
 
-    def __init__(self, name, of_type=None, max_len=None, auto_increment=False, primary_key=False, default=None):
+    def __init__(self, name,
+                 data=None,
+                 of_type=None,
+                 max_len=None,
+                 auto_increment=False,
+                 primary_key=False,
+                 default=None):
         """Column object
 
         :param name: Name of column
+        :param data. Data list or tuple
         :param of_type: Type of column
         :param max_len: Max length of column
         :param auto_increment: Boolean value (default False)
@@ -205,7 +214,7 @@ class Column:
         self.name = name
         self._of_type = of_type if of_type is not None else object
         self.max_len = max_len
-        self._data = []
+        self._data = [] if not data else list(data)
         self._default = default
         self._primary_key = primary_key
         self._auto_increment = auto_increment
@@ -303,5 +312,25 @@ class Column:
 
 # region Other objects
 Index = namedtuple('Index', ['name', 'table', 'column'])
+
+
+# endregion
+
+
+# region Functions
+def column(func):
+    """Decorator function to transform list or tuple object to Column object
+
+    :param func: function to decorate
+    :return: Column object
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if not isinstance(data, (list, tuple)):
+            raise ValueError(f"function {func.__name__} doesn't return a list or a tuple")
+        return Column(name=func.__name__, data=data)
+
+    return inner
 
 # endregion

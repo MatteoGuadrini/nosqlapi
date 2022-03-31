@@ -250,6 +250,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -274,6 +275,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -304,6 +306,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionInsertingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(json.loads(ret.get('body')))
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -332,6 +335,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionUpdatingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = 1
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -360,6 +364,7 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
         ret = self.req.post(self.connection, json.dumps(stm))
         if ret.get('status') != 200:
             raise SessionDeletingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(json.loads(ret.get('body')))
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
@@ -375,21 +380,22 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                                                              '{"arthur.name": "Arthur",'
                                                              '"arthur.age": 42}]',
                                                      'status': 200,
-                                                     'header': selector.build()})
+                                                     'header': str(selector)})
         if isinstance(selector, nosqlapi.graphdb.GraphSelector):
             ret = self.req.post(self.connection, selector.build())
         else:
             ret = self.req.post(self.connection, selector)
         if ret.get('status') != 200:
             raise SessionFindingError(f'error: {ret.get("body")}, status: {ret.get("status")}')
+        self._item_count = len(json.loads(ret.get('body')))
         return MyDBResponse(json.loads(ret.get('body')),
                             ret['status'],
                             ret['header'])
 
-    def grant(self, user, role):
+    def grant(self, database, user, role):
         if not self:
             raise ConnectError('connect to a server before some request')
-        cypher = f"GRANT ROLE {role} TO {user}"
+        cypher = f"GRANT ACCESS ON DATABASE {database} TO {role};GRANT ROLE {role} TO {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
@@ -400,10 +406,10 @@ class MyDBSession(nosqlapi.graphdb.GraphSession):
                             ret['status'],
                             ret['header'])
 
-    def revoke(self, user, role):
+    def revoke(self, database, user, role):
         if not self:
             raise ConnectError('connect to a server before some request')
-        cypher = f"REVOKE ROLE {role} TO {user}"
+        cypher = f"REVOKE ACCESS ON DATABASE {database} TO {role};REVOKE ROLE {role} TO {user}"
         self.req.post = mock.MagicMock(return_value={'body': '0 rows, System updates: 1',
                                                      'status': 200,
                                                      'header': cypher})
@@ -771,12 +777,12 @@ class GraphSessionTest(unittest.TestCase):
         self.assertIn(['admin', 'GRANTED', 'access', 'database'], self.mysess.acl)
 
     def test_grant_user_connection(self):
-        resp = self.mysess.grant(user='test', role='read_users')
+        resp = self.mysess.grant('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
     def test_revoke_user_connection(self):
-        resp = self.mysess.revoke(user='test', role='read_users')
+        resp = self.mysess.revoke('test_db', user='test', role='read_users')
         self.assertIsInstance(resp, MyDBResponse)
         self.assertEqual(resp.data, '0 rows, System updates: 1')
 
@@ -870,6 +876,30 @@ class GraphSessionTest(unittest.TestCase):
     def test_get_indexes(self):
         self.assertIn('index1', self.mysess.indexes)
         self.assertIn('index2', self.mysess.indexes)
+
+    def test_prop_decorator(self):
+        # Simple function
+        @nosqlapi.graphdb.prop
+        def person_node(name, age, title):
+            return {'name': name.title(), 'age': int(age), 'title': title.title()}
+
+        pro = person_node('Matteo', 36, 'DevOps')
+        self.assertIsInstance(pro, Property)
+        pro2 = person_node('Arthur', 42, 'hitchhikers')
+        self.assertIsInstance(pro2, Property)
+        self.assertEqual(pro2['title'], 'Hitchhikers')
+
+    def test_node_decorator(self):
+        # Simple function
+        @nosqlapi.graphdb.node
+        def person(name, age, title):
+            return {'name': name.title(), 'age': int(age), 'title': title.title()}
+
+        node1 = person('Matteo', 36, 'DevOps')
+        self.assertIsInstance(node1, Node)
+        node2 = person('Arthur', 42, 'hitchhikers')
+        self.assertIsInstance(node2, Node)
+        self.assertEqual(node2.labels[0], 'person')
 
 
 if __name__ == '__main__':

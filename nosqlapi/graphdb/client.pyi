@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # client stub -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -50,7 +50,9 @@ class GraphSession(Session):
     def detach(self, *args, **kwargs) -> Union[bool, Response]: ...
 
 
-class GraphSelector(Selector): ...
+class GraphSelector(Selector):
+
+    def __init__(self, *args, **kwargs) -> None: ...
 
 
 class GraphResponse(Response): ...

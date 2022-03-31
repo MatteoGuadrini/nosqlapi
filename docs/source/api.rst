@@ -245,6 +245,13 @@ This read-only attribute represents a ``str`` or ``Exception`` object error of a
 
 This read-only attribute represents a ``dict`` transformation of ``Response`` object.
 
+Response methods
+----------------
+
+.. function:: throw()
+
+Raise exception stored in ``error`` property.
+
 Batch Objects
 *************
 

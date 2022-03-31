@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # client stub -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@ class KVConnection(Connection):
 
 
 class KVSelector(Selector):
+
+    def __init__(self, *args, **kwargs) -> None: ...
 
     def first_greater_or_equal(self, key: Any) -> Union[str, list, tuple]: ...
 

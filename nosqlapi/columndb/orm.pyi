@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # orm stub -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -79,6 +79,7 @@ class Column:
     default: Callable
 
     def __init__(self, name: str,
+                 data: Union[list, tuple] = None,
                  of_type: Any = None,
                  max_len: int = None,
                  auto_increment: bool = False,
@@ -112,3 +113,5 @@ class Column:
 
 
 Index: Any
+
+def column(func: Callable) -> Column: ...

@@ -5,7 +5,7 @@
 # created by: matteo.guadrini
 # __init__.py -- nosqlapi
 #
-#     Copyright (C) 2021 Matteo Guadrini <matteo.guadrini@hotmail.it>
+#     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -23,4 +23,4 @@
 """Package document NOSQL database."""
 
 from nosqlapi.docdb.client import DocConnection, DocSelector, DocSession, DocResponse, DocBatch
-from nosqlapi.docdb.orm import Database, Document, Collection, Index
+from nosqlapi.docdb.orm import Database, Document, Collection, Index, document
