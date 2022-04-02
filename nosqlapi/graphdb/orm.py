@@ -27,7 +27,7 @@ from collections import namedtuple
 from functools import wraps
 
 from nosqlapi.kvdb.orm import Keyspace
-from ..common.orm import Text
+from ..common.odm import Text
 
 # endregion
 

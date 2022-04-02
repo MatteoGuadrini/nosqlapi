@@ -28,6 +28,6 @@ from nosqlapi.common.exception import (Error, UnknownError, ConnectError, CloseE
                                        SessionInsertingError, SessionUpdatingError, SessionClosingError,
                                        SessionFindingError, SessionDeletingError, SessionACLError, SelectorError,
                                        SelectorAttributeError)
-from nosqlapi.common.orm import (Null, List, Map, Int, Inet, Ascii, Time, SmallInt, Decimal, Timestamp, Counter,
+from nosqlapi.common.odm import (Null, List, Map, Int, Inet, Ascii, Time, SmallInt, Decimal, Timestamp, Counter,
                                  Date, Text, Blob, Boolean, Double, Uuid, Duration, Float, Varint, Varchar, Array)
 from nosqlapi.common.utils import api, Manager, global_session, cursor_response, apply_vendor, response

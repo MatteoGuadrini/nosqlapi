@@ -26,7 +26,7 @@
 from functools import wraps
 from json import dumps
 
-from nosqlapi.common.orm import Uuid
+from nosqlapi.common.odm import Uuid
 
 from nosqlapi.kvdb.orm import Keyspace
 
