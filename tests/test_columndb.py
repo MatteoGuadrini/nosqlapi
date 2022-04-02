@@ -7,7 +7,7 @@ import nosqlapi.columndb
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
-from nosqlapi.columndb.orm import Keyspace, Table, Column, Index
+from nosqlapi.columndb.odm import Keyspace, Table, Column, Index
 from nosqlapi.common.orm import Varchar, Varint, Timestamp
 
 
