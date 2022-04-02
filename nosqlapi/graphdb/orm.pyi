@@ -24,7 +24,7 @@
 from typing import Any, Union, Callable
 
 from nosqlapi.kvdb.orm import Keyspace
-from ..common.orm import Text
+from ..common.odm import Text
 
 
 class Label(Text): ...

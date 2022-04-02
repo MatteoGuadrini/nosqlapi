@@ -8,7 +8,7 @@ from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, Databa
                       SessionInsertingError, SessionClosingError, SessionDeletingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
 from nosqlapi.columndb.odm import Keyspace, Table, Column, Index
-from nosqlapi.common.orm import Varchar, Varint, Timestamp
+from nosqlapi.common.odm import Varchar, Varint, Timestamp
 
 
 # Below classes is a simple emulation of Cassandra like database
