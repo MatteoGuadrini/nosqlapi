@@ -23,4 +23,4 @@
 """Package graph NOSQL database."""
 
 from nosqlapi.graphdb.client import GraphConnection, GraphSelector, GraphSession, GraphResponse, GraphBatch
-from nosqlapi.graphdb.orm import Database, Label, Property, Node, Relationship, RelationshipType, Index, prop, node
+from nosqlapi.graphdb.odm import Database, Label, Property, Node, Relationship, RelationshipType, Index, prop, node
