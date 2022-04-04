@@ -28,7 +28,7 @@ from json import dumps
 
 from nosqlapi.common.odm import Uuid
 
-from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.kvdb.odm import Keyspace
 
 # endregion
 

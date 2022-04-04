@@ -22,7 +22,7 @@
 
 from typing import Any, Union, List, Iterator, Callable
 
-from nosqlapi.kvdb.orm import Keyspace as Ks
+from nosqlapi.kvdb.odm import Keyspace as Ks
 
 
 class Keyspace(Ks): ...

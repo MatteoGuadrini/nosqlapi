@@ -7,7 +7,7 @@ import nosqlapi.kvdb
 from nosqlapi import (ConnectError, DatabaseError, DatabaseCreationError, DatabaseDeletionError, SessionError,
                       SessionInsertingError, SessionClosingError, SessionDeletingError, SessionUpdatingError,
                       SessionFindingError, SelectorAttributeError, SessionACLError)
-from nosqlapi.kvdb.orm import Keyspace, Item, Transaction, Index
+from nosqlapi.kvdb.odm import Keyspace, Item, Transaction, Index
 
 
 # Below classes is a emulation of FoundationDB like database
