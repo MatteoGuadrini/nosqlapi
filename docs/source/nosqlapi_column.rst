@@ -3,7 +3,7 @@
 nosqlapi column
 ===============
 
-In this package we find abstract classes and ORM classes concerning the **column** database types.
+In this package we find abstract classes and ODM classes concerning the **column** database types.
 
 client module
 -------------
@@ -48,17 +48,17 @@ This is an example of a library for connecting to a `cassandra <https://cassandr
     sess = conn.connect()                   # Session object
     ...
 
-orm module
+odm module
 ----------
 
-The **orm** module contains the specific object for *column* databases.
+The **odm** module contains the specific object for *column* databases.
 
-.. automodule:: nosqlapi.columndb.orm
+.. automodule:: nosqlapi.columndb.odm
     :members:
     :special-members:
     :show-inheritance:
 
-orm example
+odm example
 ***********
 
 These objects represent the respective *column* in databases.
@@ -68,7 +68,7 @@ These objects represent the respective *column* in databases.
     import nosqlapi
     import mycolumndb
 
-    keyspace = nosqlapi.columndb.orm.Keyspace('new_db')     # in short -> nosqlapi.columndb.Keyspace('new_db')
+    keyspace = nosqlapi.columndb.odm.Keyspace('new_db')     # in short -> nosqlapi.columndb.Keyspace('new_db')
     # Make columns
     id = nosqlapi.columndb.Column('id', of_type=int)
     id.auto_increment = True                                # increment automatically

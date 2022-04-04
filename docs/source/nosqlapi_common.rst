@@ -3,8 +3,8 @@
 nosqlapi common
 ===============
 
-In this package you will find the modules that contain common interfaces and `ORMs <https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping>`_
-(Object-relational mapping), shared by all four types of NOSQL database.
+In this package you will find the modules that contain common interfaces and `ODMs <https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping>`_
+(Object-Data Mapping), shared by all four types of NOSQL database.
 
 core module
 -----------
@@ -77,21 +77,21 @@ The exceptions stated in this form are used in certain circumstances. See the `t
     raise nosqlapi.UnknownError('in short')
 
 
-orm module
+odm module
 ----------
 
-In the **orm** module, we find generic classes represent real objects present in various NOSQL databases.
+In the **odm** module, we find generic classes represent real objects present in various NOSQL databases.
 
 .. note::
     These objects are not mandatory for the implementation of their own NOSQL module.
     Rather they serve to help the end user have some consistency in python.
 
-.. automodule:: nosqlapi.common.orm
+.. automodule:: nosqlapi.common.odm
     :members:
     :special-members:
     :show-inheritance:
 
-orm example
+odm example
 ***********
 
 The classes within the module are python representations of real objects in the database.
@@ -100,7 +100,7 @@ The classes within the module are python representations of real objects in the 
 
     import nosqlapi
 
-    null = nosqlapi.common.orm.Null()     # compare with null object into database
+    null = nosqlapi.common.odm.Null()     # compare with null object into database
     null = nosqlapi.Null()                # in short
     map_ = nosqlapi.Map()                 # like dict
     inet = nosqlapi.Inet('192.168.1.1')   # ipv4/ipv6 addresses
