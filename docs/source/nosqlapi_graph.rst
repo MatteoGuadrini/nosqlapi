@@ -3,7 +3,7 @@
 nosqlapi graph
 ==============
 
-In this package we find abstract classes and ORM classes concerning the **graph** database types.
+In this package we find abstract classes and ODM classes concerning the **graph** database types.
 
 client module
 -------------
@@ -48,17 +48,17 @@ This is an example of a library for connecting to a `neo4j <https://neo4j.com/>`
     sess = conn.connect()                   # Session object
     ...
 
-orm module
+odm module
 ----------
 
-The **orm** module contains the specific object for *graph* databases.
+The **odm** module contains the specific object for *graph* databases.
 
-.. automodule:: nosqlapi.graphdb.orm
+.. automodule:: nosqlapi.graphdb.odm
     :members:
     :special-members:
     :show-inheritance:
 
-orm example
+odm example
 ***********
 
 These objects represent the respective *graph* in databases.
@@ -69,7 +69,7 @@ These objects represent the respective *graph* in databases.
     import mygraphdb
 
     # Create database
-    db = nosqlapi.graphdb.orm.Database('test')
+    db = nosqlapi.graphdb.odm.Database('test')
     # Create nodes
     node1 = nosqlapi.graphdb.Node(var='n1', labels=[nosqlapi.graphdb.Label('Person')],
                                   properties=nosqlapi.graphdb.Property({'name': 'Matteo', 'age': 35}))

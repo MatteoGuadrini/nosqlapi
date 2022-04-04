@@ -3,7 +3,7 @@
 nosqlapi key-value
 ==================
 
-In this package we find abstract classes and ORM classes concerning the **Key-Value** database types.
+In this package we find abstract classes and ODM classes concerning the **Key-Value** database types.
 
 client module
 -------------
@@ -49,17 +49,17 @@ This is an example of a library for connecting to a `redis <https://redis.io/>`_
     sess = conn.connect()                   # Session object
     ...
 
-orm module
+odm module
 ----------
 
-The **orm** module contains the specific object for *key-value* databases.
+The **odm** module contains the specific object for *key-value* databases.
 
-.. automodule:: nosqlapi.kvdb.orm
+.. automodule:: nosqlapi.kvdb.odm
     :members:
     :special-members:
     :show-inheritance:
 
-orm example
+odm example
 ***********
 
 These objects represent the respective *key-value* in databases.
@@ -68,7 +68,7 @@ These objects represent the respective *key-value* in databases.
 
     import nosqlapi
 
-    transaction = nosqlapi.kvdb.orm.Transaction()       # in short -> nosqlapi.kvdb.Transaction()
+    transaction = nosqlapi.kvdb.odm.Transaction()       # in short -> nosqlapi.kvdb.Transaction()
     # Add commands
     transaction.add('ACL LIST')
     transaction.add('ACL DELUSER test')
