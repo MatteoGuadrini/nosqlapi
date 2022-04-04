@@ -23,7 +23,7 @@
 
 from typing import Any, Union, Callable
 
-from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.kvdb.odm import Keyspace
 from ..common.odm import Text
 
 

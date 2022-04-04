@@ -27,7 +27,7 @@ from collections import namedtuple
 from functools import wraps
 
 from nosqlapi.common import Counter
-from nosqlapi.kvdb.orm import Keyspace as Ks
+from nosqlapi.kvdb.odm import Keyspace as Ks
 
 # endregion
 

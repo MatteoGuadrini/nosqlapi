@@ -23,7 +23,7 @@
 from typing import Union, Any, Iterator, Callable
 
 from nosqlapi.common.odm import Uuid
-from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.kvdb.odm import Keyspace
 
 
 class Database(Keyspace): ...
