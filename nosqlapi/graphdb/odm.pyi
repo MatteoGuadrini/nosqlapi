@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# orm stub -- nosqlapi
+# odm stub -- nosqlapi
 #
 #     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -23,8 +23,8 @@
 
 from typing import Any, Union, Callable
 
-from nosqlapi.kvdb.orm import Keyspace
-from ..common.orm import Text
+from nosqlapi.kvdb.odm import Keyspace
+from ..common.odm import Text
 
 
 class Label(Text): ...

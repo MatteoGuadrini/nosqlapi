@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# orm stub -- nosqlapi
+# odm stub -- nosqlapi
 #
 #     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -22,7 +22,7 @@
 
 from typing import Any, Union, List, Iterator, Callable
 
-from nosqlapi.kvdb.orm import Keyspace as Ks
+from nosqlapi.kvdb.odm import Keyspace as Ks
 
 
 class Keyspace(Ks): ...
@@ -38,7 +38,7 @@ class Table:
 
     def __init__(self, name: str, *columns: Column, **options: Any) -> None:
         self._name: str = name
-        self._columns: List[Column] = [column for column in columns]
+        self._columns: List[Column] = [col for col in columns]
         self._options: dict = options
         self._index: list = []
 

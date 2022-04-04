@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# orm stub -- nosqlapi
+# odm stub -- nosqlapi
 #
 #     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -22,8 +22,8 @@
 
 from typing import Union, Any, Iterator, Callable
 
-from nosqlapi.common.orm import Uuid
-from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.common.odm import Uuid
+from nosqlapi.kvdb.odm import Keyspace
 
 
 class Database(Keyspace): ...

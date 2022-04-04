@@ -19,7 +19,7 @@ Let's prepare the steps:
 
 * Create a package (directory with an ``__init__.py`` file) named **pycouch**.
 * write ``core.py``, with core classes and functions.
-* write ``utils.py``, with utility classes and function, like ORM objects.
+* write ``utils.py``, with utility classes and function, like ODM objects.
 
 Core
 ----
@@ -648,7 +648,7 @@ Utils
 -----
 
 The **utils** classes and functions they map objects that represent data on the CouchDB server.
-These types of objects are called *ORMs*.
+These types of objects are called *ODMs*.
 
 Create a ``utils.py`` module.
 
@@ -678,7 +678,7 @@ We will call it ``connect()``.
                     database=None, ca_cert=None, ca_bundle=None)
         return conn.connect()
 
-ORM classes
+ODM classes
 ***********
 
 Now let's define a ``DesignDocument`` class, which will represent a design document in the CouchDB server.
@@ -719,7 +719,7 @@ Now let's define a ``PermissionDocument`` class, which will represent a permissi
             self['members'] = {"names": [], "roles": []} if not members else members
 
 .. note::
-    Now that we have defined some classes that represent documents, we can adapt our methods of the Session class around these ORM types.
+    Now that we have defined some classes that represent documents, we can adapt our methods of the Session class around these ODM types.
 
 If you want to see more examples, clone the official repository of ``nosqlapi`` and find in the *tests* folder all the examples for each type of database.
 

@@ -1,6 +1,6 @@
 import unittest
 import nosqlapi.docdb
-from nosqlapi.docdb.orm import Database, Document, Index, Collection
+from nosqlapi.docdb.odm import Database, Document, Index, Collection
 from typing import Union
 import json
 from unittest import mock

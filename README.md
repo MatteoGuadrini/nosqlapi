@@ -637,15 +637,15 @@ print(type(resp))      # <class 'Neo4jResponse'>
 
 ```
 
-### ORM (Object-relational mapping)
-For each type of NOSQL database there is an _ORM (Object-relational mapping)_ module that contains classes and functions relating to the mapping of 
+### ODM (Object-Data Mapping)
+For each type of NOSQL database there is an _ODM (Object-relational mapping)_ module that contains classes and functions relating to the mapping of 
 objects and/or operations concerning the specific database _CRUD operation_.
 
-In the `nosqlapi.common.orm` module there are also classes that represent the data types of databases.
+In the `nosqlapi.common.odm` module there are also classes that represent the data types of databases.
 
 ```pycon
->>> import nosqlapi.common.orm
->>> [t for t in dir(nosqlapi.common.orm) if not t.startswith('__')]
+>>> import nosqlapi.common.odm
+>>> [t for t in dir(nosqlapi.common.odm) if not t.startswith('__')]
 ['Array', 'Ascii', 'Blob', 'Boolean', 'Counter', 'Date', 'Dc', 'Decimal', 'Double', 'Duration', 'Float', 'Inet', 'Int', 
 'List', 'Map', 'Null', 'SmallInt', 'Text', 'Time', 'Timestamp', 'Uuid', 'Varchar']
 ```

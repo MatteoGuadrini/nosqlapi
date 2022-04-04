@@ -3,7 +3,7 @@
 nosqlapi document
 =================
 
-In this package we find abstract classes and ORM classes concerning the **document** database types.
+In this package we find abstract classes and ODM classes concerning the **document** database types.
 
 client module
 -------------
@@ -49,17 +49,17 @@ This is an example of a library for connecting to a `mongodb <https://www.mongod
     sess = conn.connect()                   # Session object
     ...
 
-orm module
+odm module
 ----------
 
-The **orm** module contains the specific object for *document* databases.
+The **odm** module contains the specific object for *document* databases.
 
-.. automodule:: nosqlapi.docdb.orm
+.. automodule:: nosqlapi.docdb.odm
     :members:
     :special-members:
     :show-inheritance:
 
-orm example
+odm example
 ***********
 
 These objects represent the respective *document* in databases.
@@ -70,7 +70,7 @@ These objects represent the respective *document* in databases.
     import mydocdb
 
     # Create database
-    db = nosqlapi.docdb.orm.Database('test')
+    db = nosqlapi.docdb.odm.Database('test')
     # Create documents
     doc1 = nosqlapi.docdb.Document(oid=1)
     doc2 = nosqlapi.docdb.Document(oid=2)

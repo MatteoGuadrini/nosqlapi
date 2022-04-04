@@ -3,7 +3,7 @@
 # vim: se ts=4 et syn=python:
 
 # created by: matteo.guadrini
-# orm -- nosqlapi
+# odm -- nosqlapi
 #
 #     Copyright (C) 2022 Matteo Guadrini <matteo.guadrini@hotmail.it>
 #
@@ -20,15 +20,15 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""ORM module for document NOSQL database."""
+"""ODM module for document NOSQL database."""
 
 # region Imports
 from functools import wraps
 from json import dumps
 
-from nosqlapi.common.orm import Uuid
+from nosqlapi.common.odm import Uuid
 
-from nosqlapi.kvdb.orm import Keyspace
+from nosqlapi.kvdb.odm import Keyspace
 
 # endregion
 
