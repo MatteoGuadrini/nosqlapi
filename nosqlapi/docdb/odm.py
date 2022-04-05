@@ -103,6 +103,9 @@ class Collection:
     def __iter__(self):
         return (doc for doc in self.docs)
 
+    def __bool__(self):
+        return True if self.docs else False
+
 
 class Document:
 
