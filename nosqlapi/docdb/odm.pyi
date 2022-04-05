@@ -54,6 +54,8 @@ class Collection:
 
     def __iter__(self) -> Iterator: ...
 
+    def __bool__(self) -> bool: ...
+
 
 class Document:
     id: Union[str, Uuid]
